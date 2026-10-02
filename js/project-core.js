@@ -485,13 +485,15 @@
     if(Number(p.latitude) && Number(p.longitude)) place.geo = { "@type":"GeoCoordinates", latitude:Number(p.latitude), longitude:Number(p.longitude) };
     graph.push(place);
 
-    /* City and locality hub pages (/projects/<city>/...) are not
-       built yet, so the breadcrumb only names pages that exist.
-       Add them here once build/generate.js writes those hubs. */
+    /* Home > City > Locality > Project; build/hubs.js writes the
+       city and locality pages these point to. */
+    const citySlug = slugify(p.city), localitySlug = slugify(p.locality);
     const crumbs = [
       { name:"Home", item: siteUrl + "/" },
+      citySlug ? { name:p.city, item: `${siteUrl}/projects/${citySlug}/` } : null,
+      citySlug && localitySlug ? { name:p.locality, item: `${siteUrl}/projects/${citySlug}/${localitySlug}/` } : null,
       { name:p.name, item: pageUrl }
-    ];
+    ].filter(Boolean);
     graph.push({
       "@type": "BreadcrumbList",
       itemListElement: crumbs.map((c, i) => ({ "@type":"ListItem", position:i + 1, name:c.name, item:c.item }))

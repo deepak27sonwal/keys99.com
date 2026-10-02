@@ -126,8 +126,9 @@ function fillSection(sectionId, containerId, html){
   $(sectionId).classList.toggle("hidden", !html.trim());
 }
 
-function setCrumb(id, text){
+function setCrumb(id, text, path){
   $(id).textContent = text;
+  if(path) $(id).href = SITE_ROOT + "projects/" + path + "/";
   $(id).classList.toggle("hidden", !text);
   $(id + "Sep").classList.toggle("hidden", !text);
 }
@@ -137,8 +138,9 @@ function renderProject(p){
 
   setText("propertyName", p.name);
   setText("crumbName", p.name);
-  setCrumb("crumbCity", p.city);
-  setCrumb("crumbLocality", p.locality);
+  const citySlug = P.slugify(p.city), localitySlug = P.slugify(p.locality);
+  setCrumb("crumbCity", p.city, citySlug);
+  setCrumb("crumbLocality", p.locality, citySlug && localitySlug ? citySlug + "/" + localitySlug : "");
   setText("miniBreadcrumb", p.typeLabel);
   setText("propertyType", p.typeLabel);
   setText("developer", p.developer || "—");

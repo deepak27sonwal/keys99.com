@@ -23,7 +23,9 @@ const EXPORTS = [
   "mapResidentialProject", "createPropertyCard", "cityCardHtml", "localityChipHtml",
   "computeTopCities", "computeTopLocalities", "computeSiteStats",
   "formatStatCount", "typeCountText",
-  "POPULAR_COUNT", "NEW_LAUNCH_COUNT", "TOP_CITY_COUNT", "TOP_LOCALITY_COUNT"
+  "POPULAR_COUNT", "NEW_LAUNCH_COUNT", "TOP_CITY_COUNT", "TOP_LOCALITY_COUNT",
+  "slugify", "titleCaseName", "formatPrice", "getNumericPrice", "getBhkOptions",
+  "normaliseBhkType", "escapeHtml"
 ];
 
 /* A constant is safe to evaluate when its value is built only from
@@ -103,4 +105,4 @@ function buildHomepage(indexPath, rows, supabaseUrl){
   return { projects: props.length, stats };
 }
 
-module.exports = { buildHomepage };
+module.exports = { buildHomepage, loadHomepageFunctions };

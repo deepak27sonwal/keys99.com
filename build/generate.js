@@ -23,7 +23,13 @@ const fs = require("fs");
 const path = require("path");
 const cheerio = require("cheerio");
 const P = require("../js/project-core.js");
-const { buildHomepage } = require("./homepage.js");
+const { buildHomepage, loadHomepageFunctions } = require("./homepage.js");
+const { buildHubs } = require("./hubs.js");
+
+/* City/locality hubs with a single project are thin; they are built
+   (the homepage links to them) but kept out of the index and the
+   sitemap until they list at least this many projects. */
+const HUB_MIN_INDEXED = 2;
 
 const ROOT = path.resolve(__dirname, "..");
 const TEMPLATE = path.join(ROOT, "projects", "property-details.html");
@@ -149,8 +155,10 @@ function buildPage(template, row, config){
 
   $("#propertyName").text(p.name);
   $("#crumbName").text(p.name);
-  [["#crumbCity", p.city], ["#crumbLocality", p.locality]].forEach(([sel, text]) => {
+  const citySlug = P.slugify(p.city), localitySlug = P.slugify(p.locality);
+  [["#crumbCity", p.city, citySlug], ["#crumbLocality", p.locality, citySlug && localitySlug ? `${citySlug}/${localitySlug}` : ""]].forEach(([sel, text, hubPath]) => {
     $(sel).text(text);
+    if(hubPath) $(sel).attr("href", `${hubPath}/`);   // template links are relative to projects/
     toggle($, sel, !!text);
     toggle($, sel + "Sep", !!text);
   });
@@ -217,24 +225,32 @@ function removeStalePages(current){
   let previous = [];
   try{ previous = JSON.parse(fs.readFileSync(MANIFEST, "utf8")); }catch(_){}
 
-  previous.filter(slug => SLUG_RE.test(slug) && !current.includes(slug)).forEach(slug => {
-    const dir = path.join(ROOT, "projects", slug);
-    const file = path.join(dir, "index.html");
-    if(fs.existsSync(file)) fs.unlinkSync(file);
-    try{ fs.rmdirSync(dir); }catch(_){}   // only removes the folder if nothing else is in it
-    console.log("  removed  /projects/" + slug + "/");
-  });
+  /* Entries are project slugs and hub paths ("pune", "pune/moshi").
+     Deepest first, so a city folder is only removed once empty. */
+  const valid = entry => entry.split("/").every(seg => SLUG_RE.test(seg));
+  previous
+    .filter(entry => valid(entry) && !current.includes(entry))
+    .sort((a, b) => b.split("/").length - a.split("/").length)
+    .forEach(entry => {
+      const dir = path.join(ROOT, "projects", ...entry.split("/"));
+      const file = path.join(dir, "index.html");
+      if(fs.existsSync(file)) fs.unlinkSync(file);
+      try{ fs.rmdirSync(dir); }catch(_){}   // only removes the folder if nothing else is in it
+      console.log("  removed  /projects/" + entry + "/");
+    });
 
   fs.writeFileSync(MANIFEST, JSON.stringify(current.sort(), null, 2) + "\n");
 }
 
-function writeSitemap(pages){
+function writeSitemap(pages, hubs){
   const day = v => {
     const d = new Date(v);
     return Number.isFinite(d.getTime()) ? d.toISOString().slice(0, 10) : "";
   };
   const urls = [
     { loc: SITE_ORIGIN + "/", lastmod: "" },
+    ...(hubs || []).filter(h => h.count >= HUB_MIN_INDEXED)
+      .map(h => ({ loc: `${SITE_ORIGIN}/projects/${h.path}/`, lastmod: day(h.lastmod) })),
     ...pages.map(p => ({ loc: `${SITE_ORIGIN}/projects/${p.slug}/`, lastmod: day(p.lastmod) }))
   ];
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
@@ -272,13 +288,33 @@ async function main(){
     console.log("  wrote    /projects/" + page.slug + "/");
   }
 
-  removeStalePages(pages.map(p => p.slug));
-  writeSitemap(pages);
+  /* City + locality hubs, from the same projects. */
+  const indexPath = path.join(ROOT, "index.html");
+  const goodRows = rows.filter(r => r && SLUG_RE.test(String(r.slug || "")));
+  const H = loadHomepageFunctions(fs.readFileSync(indexPath, "utf8"), config.url);
+  const hubs = buildHubs({
+    H,
+    indexHtml: fs.readFileSync(indexPath, "utf8"),
+    props: goodRows.map(row => H.mapResidentialProject(row)),
+    reservedSlugs: new Set([...pages.map(p => p.slug), "property-details", "search"]),
+    siteOrigin: SITE_ORIGIN,
+    robots: count => !INDEXABLE ? "noindex,nofollow"
+      : count >= HUB_MIN_INDEXED ? "index,follow,max-image-preview:large" : "noindex,follow"
+  });
+  hubs.forEach(hub => {
+    const dir = path.join(ROOT, "projects", ...hub.path.split("/"));
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, "index.html"), hub.html);
+    console.log(`  wrote    /projects/${hub.path}/  (${hub.count} project${hub.count === 1 ? "" : "s"})`);
+  });
 
-  const home = buildHomepage(path.join(ROOT, "index.html"), rows.filter(r => r && SLUG_RE.test(String(r.slug || ""))), config.url);
+  removeStalePages([...pages.map(p => p.slug), ...hubs.map(h => h.path)]);
+  writeSitemap(pages, hubs);
+
+  const home = buildHomepage(indexPath, goodRows, config.url);
   console.log(`  wrote    / (homepage sections: ${home.projects} projects, ${home.stats.cities} cities)`);
 
-  console.log(`\n  ${pages.length} project page(s), sitemap.xml updated` +
+  console.log(`\n  ${pages.length} project page(s), ${hubs.length} city/locality page(s), sitemap.xml updated` +
     (INDEXABLE ? "" : "\n  pages are noindex (set SITE_INDEXABLE=true at launch)"));
 }
 
