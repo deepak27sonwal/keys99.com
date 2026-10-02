@@ -18,6 +18,7 @@ const fs = require("fs");
 const vm = require("vm");
 const acorn = require("acorn");
 const cheerio = require("cheerio");
+const { summarise, introText, faqs, listText } = require("./hubs");
 
 const EXPORTS = [
   "mapResidentialProject", "createPropertyCard", "cityCardHtml", "localityChipHtml",
@@ -25,7 +26,7 @@ const EXPORTS = [
   "formatStatCount", "typeCountText",
   "POPULAR_COUNT", "NEW_LAUNCH_COUNT", "TOP_CITY_COUNT", "TOP_LOCALITY_COUNT",
   "slugify", "titleCaseName", "formatPrice", "getNumericPrice", "getBhkOptions",
-  "normaliseBhkType", "escapeHtml"
+  "normaliseBhkType", "escapeHtml", "cityUrl", "localityUrl"
 ];
 
 /* A constant is safe to evaluate when its value is built only from
@@ -126,6 +127,69 @@ function applyHomepageSeo(H, html, props){
   return html;
 }
 
+/* Buyer's guide: an intro and FAQs written from the live numbers,
+   plus a few general questions, so the homepage has real text for
+   search engines to read. The same FAQs go into FAQPage JSON-LD. */
+function generalFaqs(place){
+  return [
+    {
+      q: "How do I check whether a project is RERA registered?",
+      a: "Each project page shows the RERA registration number provided for that project. Before you pay a booking amount, look the number up on your state's RERA portal - MahaRERA for projects in Maharashtra - and check the project details and approvals listed there."
+    },
+    {
+      q: "What is the difference between a new launch, under-construction and ready-to-move project?",
+      a: "A new launch has just opened for booking and usually has the widest choice of units, with possession several years away. An under-construction project is being built, with a possession date set by the developer. A ready-to-move project is complete, so you can see the finished home before you buy."
+    },
+    {
+      q: `How do I enquire about a project in ${place}?`,
+      a: "Open the project page and use the Enquire Now form. Your name, number and message go to the Keys99 team and the agent assigned to that project, who will contact you with prices, floor plans and site-visit times."
+    }
+  ];
+}
+
+function buildGuide(H, props){
+  const cities = H.computeTopCities(props, 50);
+  if(!cities.length) return { html: "", faqs: [] };
+
+  const place = placeText(cities.map(c => H.titleCaseName(c.city)));
+  const s = summarise(H, props);
+  const questions = [...faqs(H, s, place), ...generalFaqs(place)];
+  const localities = H.computeTopLocalities(props, 12);
+  const e = H.escapeHtml;
+  const link = (href, text) => `<a href="${e(href)}">${e(text)}</a>`;
+
+  const browse = [
+    cities.length > 1 || !localities.length
+      ? `Browse by city: ${listText(cities.map(c => link(H.cityUrl(c.city), H.titleCaseName(c.city))))}.`
+      : `See ${link(H.cityUrl(cities[0].city), "all new projects in " + H.titleCaseName(cities[0].city))}.`,
+    localities.length
+      ? `Popular localities: ${listText(localities.map(l => link(H.localityUrl(l.city, l.locality), H.titleCaseName(l.locality))))}.`
+      : ""
+  ].filter(Boolean).join(" ");
+
+  const html = `
+<section id="guide" class="home-guide" aria-labelledby="guideTitle">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <div class="section-kicker">Buyer's Guide</div>
+        <h2 class="section-title" id="guideTitle">New Residential Projects in ${e(place)}</h2>
+      </div>
+    </div>
+    <p class="home-guide-intro">${e(introText(H, s, place))}</p>
+    <p class="home-guide-links">${browse}</p>
+    <h3>Frequently Asked Questions</h3>
+    <div class="hub-faqs">${questions.map(f => `
+      <details class="hub-faq">
+        <summary>${e(f.q)}</summary>
+        <p>${e(f.a)}</p>
+      </details>`).join("")}
+    </div>
+  </div>
+</section>`;
+  return { html, faqs: questions };
+}
+
 function buildHomepage(indexPath, rows, supabaseUrl){
   let html = fs.readFileSync(indexPath, "utf8");
   const H = loadHomepageFunctions(html, supabaseUrl);
@@ -151,6 +215,15 @@ function buildHomepage(indexPath, rows, supabaseUrl){
     (_, open, key, close) => open + H.typeCountText(stats.types[key]) + close);
 
   html = applyHomepageSeo(H, html, props);
+
+  const guide = buildGuide(H, props);
+  html = replaceBetween(html, "guide", guide.html);
+  const faqLd = guide.faqs.length ? `<script type="application/ld+json">${JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: guide.faqs.map(f => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } }))
+  }).replace(/</g, "\\u003c")}</script>` : "";
+  html = replaceBetween(html, "faqld", faqLd);
 
   fs.writeFileSync(indexPath, html);
   return { projects: props.length, stats };

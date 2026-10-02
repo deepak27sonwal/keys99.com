@@ -124,50 +124,7 @@
   gap:10px;
 }
 
-.hub-faqs{
-  display:grid;
-  gap:10px;
-  max-width:860px;
-}
-
-.hub-faq{
-  border:1px solid #d3e0dc;
-  border-radius:12px;
-  background:#fff;
-  overflow:hidden;
-}
-
-.hub-faq summary{
-  position:relative;
-  padding:14px 40px 14px 16px;
-  font-size:14px;
-  font-weight:700;
-  color:var(--ink);
-  cursor:pointer;
-  list-style:none;
-}
-
-.hub-faq summary::-webkit-details-marker{ display:none; }
-
-.hub-faq summary:after{
-  content:"+";
-  position:absolute;
-  right:16px;
-  top:50%;
-  transform:translateY(-50%);
-  font-size:18px;
-  color:var(--green);
-}
-
-.hub-faq[open] summary:after{ content:"–"; }
-
-.hub-faq p{
-  margin:0;
-  padding:0 16px 15px;
-  font-size:13px;
-  line-height:1.6;
-  color:#3d5560;
-}
+/* FAQ styles live in css/index.css (the homepage uses them too). */
 
 @media (max-width:560px){
   .hub-grid{ grid-template-columns:1fr; }

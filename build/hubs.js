@@ -378,4 +378,4 @@ function buildHubs({ H, indexHtml, props, reservedSlugs, siteOrigin, robots }){
   return collectHubs(H, props, reservedSlugs).map(hub => hubPage(ctx, hub));
 }
 
-module.exports = { buildHubs, homepageChrome, rebase };
+module.exports = { buildHubs, homepageChrome, rebase, summarise, introText, faqs, listText };
