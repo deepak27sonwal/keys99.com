@@ -47,7 +47,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/index.css">
 <link rel="stylesheet" href="css/chat-widget.css">
 <link rel="stylesheet" href="css/custom-select.css">
@@ -57,7 +57,7 @@
      a domain we do not control. Deferred scripts still run in document
      order, and all run before DOMContentLoaded - which is where
      loadHomepage() is called from, so supabaseClient exists by then. -->
-<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
 
 </head>
 
@@ -2256,6 +2256,30 @@ function getImageUrl(property){
   return "assets/property-placeholder.svg";
 }
 
+/* Cards show a small WebP copy of the main photo that the build
+   makes (build/thumbs.js) instead of the full upload, which is
+   often 1-2 MB. The file name is a hash of the photo's URL, so the
+   page can work it out without a lookup. A project added since the
+   last build has no thumbnail yet: the img's onerror then loads the
+   original photo from data-full. */
+const THUMB_DIR = "assets/thumbs/";
+
+function thumbName(url){
+  let hash = 0x811c9dc5;                       // 32-bit FNV-1a
+  for(let i = 0; i < url.length; i++){
+    hash ^= url.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193) >>> 0;
+  }
+  return hash.toString(16).padStart(8, "0") + ".webp";
+}
+
+function getCardImage(property){
+  const full = getImageUrl(property);
+  return /^https?:\/\//i.test(full)
+    ? { src: THUMB_DIR + thumbName(full), full }
+    : { src: full, full: "" };
+}
+
 function escapeHtml(value){
   return String(value ?? "")
     .replace(/&/g, "&amp;")
@@ -2338,7 +2362,7 @@ function createPropertyCard(property, badgeLabel, badgeClass){
 
   const category = getCategory(property);
 
-  const image = getImageUrl(property);
+  const image = getCardImage(property);
   const imageAlt = title + " " + location;
 
   const searchText = getSearchText(property);
@@ -2412,12 +2436,14 @@ function createPropertyCard(property, badgeLabel, badgeClass){
       <div class="property-image">
 
         <img
-          src="${escapeHtml(image)}"
+          src="${escapeHtml(image.src)}"
+          ${image.full ? `data-full="${escapeHtml(image.full)}"` : ""}
           alt="${escapeHtml(imageAlt)}"
           loading="lazy"
+          decoding="async"
           width="400"
           height="300"
-          onerror="this.src='assets/property-placeholder.svg'"
+          onerror="if(this.dataset.full){this.src=this.dataset.full;this.dataset.full=''}else{this.onerror=null;this.src='assets/property-placeholder.svg'}"
         >
 
         <span class="badge ${statusClass}">${escapeHtml(status)}</span>

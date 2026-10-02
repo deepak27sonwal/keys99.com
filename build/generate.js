@@ -24,6 +24,7 @@ const path = require("path");
 const cheerio = require("cheerio");
 const P = require("../js/project-core.js");
 const { buildHomepage, loadHomepageFunctions } = require("./homepage.js");
+const { buildThumbs } = require("./thumbs.js");
 const { buildHubs } = require("./hubs.js");
 const { buildSearchPage } = require("./search.js");
 const { buildLegalPages } = require("./legal.js");
@@ -315,6 +316,10 @@ async function main(){
     H, indexHtml: fs.readFileSync(indexPath, "utf8"), props: allProps, siteOrigin: SITE_ORIGIN
   }));
   console.log(`  wrote    /projects/search.html  (${allProps.length} projects)`);
+
+  const thumbs = await buildThumbs({ H, props: allProps, root: ROOT });
+  console.log(`  thumbnails: ${thumbs.made} made, ${thumbs.kept} kept, ${thumbs.removed} removed` +
+    (thumbs.failed ? `, ${thumbs.failed} failed (those cards use the original photo)` : ""));
 
   buildLegalPages({ root: ROOT, indexHtml: fs.readFileSync(indexPath, "utf8"), siteOrigin: SITE_ORIGIN, robots: ROBOTS })
     .forEach(page => {

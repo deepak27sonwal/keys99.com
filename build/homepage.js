@@ -26,7 +26,8 @@ const EXPORTS = [
   "formatStatCount", "typeCountText",
   "POPULAR_COUNT", "NEW_LAUNCH_COUNT", "TOP_CITY_COUNT", "TOP_LOCALITY_COUNT",
   "slugify", "titleCaseName", "formatPrice", "getNumericPrice", "getBhkOptions",
-  "normaliseBhkType", "escapeHtml", "cityUrl", "localityUrl"
+  "normaliseBhkType", "escapeHtml", "cityUrl", "localityUrl",
+  "getImageUrl", "thumbName", "THUMB_DIR"
 ];
 
 /* A constant is safe to evaluate when its value is built only from
