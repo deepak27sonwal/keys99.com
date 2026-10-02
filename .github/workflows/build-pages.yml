@@ -14,6 +14,7 @@ on:
     branches: [main]
     paths:
       - "projects/property-details.html"
+      - "index.html"
       - "js/project-core.js"
       - "build/**"
       - "package.json"
@@ -44,7 +45,7 @@ jobs:
         run: |
           git config user.name "keys99-build"
           git config user.email "actions@users.noreply.github.com"
-          git add projects sitemap.xml
+          git add projects sitemap.xml index.html
           if git diff --cached --quiet; then
             echo "No changes"
           else

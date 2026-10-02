@@ -23,6 +23,7 @@ const fs = require("fs");
 const path = require("path");
 const cheerio = require("cheerio");
 const P = require("../js/project-core.js");
+const { buildHomepage } = require("./homepage.js");
 
 const ROOT = path.resolve(__dirname, "..");
 const TEMPLATE = path.join(ROOT, "projects", "property-details.html");
@@ -273,6 +274,9 @@ async function main(){
 
   removeStalePages(pages.map(p => p.slug));
   writeSitemap(pages);
+
+  const home = buildHomepage(path.join(ROOT, "index.html"), rows.filter(r => r && SLUG_RE.test(String(r.slug || ""))), config.url);
+  console.log(`  wrote    / (homepage sections: ${home.projects} projects, ${home.stats.cities} cities)`);
 
   console.log(`\n  ${pages.length} project page(s), sitemap.xml updated` +
     (INDEXABLE ? "" : "\n  pages are noindex (set SITE_INDEXABLE=true at launch)"));

@@ -327,26 +327,26 @@
 
       <div class="stat">
         <div class="stat-icon">⌂</div>
-        <strong>10,000+</strong>
-        <span>Properties Listed</span>
+        <strong data-stat="projects">—</strong>
+        <span>Projects Listed</span>
       </div>
 
       <div class="stat">
         <div class="stat-icon">▥</div>
-        <strong>500+</strong>
-        <span>Trusted Developers</span>
+        <strong data-stat="developers">—</strong>
+        <span>Developers</span>
       </div>
 
       <div class="stat">
         <div class="stat-icon">⌖</div>
-        <strong>50+</strong>
+        <strong data-stat="cities">—</strong>
         <span>Cities Covered</span>
       </div>
 
       <div class="stat">
         <div class="stat-icon">♢</div>
-        <strong>100%</strong>
-        <span>Verified Listings</span>
+        <strong data-stat="rera">—</strong>
+        <span>RERA Registered</span>
       </div>
 
     </div>
@@ -393,7 +393,7 @@
           <div class="type-row">
             <div>
               <h3>Residential</h3>
-              <p>5,240+ Properties</p>
+              <p data-type-count="residential">—</p>
             </div>
             <span class="arrow">→</span>
           </div>
@@ -408,7 +408,7 @@
           <div class="type-row">
             <div>
               <h3>Commercial</h3>
-              <p>1,320+ Properties</p>
+              <p data-type-count="commercial">—</p>
             </div>
             <span class="arrow">→</span>
           </div>
@@ -423,7 +423,7 @@
           <div class="type-row">
             <div>
               <h3>Plots & Land</h3>
-              <p>980+ Properties</p>
+              <p data-type-count="plots">—</p>
             </div>
             <span class="arrow">→</span>
           </div>
@@ -438,7 +438,7 @@
           <div class="type-row">
             <div>
               <h3>Luxury Homes</h3>
-              <p>420+ Properties</p>
+              <p data-type-count="luxury">—</p>
             </div>
             <span class="arrow">→</span>
           </div>
@@ -484,7 +484,8 @@
          and error states. -->
     <div id="newLaunchesState" class="property-state" style="display:none">Loading new launches...</div>
 
-    <div class="property-scroll" id="newLaunchesList"></div>
+    <div class="property-scroll" id="newLaunchesList"><!--keys99:newlaunches:start-->
+  <!--keys99:newlaunches:end--></div>
 
     <div class="scroll-hint" id="newLaunchesHint" style="display:none">Swipe to explore properties →</div>
 
@@ -1775,6 +1776,7 @@ async function loadHomepage(){
 
     allProperties = await fetchAllProperties();
 
+    renderSiteStats(allProperties);
     renderPopularProperties();
     renderNewLaunches();
     renderRecentlyViewed();
@@ -1786,6 +1788,16 @@ async function loadHomepage(){
   }catch(error){
 
     console.error("Failed to fetch properties:", error);
+
+    /* The build writes these sections into the HTML. If the live
+       refresh fails, keep that content rather than replacing real
+       listings with an error - for visitors and crawlers alike. */
+    if(propertyList.querySelector(".property-card")){
+      propertyLoading.style.display = "none";
+      attachPropertyEvents(propertyList);
+      attachPropertyEvents(newLaunchesList);
+      return;
+    }
 
     showPropertyError("Unable to load properties. Please try again.");
     showNewLaunchesError();
@@ -1956,6 +1968,70 @@ function renderRecentlyViewed(){
    TOP 5 CITIES -> click redirects to projects/search.html?city=...
 ========================================================= */
 
+/* =========================================================
+   SECTION MARKUP + SITE NUMBERS
+   Pure functions (no DOM): build/generate.js runs these same
+   functions to write the sections and numbers into index.html,
+   so crawlers see real content and links, and the live render
+   below produces identical markup.
+========================================================= */
+
+function cityCardHtml(item){
+  return `
+    <a class="city-card" href="${escapeHtml(cityUrl(item.city))}">
+      <div class="city-icon">⌖</div>
+      <strong>${escapeHtml(titleCaseName(item.city))}</strong>
+      <span>${item.count} ${item.count === 1 ? "Project" : "Projects"}</span>
+    </a>
+  `;
+}
+
+function localityChipHtml(item){
+  return `
+    <a class="locality-chip" href="${escapeHtml(localityUrl(item.city, item.locality))}">
+      <strong>${escapeHtml(titleCaseName(item.locality))}</strong>
+      <span>${escapeHtml(titleCaseName(item.city) || "—")}</span>
+      <span class="count">${item.count} ${item.count === 1 ? "Project" : "Projects"}</span>
+    </a>
+  `;
+}
+
+/* Real numbers for the stats bar and property-type cards,
+   counted from the published projects. */
+function computeSiteStats(properties){
+  const distinct = values => new Set(values.map(v => String(v || "").trim().toLowerCase()).filter(Boolean)).size;
+  const types = { residential:0, commercial:0, plots:0, luxury:0 };
+  properties.forEach(p => {
+    const category = getCategory(p);
+    if(category in types) types[category]++;
+  });
+  return {
+    projects: properties.length,
+    developers: distinct(properties.map(p => p.developer)),
+    cities: distinct(properties.map(p => p.city)),
+    rera: properties.filter(p => String(p.rera_id || "").trim()).length,
+    types
+  };
+}
+
+function formatStatCount(n){
+  return Number(n || 0).toLocaleString("en-IN");
+}
+
+function typeCountText(n){
+  return n ? `${formatStatCount(n)} ${n === 1 ? "Project" : "Projects"}` : "Coming soon";
+}
+
+function renderSiteStats(properties){
+  const stats = computeSiteStats(properties);
+  document.querySelectorAll("[data-stat]").forEach(el => {
+    el.textContent = formatStatCount(stats[el.dataset.stat]);
+  });
+  document.querySelectorAll("[data-type-count]").forEach(el => {
+    el.textContent = typeCountText(stats.types[el.dataset.typeCount]);
+  });
+}
+
 function computeTopCities(properties, limit){
 
   const counts = {};
@@ -1993,13 +2069,7 @@ function renderTopCities(){
      that let Google reach the generated city hubs at all, and
      they are keyboard-accessible for free. The hub shows the
      same listings the old search.html?city= link did. */
-  topCitiesList.innerHTML = cities.map(item => `
-    <a class="city-card" href="${escapeHtml(cityUrl(item.city))}">
-      <div class="city-icon">⌖</div>
-      <strong>${escapeHtml(titleCaseName(item.city))}</strong>
-      <span>${item.count} ${item.count === 1 ? "Property" : "Properties"}</span>
-    </a>
-  `).join("");
+  topCitiesList.innerHTML = cities.map(cityCardHtml).join("");
 
   topCitiesHint.style.display = cities.length > 1 ? "block" : "none";
 
@@ -2060,13 +2130,7 @@ function renderTopLocalities(){
     return;
   }
 
-  topLocalitiesList.innerHTML = localities.map(item => `
-    <a class="locality-chip" href="${escapeHtml(localityUrl(item.city, item.locality))}">
-      <strong>${escapeHtml(titleCaseName(item.locality))}</strong>
-      <span>${escapeHtml(titleCaseName(item.city) || "—")}</span>
-      <span class="count">${item.count} ${item.count === 1 ? "Property" : "Properties"}</span>
-    </a>
-  `).join("");
+  topLocalitiesList.innerHTML = localities.map(localityChipHtml).join("");
 
 }
 
