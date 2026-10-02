@@ -1089,28 +1089,86 @@ section{
    list of rows scrolls vertically when a property has many
    configs, so title/location/developer stay put above it. */
 
+.bhk-wrap{
+  position:relative;
+  margin-top:auto;
+  padding-top:11px;
+}
+
+/* Cards in a row stretch to the tallest one; keep the BHK row at the
+   bottom so rows line up across cards instead of leaving a gap. */
+#propertyList .property-card,
+#newLaunchesList .property-card,
+#recentlyViewedList .property-card{
+  display:flex;
+  flex-direction:column;
+}
+
+#propertyList .property-body,
+#newLaunchesList .property-body,
+#recentlyViewedList .property-body{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+}
+
+#propertyList .property-body > *,
+#newLaunchesList .property-body > *,
+#recentlyViewedList .property-body > *{
+  align-self:flex-start;
+  max-width:100%;
+}
+
+#propertyList .property-body > .bhk-wrap,
+#newLaunchesList .property-body > .bhk-wrap,
+#recentlyViewedList .property-body > .bhk-wrap{
+  align-self:stretch;
+}
+
+/* One BHK row visible; the rest scroll vertically, snapping a row
+   at a time. max-height is set from the first row by
+   fitBhkScrolls() in index.html (row height varies by screen);
+   the value here only applies before that runs. */
 .bhk-scroll{
   display:flex;
   flex-direction:column;
 
-  max-height:132px;
+  max-height:66px;
   overflow-y:auto;
+  overscroll-behavior:contain;
+
+  scroll-snap-type:y mandatory;
 
   gap:8px;
 
-  margin-top:11px;
-  padding-right:4px;
-
-  scrollbar-width:thin;
+  scrollbar-width:none;
 }
 
 .bhk-scroll::-webkit-scrollbar{
-  width:5px;
+  display:none;
 }
 
-.bhk-scroll::-webkit-scrollbar-thumb{
-  background:var(--line);
-  border-radius:10px;
+.bhk-scroll > .bhk-chip{
+  scroll-snap-align:start;
+}
+
+.bhk-count{
+  position:absolute;
+  top:3px;
+  right:8px;
+  z-index:1;
+
+  padding:1px 7px;
+
+  border-radius:999px;
+  background:var(--green);
+  color:#fff;
+
+  font-size:10px;
+  font-weight:700;
+  line-height:16px;
+
+  pointer-events:none;
 }
 
 .bhk-chip{

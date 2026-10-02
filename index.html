@@ -1427,8 +1427,11 @@ function createPropertyCard(property, badgeLabel, badgeClass){
 
         ${property.rera_id ? `<span class="rera-badge">✓ RERA</span>` : ""}
 
-        <div class="bhk-scroll">
-          ${bhkChips}
+        <div class="bhk-wrap">
+          <div class="bhk-scroll">
+            ${bhkChips}
+          </div>
+          ${options.length > 1 ? `<span class="bhk-count" aria-hidden="true">1/${options.length} ↕</span>` : ""}
         </div>
 
       </div>
@@ -1446,9 +1449,43 @@ function createPropertyCard(property, badgeLabel, badgeClass){
    property grid on the page.
 ========================================================= */
 
+/* =========================================================
+   BHK ROWS: show one configuration at a time
+   Each card shows a single BHK row; the rest scroll vertically,
+   one row per swipe. Row height changes with screen size, so the
+   box is sized from its first row rather than a fixed CSS value.
+========================================================= */
+
+function fitBhkScrolls(root){
+  (root || document).querySelectorAll(".bhk-scroll").forEach(scroll => {
+    const first = scroll.firstElementChild;
+    if(!first) return;
+    scroll.style.maxHeight = first.offsetHeight + "px";
+
+    const count = scroll.parentElement.querySelector(".bhk-count");
+    if(!count || scroll._bhkBound) return;
+    scroll._bhkBound = true;
+
+    const total = scroll.children.length;
+    scroll.addEventListener("scroll", () => {
+      const step = first.offsetHeight + (parseFloat(getComputedStyle(scroll).rowGap) || 0);
+      const index = Math.min(total, Math.round(scroll.scrollTop / step) + 1);
+      count.textContent = `${index}/${total} ↕`;
+    }, { passive:true });
+  });
+}
+
+let bhkResizeTimer;
+window.addEventListener("resize", () => {
+  clearTimeout(bhkResizeTimer);
+  bhkResizeTimer = setTimeout(() => fitBhkScrolls(document), 150);
+});
+
 function attachPropertyEvents(root){
 
   root = root || document;
+
+  fitBhkScrolls(root);
 
   root.querySelectorAll(".fav").forEach(btn => {
 
