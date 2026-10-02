@@ -84,6 +84,7 @@ ${chrome.footer}
 ${chrome.bottomNav}
 
 <script defer src="js/hub.js"></script>
+<script defer src="js/attribution.js"></script>
 </body>
 </html>
 `;

@@ -173,6 +173,7 @@ ${chrome.bottomNav}
 
 <script defer src="js/custom-select.js"></script>
 <script defer src="js/hub.js"></script>
+<script defer src="js/attribution.js"></script>
 <script defer src="js/search.js"></script>
 </body>
 </html>

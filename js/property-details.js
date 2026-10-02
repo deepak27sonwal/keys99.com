@@ -522,7 +522,7 @@ $("enquiryForm").addEventListener("submit", async event => {
   button.textContent = "Sending...";
 
   try{
-    const { error } = await supabaseClient.from("residential_enquiries").insert({
+    const enquiry = {
       project_id: project.id,
       contact_person: name,
       phone,
@@ -532,7 +532,16 @@ $("enquiryForm").addEventListener("submit", async event => {
       preferred_contact_method: "whatsapp",
       message: [message || `Interested in ${project.name}.`, bhk ? `Preferred BHK: ${bhk}` : ""].filter(Boolean).join("\n"),
       source: "website"
-    });
+    };
+
+    /* Where the visitor came from (js/attribution.js). If the database
+       does not have those columns yet (supabase/04-enquiry-source.sql
+       not run), send the enquiry without them rather than fail. */
+    const tracking = window.Keys99Attribution ? window.Keys99Attribution.get() : {};
+    let { error } = await supabaseClient.from("residential_enquiries").insert({ ...enquiry, ...tracking });
+    if(error && Object.keys(tracking).length && (error.code === "PGRST204" || /column/i.test(error.message || ""))){
+      ({ error } = await supabaseClient.from("residential_enquiries").insert(enquiry));
+    }
     if(error) throw error;
 
     showToast("Enquiry sent. Our expert will contact you soon.");
