@@ -26,6 +26,7 @@ const P = require("../js/project-core.js");
 const { buildHomepage, loadHomepageFunctions } = require("./homepage.js");
 const { buildHubs } = require("./hubs.js");
 const { buildSearchPage } = require("./search.js");
+const { buildLegalPages } = require("./legal.js");
 
 /* City/locality hubs with a single project are thin; they are built
    (the homepage links to them) but kept out of the index and the
@@ -314,6 +315,12 @@ async function main(){
     H, indexHtml: fs.readFileSync(indexPath, "utf8"), props: allProps, siteOrigin: SITE_ORIGIN
   }));
   console.log(`  wrote    /projects/search.html  (${allProps.length} projects)`);
+
+  buildLegalPages({ root: ROOT, indexHtml: fs.readFileSync(indexPath, "utf8"), siteOrigin: SITE_ORIGIN, robots: ROBOTS })
+    .forEach(page => {
+      fs.writeFileSync(path.join(ROOT, page.file), page.html);
+      console.log(`  wrote    /${page.file}`);
+    });
 
   removeStalePages([...pages.map(p => p.slug), ...hubs.map(h => h.path)]);
   writeSitemap(pages, hubs);

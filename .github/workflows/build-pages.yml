@@ -15,6 +15,7 @@ on:
     paths:
       - "projects/property-details.html"
       - "index.html"
+      - "content/**"
       - "js/project-core.js"
       - "build/**"
       - "package.json"
@@ -54,7 +55,7 @@ jobs:
             npm install --no-audit --no-fund
             node build/generate.js
 
-            git add projects sitemap.xml index.html
+            git add projects sitemap.xml index.html privacy-policy.html terms.html
             if git diff --cached --quiet; then
               echo "No changes"
               exit 0
