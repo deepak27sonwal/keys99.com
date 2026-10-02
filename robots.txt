@@ -1,0 +1,10 @@
+# Pages are kept out of search results until launch by their own
+# noindex tags, not by this file: blocking crawling here would stop
+# Google from ever seeing those tags.
+User-agent: *
+Allow: /
+
+# Template / fallback page - every project has its own URL.
+Disallow: /projects/property-details.html
+
+Sitemap: https://keys99.com/sitemap.xml

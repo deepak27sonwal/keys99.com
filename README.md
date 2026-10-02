@@ -49,3 +49,27 @@ delete the `X-Robots-Tag` line, then add the site in Google Search Console and
 submit the sitemap. Do **not** block the site with a `robots.txt`
 `Disallow: /` instead — Google then can't read the noindex and may still list
 the URLs.
+
+## Project pages
+
+Each published project gets its own page at `/projects/<slug>/`, generated
+with its content, title, meta description, canonical URL, Open Graph tags and
+JSON-LD already in the HTML.
+
+| File | Role |
+|---|---|
+| `projects/property-details.html` | Page template; also the fallback page (`?slug=`), never indexed |
+| `js/project-core.js` | Query + data mapping + section HTML, shared by browser and build |
+| `js/property-details.js` | Page behaviour: gallery, EMI, enquiry form, live refresh |
+| `build/generate.js` | Writes `projects/<slug>/index.html` and `sitemap.xml` |
+| `.github/workflows/build-pages.yml` | Runs the build daily, on demand, and when the template changes |
+
+Run locally: `npm install` then `npm run build`.
+
+- Pages are `noindex` until launch. At launch set `SITE_INDEXABLE=true` in the
+  workflow's build step.
+- A generated page renders from the data built into it and only refreshes from
+  Supabase, so a failed request never shows "not found" over real content.
+- Enquiries go to `residential_enquiries`. Call / WhatsApp use the project's
+  agent (when active and verified), else `SITE_CONTACT` in `js/config.js`.
+- Projects removed or unpublished disappear on the next build.

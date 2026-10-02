@@ -1,0 +1,14 @@
+{
+  "name": "keys99",
+  "private": true,
+  "description": "Keys99.com - static property portal with build-time project pages for SEO",
+  "scripts": {
+    "build": "node build/generate.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "cheerio": "^1.0.0"
+  }
+}

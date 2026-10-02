@@ -1,0 +1,527 @@
+<!doctype html>
+<html lang="en-IN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff">
+  <title>Project Details | Keys99</title>
+<meta name="description" content="Property details on Keys99.">
+<link rel="canonical" href="https://keys99.com/projects/property-details.html">
+<!-- Template / fallback page: never indexed. Generated pages at /projects/<slug>/ carry their own robots tag. -->
+<meta name="robots" content="noindex,nofollow">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Keys99">
+<meta property="og:title" content="Property Details | Keys99">
+<meta property="og:description" content="Property details on Keys99.">
+<meta property="og:url" content="https://keys99.com/projects/property-details.html">
+<meta property="og:image" content="https://keys99.com/assets/og-default.jpg">
+<meta property="og:locale" content="en_IN">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Property Details | Keys99">
+<meta name="twitter:description" content="Property details on Keys99.">
+<meta name="twitter:image" content="https://keys99.com/assets/og-default.jpg">
+
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/property-details.css">
+  <link rel="stylesheet" href="../css/chat-widget.css">
+  <link rel="stylesheet" href="../css/project-extra.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <script src="../js/config.js"></script>
+  <script src="../js/project-core.js"></script>
+  <script src="../js/chat-widget.js"></script>
+  <script src="../js/property-details.js" defer></script>
+
+</head>
+<body>
+
+<header class="header">
+
+  <div class="container nav">
+
+    <a class="logo logo-link" href="../index.html">
+      <img src="../assets/logo.png" alt="Keys99.com" class="header-logo">
+    </a>
+
+    <nav class="nav-links">
+      <a href="../index.html">Home</a>
+      <a href="search.html?status=sale">Buy</a>
+      <a href="search.html?status=rent">Rent</a>
+      <a href="../index.html#types">Projects</a>
+      <a href="../index.html#why">About</a>
+      <a href="../index.html#footer">Contact</a>
+    </nav>
+
+    <div class="nav-actions">
+      <button class="heart" id="favoriteBtn" type="button" aria-label="Favorite">♡</button>
+      <button class="login-btn" id="loginBtn">♙ &nbsp; Login / Sign Up</button>
+      <button class="menu-btn" id="menuBtn" aria-label="Menu">☰</button>
+    </div>
+
+  </div>
+
+</header>
+
+
+<!-- MOBILE MENU -->
+
+<div class="mobile-menu" id="mobileMenu">
+  <a href="../index.html">Home</a>
+  <a href="search.html?status=sale">Buy Property</a>
+  <a href="search.html?status=rent">Rent Property</a>
+  <a href="../index.html#types">Projects</a>
+  <a href="../index.html#why">Why Keys99</a>
+  <a href="../index.html#footer">Contact</a>
+</div>
+
+<div id="loading" class="loading-screen">
+  <div class="loader"></div>
+  <p>Loading property details...</p>
+</div>
+
+<main id="propertyPage" class="hidden">
+  <div class="container">
+
+    <div class="breadcrumb">
+      <a href="../index.html">Home</a><span>›</span>
+      <span id="crumbCity" class="hidden"></span><span id="crumbCitySep" class="hidden">›</span>
+      <span id="crumbLocality" class="hidden"></span><span id="crumbLocalitySep" class="hidden">›</span>
+      <span id="crumbName">Details</span>
+    </div>
+
+    <!-- IMAGE GALLERY -->
+    <section class="gallery-card">
+      <div class="main-photo" id="mainPhoto" tabindex="0" role="button" aria-label="Open property image">
+        <img id="mainImage" alt="Property image">
+        <span id="statusBadge" class="status-badge">For Sale</span>
+        <span class="zoom-hint">⌕ Tap to view large</span>
+        <button id="prevImage" class="gallery-arrow left" type="button" aria-label="Previous image">‹</button>
+        <button id="nextImage" class="gallery-arrow right" type="button" aria-label="Next image">›</button>
+        <span id="imageCounter" class="image-counter hidden"></span>
+      </div>
+
+      <div class="gallery-thumbs-wrap">
+        <div class="gallery-thumbs" id="galleryThumbs" aria-label="Property photos"></div>
+      </div>
+    </section>
+
+    <!-- TITLE -->
+    <section class="title-card">
+      <div class="title-left">
+        <div class="mini-breadcrumb-row">
+          <div class="mini-breadcrumb" id="miniBreadcrumb">Residential</div>
+          <span class="verified-badge" id="reraBadge" hidden>✓ RERA Verified</span>
+        </div>
+        <h1 id="propertyName">Property</h1>
+        <p class="location" id="propertyLocation">⌖ Location</p>
+        <p class="developer-line">▥ <span>By</span> <strong id="developer">—</strong></p>
+        <p class="meta-line" id="metaLine"></p>
+      </div>
+
+      <div class="price-box">
+        <small>Starting Price</small>
+        <strong id="propertyPrice">Price on Request</strong>
+        <span id="priceNote">Onwards</span>
+        <small id="priceDisclaimer" class="price-disclaimer hidden"></small>
+        <span class="view-count" id="viewCount" hidden></span>
+      </div>
+
+      <div class="title-actions">
+        <button id="shareBtn" type="button">⌯ &nbsp; Share</button>
+        <button id="backBtn" type="button">← &nbsp; Back</button>
+        <button id="enquireTopBtn" class="primary" type="button">✉ &nbsp; Enquire Now</button>
+      </div>
+    </section>
+
+    <div class="content-layout">
+      <div class="content-main">
+
+        <!-- OVERVIEW -->
+        <section class="section-card">
+          <h2><i></i>Project Overview</h2>
+          <div class="overview-grid">
+            <div class="overview-item">
+              <span class="overview-icon">⌂</span>
+              <small>Project Type</small>
+              <strong id="propertyType">—</strong>
+            </div>
+            <div class="overview-item">
+              <span class="overview-icon">▦</span>
+              <small>BHK</small>
+              <strong id="bhk">—</strong>
+            </div>
+            <div class="overview-item">
+              <span class="overview-icon">▧</span>
+              <small>Carpet Area</small>
+              <strong id="carpetArea">—</strong>
+            </div>
+            <div class="overview-item">
+              <span class="overview-icon">▣</span>
+              <small>Possession</small>
+              <strong id="possession">—</strong>
+            </div>
+          </div>
+        </section>
+
+        <!-- ABOUT -->
+        <section class="section-card" id="aboutSection">
+          <h2><i></i>About the Project</h2>
+          <div id="description" class="description"></div>
+        </section>
+
+        <!-- HIGHLIGHTS -->
+        <section class="section-card hidden" id="highlightsSection">
+          <h2><i></i>Highlights</h2>
+          <ul id="highlights" class="highlights"></ul>
+        </section>
+
+        <!-- PROJECT FACTS -->
+        <section class="section-card hidden" id="factsSection">
+          <h2><i></i>Project Details</h2>
+          <div id="facts" class="facts-grid"></div>
+        </section>
+
+        <!-- REELS -->
+        <section class="section-card hidden" id="reelsSection">
+          <h2><i></i>Reels</h2>
+          <div id="reelsGrid" class="reels-grid"></div>
+        </section>
+
+        <!-- CONFIGURATION -->
+        <section class="section-card" id="configurationSection">
+          <h2><i></i>Available Configuration</h2>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>BHK Type</th><th>Price</th><th>Carpet Area</th><th>Status</th></tr></thead>
+              <tbody id="configurationBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- EMI CALCULATOR -->
+        <section class="section-card hidden" id="emiSection">
+          <h2><i></i>EMI Calculator</h2>
+          <p class="emi-sub">Estimate your monthly home loan payment for this property.</p>
+
+          <div class="emi-grid">
+
+            <label class="emi-field">
+              <span>Loan Amount (₹)</span>
+              <input type="number" id="emiAmount" min="0" step="10000">
+            </label>
+
+            <label class="emi-field">
+              <span>Interest Rate (% p.a.)</span>
+              <input type="number" id="emiRate" min="0" max="30" step="0.1" value="8.5">
+            </label>
+
+            <label class="emi-field">
+              <span>Tenure (Years)</span>
+              <input type="number" id="emiTenure" min="1" max="30" step="1" value="20">
+            </label>
+
+          </div>
+
+          <div class="emi-result">
+            <small>Estimated Monthly EMI</small>
+            <strong id="emiResult">₹ 0</strong>
+            <span id="emiBreakdown"></span>
+          </div>
+
+          <p class="emi-disclaimer">Indicative only - actual EMI depends on your lender, credit profile and loan terms.</p>
+        </section>
+
+        <!-- FLOOR PLANS + MASTER PLAN -->
+        <section class="section-card hidden" id="floorPlanSection">
+          <h2><i></i>Floor Plans &amp; Master Plan</h2>
+          <div id="floorPlanGrid" class="floor-plan-grid"></div>
+        </section>
+
+        <!-- MEDIA -->
+        <section class="section-card hidden" id="mediaSection">
+          <h2><i></i>Property Videos</h2>
+
+          <div id="uploadedVideosWrap" class="media-group hidden">
+            <div class="media-group-title"><span>▶</span><div><strong>Property Video</strong><small>Uploaded property video</small></div></div>
+            <div id="uploadedVideos" class="video-grid"></div>
+          </div>
+
+          <div id="socialVideosWrap" class="social-media-grid"></div>
+        </section>
+
+        <!-- AMENITIES -->
+        <section class="section-card" id="amenitiesSection">
+          <h2><i></i>Amenities</h2>
+          <div id="amenities" class="amenities"></div>
+        </section>
+
+        <!-- SPECIFICATIONS -->
+        <section class="section-card hidden" id="specsSection">
+          <h2><i></i>Specifications</h2>
+          <div class="table-wrap">
+            <table><tbody id="specifications"></tbody></table>
+          </div>
+        </section>
+
+        <!-- TOWERS -->
+        <section class="section-card hidden" id="towersSection">
+          <h2><i></i>Towers</h2>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Tower</th><th>Floors</th><th>Units</th><th>Configurations</th><th>Status</th></tr></thead>
+              <tbody id="towers"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- LOCATION -->
+        <section class="section-card" id="locationSection">
+          <h2><i></i>Location & Connectivity</h2>
+          <div class="location-layout">
+            <div class="map-box" id="mapBox">
+              <div>
+                <span>⌖</span>
+                <strong id="mapLocation">Property Location</strong>
+                <button id="mapBtn" type="button">View on Map →</button>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Nearby</th><th>Distance</th></tr></thead>
+                <tbody id="locationAdvantages"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- DEVELOPER -->
+        <section class="section-card" id="developerSection">
+          <h2><i></i>Developer</h2>
+          <div class="developer-box">
+            <div class="developer-icon">▥</div>
+            <div class="developer-info">
+              <strong id="developerName">—</strong>
+              <small>Property Developer</small>
+            </div>
+            <p id="developerDescription"></p>
+          </div>
+        </section>
+
+        <!-- PROS & CONS -->
+        <section class="section-card hidden" id="prosConsSection">
+          <h2><i></i>Pros &amp; Cons</h2>
+          <div id="prosCons" class="pros-cons"></div>
+        </section>
+
+        <!-- FAQ -->
+        <section class="section-card hidden" id="faqSection">
+          <h2><i></i>Frequently Asked Questions</h2>
+          <div id="faqs" class="faqs"></div>
+        </section>
+      </div>
+
+      <!-- ENQUIRY -->
+      <aside class="enquiry-wrap" id="enquiryWrap">
+        <div class="enquiry-card">
+          <h2>Interested in this project?</h2>
+          <p>Share your details and our property expert will contact you.</p>
+
+          <form id="enquiryForm">
+            <label>
+              <span>♙</span>
+              <input id="enquiryName" type="text" placeholder="Your Name" autocomplete="name" required>
+            </label>
+
+            <label>
+              <span>⌕</span>
+              <input id="enquiryPhone" type="tel" placeholder="WhatsApp Number" autocomplete="tel" required>
+            </label>
+
+            <label>
+              <span>✉</span>
+              <input id="enquiryEmail" type="email" placeholder="Email Address" autocomplete="email">
+            </label>
+
+            <label>
+              <span>▥</span>
+              <input id="enquiryDeveloper" type="text" placeholder="Developer" readonly>
+            </label>
+
+            <label class="select-field">
+              <span>▦</span>
+              <select id="enquiryBhk">
+                <option value="">Select BHK</option>
+              </select>
+            </label>
+
+            <label class="message">
+              <span>✉</span>
+              <textarea id="enquiryMessage" placeholder="I'm interested in this project..."></textarea>
+            </label>
+
+            <button class="send-btn" id="sendBtn" type="submit">➤ &nbsp; Send Enquiry</button>
+            <button class="whatsapp-btn" id="whatsappBtn" type="button">◉ &nbsp; WhatsApp Us</button>
+          </form>
+
+          <div class="dream">
+            <span>⌂</span>
+            <p>Your Dream Home<br>is Just a Click Away</p>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</main>
+
+<!-- LIGHTBOX -->
+<div id="lightbox" class="lightbox hidden" aria-hidden="true">
+  <div class="lightbox-backdrop" data-close-lightbox></div>
+  <div class="lightbox-dialog" role="dialog" aria-modal="true" aria-label="Property image viewer">
+    <button id="lightboxClose" class="lightbox-close" type="button" aria-label="Close">×</button>
+    <button id="lightboxPrev" class="lightbox-nav left" type="button" aria-label="Previous">‹</button>
+    <img id="lightboxImage" alt="Property image enlarged">
+    <button id="lightboxNext" class="lightbox-nav right" type="button" aria-label="Next">›</button>
+    <div id="lightboxCounter" class="lightbox-counter">1 / 1</div>
+  </div>
+</div>
+
+<div id="errorBox" class="error-screen hidden">
+  <div>
+    <div class="error-icon">!</div>
+    <h2>Project not found</h2>
+    <p>The project may have been removed or the link is invalid.</p>
+    <a href="../index.html">← Back to Home</a>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<footer id="footer">
+
+  <div class="container">
+
+    <div class="footer-grid">
+
+      <div class="footer-col footer-brand">
+        <a class="logo logo-link" href="../index.html">
+          <img src="../assets/logo.png" alt="Keys99.com" class="header-logo">
+        </a>
+        <p style="margin-top:13px;max-width:230px">
+          A modern real estate platform to help you discover verified properties with confidence.
+        </p>
+      </div>
+
+      <div class="footer-col">
+        <h4>Quick Links</h4>
+        <a href="../index.html">Home</a>
+        <a href="search.html?status=sale">Buy</a>
+        <a href="search.html?status=rent">Rent</a>
+        <a href="../index.html#types">Projects</a>
+      </div>
+
+      <div class="footer-col">
+        <h4>Company</h4>
+        <a href="../index.html#why">About Us</a>
+        <a href="../index.html#footer">Contact Us</a>
+        <a href="../privacy-policy.html">Privacy Policy</a>
+        <a href="../terms.html">Terms &amp; Conditions</a>
+      </div>
+
+      <div class="footer-col">
+        <h4>Follow &amp; Contact</h4>
+        <div class="socials">
+          <a href="https://www.facebook.com/profile.php?id=100066632434187" aria-label="Keys99 on Facebook" target="_blank" rel="noopener">f</a>
+          <a href="https://www.instagram.com/keys99com/" aria-label="Keys99 on Instagram" target="_blank" rel="noopener">◎</a>
+          <a href="#" aria-label="Keys99 on LinkedIn">in</a>
+          <a href="https://www.youtube.com/@Keys99" aria-label="Keys99 on YouTube" target="_blank" rel="noopener">▶</a>
+        </div>
+        <p style="margin-top:12px">support@keys99.com</p>
+        <p>+91 98765 43210</p>
+        <p>India</p>
+      </div>
+
+    </div>
+
+    <div class="copyright">
+      <span>© 2026 Keys99.com. All rights reserved.</span>
+      <span>⌂ &nbsp; Your Key to a Better Tomorrow</span>
+    </div>
+
+  </div>
+
+</footer>
+
+
+<!-- STICKY MOBILE CONTACT BAR -->
+
+<div class="sticky-contact-bar" id="stickyContactBar">
+  <button type="button" class="sticky-contact-btn call" id="stickyCallBtn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5c0-.6.4-1 1-1h3l2 5-2 1.5c.9 2 2.5 3.6 4.5 4.5L14 13l5 2v3c0 .6-.4 1-1 1-8.3 0-14-5.7-14-14Z"/></svg>
+    Call
+  </button>
+  <button type="button" class="sticky-contact-btn whatsapp" id="stickyWhatsappBtn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l1.3-3.9A8 8 0 1 1 8.9 19L4 20Z"/><path d="M9 10.5c0 3 2.5 5.5 5.5 5.5"/></svg>
+    WhatsApp
+  </button>
+  <button type="button" class="sticky-contact-btn enquire" id="stickyEnquireBtn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    Enquire
+  </button>
+</div>
+
+
+<!-- MOBILE BOTTOM NAVIGATION -->
+
+<nav class="bottom-nav" id="bottomNav">
+
+  <button type="button" data-target="home">
+    <span class="bn-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 11.5 12 4l9 7.5"/>
+        <path d="M5.5 10v9a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-9"/>
+        <path d="M9.5 20v-6h5v6"/>
+      </svg>
+    </span>
+    <span class="bn-label">Home</span>
+  </button>
+
+  <button type="button" data-target="search">
+    <span class="bn-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="6.5"/>
+        <path d="m20 20-3.6-3.6"/>
+      </svg>
+    </span>
+    <span class="bn-label">Search</span>
+  </button>
+
+  <button type="button" data-target="reels">
+    <span class="bn-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3.5" y="3.5" width="17" height="17" rx="5"/>
+        <path d="M10 8.5v7l6-3.5-6-3.5Z" fill="currentColor" stroke="none"/>
+      </svg>
+    </span>
+    <span class="bn-label">Reels</span>
+  </button>
+
+  <button type="button" data-target="profile">
+    <span class="bn-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="8" r="3.5"/>
+        <path d="M4.5 20c1.4-3.6 4.3-5.5 7.5-5.5s6.1 1.9 7.5 5.5"/>
+      </svg>
+    </span>
+    <span class="bn-label">Profile</span>
+  </button>
+
+</nav>
+
+</body>
+</html>

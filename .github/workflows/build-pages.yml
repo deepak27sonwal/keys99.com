@@ -1,0 +1,49 @@
+name: Build project pages
+
+# Regenerates projects/<slug>/ and sitemap.xml from Supabase and
+# commits the result, so the site always reflects published projects.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "37 0 * * *"   # daily, 06:07 IST
+  push:
+    branches: [main]
+    paths:
+      - "projects/property-details.html"
+      - "js/project-core.js"
+      - "build/**"
+      - "package.json"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - run: npm install --no-audit --no-fund
+
+      # SITE_INDEXABLE stays unset until launch, so pages are noindex.
+      - run: node build/generate.js
+
+      - name: Commit generated pages
+        run: |
+          git config user.name "keys99-build"
+          git config user.email "actions@users.noreply.github.com"
+          git add projects sitemap.xml
+          if git diff --cached --quiet; then
+            echo "No changes"
+          else
+            git commit -m "Rebuild project pages"
+            git push
+          fi

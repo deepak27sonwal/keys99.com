@@ -1,0 +1,48 @@
+/* =========================================================
+   KEYS99 - PROJECT PAGE ADDITIONS
+   Sections the residential_projects schema adds on top of the
+   original property page. Uses the same tokens and card style
+   as css/property-details.css.
+========================================================= */
+
+.breadcrumb .hidden{display:none}
+
+.price-disclaimer{display:block;margin-top:6px;font-size:10.5px;line-height:1.4;color:#6b7f86}
+
+.highlights{display:flex;flex-wrap:wrap;gap:9px;margin:0;padding:0;list-style:none}
+.highlights li{padding:8px 13px;border-radius:999px;background:#e4f5ef;color:#00664f;font-size:12px;font-weight:700}
+
+.facts-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.fact{padding:13px;border:1px solid #e7eeec;border-radius:12px;background:#fafcfb;min-width:0}
+.fact small{display:block;font-size:11px;color:#6b7f86;margin-bottom:4px}
+.fact strong{font-size:13px;color:#14343b;overflow-wrap:anywhere}
+
+.table-wrap th[scope="row"]{width:34%;background:#f7fbf9}
+.table-wrap td small{display:block;margin-top:2px;color:#6b7f86;font-size:11px;font-weight:500}
+
+.floor-plan-card{margin:0}
+.floor-plan-card figcaption{padding:10px 12px;font-size:12px;font-weight:700}
+
+.pros-cons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.pc-col{padding:14px;border-radius:12px;border:1px solid #e7eeec}
+.pc-col h3{margin:0 0 8px;font-size:14px}
+.pc-col ul{margin:0;padding-left:18px;font-size:12.5px;line-height:1.6;color:#35525b}
+.pc-col.pros{background:#f3fbf8}.pc-col.pros h3{color:#00866e}
+.pc-col.cons{background:#fdf6f4}.pc-col.cons h3{color:#b4442c}
+
+.faqs{display:grid;gap:10px}
+.faq-item{border:1px solid #e7eeec;border-radius:12px;background:#fafcfb;overflow:hidden}
+.faq-item summary{cursor:pointer;padding:13px 15px;font-size:13px;font-weight:700;color:#14343b;list-style:none;position:relative;padding-right:36px}
+.faq-item summary::-webkit-details-marker{display:none}
+.faq-item summary:after{content:"+";position:absolute;right:15px;top:50%;transform:translateY(-50%);font-size:18px;color:#00866e}
+.faq-item[open] summary:after{content:"–"}
+.faq-item p{margin:0;padding:0 15px 14px;font-size:12.5px;line-height:1.6;color:#35525b;white-space:pre-line}
+
+.description{white-space:pre-line}
+
+@media (max-width:900px){
+  .facts-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:560px){
+  .pros-cons{grid-template-columns:1fr}
+}
