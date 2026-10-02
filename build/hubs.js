@@ -153,10 +153,9 @@ function bhkCopy(H, hub){
   /* Price per sq ft, as on the project page (js/project-core.js). */
   const SQFT_PER_SQM = 10.7639;
   const rates = options.map(o => {
+    if(o.unitPrice) return o.unit === " / Sq.M" ? o.unitPrice / SQFT_PER_SQM : o.unitPrice;
     const price = H.getNumericPrice(o);
     if(price === null) return null;
-    if(o.priceType === "price_per_sq_ft") return price;
-    if(o.priceType === "price_per_sq_m") return price / SQFT_PER_SQM;
     const area = parseFloat(o.sqft);
     if(!(area > 0)) return null;
     return price / (o.areaUnit === "Sq.M" ? area * SQFT_PER_SQM : area);

@@ -1940,10 +1940,20 @@ function mapConfiguration(config, projectPriceOnRequest){
   const hasFrom = Number.isFinite(from) && from > 0;
   const hasRange = hasFrom && Number.isFinite(to) && to > from;
 
+  /* A price entered per sq ft / sq m is a rate, not the flat's price:
+     it is shown as a rate and kept out of totals, sorting and filters. */
+  const unit = config.price_type === "price_per_sq_ft" ? " / Sq.Ft"
+    : config.price_type === "price_per_sq_m" ? " / Sq.M" : "";
+  const unitPrice = unit && !onRequest && hasFrom ? from : null;
+
   return {
     type: normaliseBhkType(config.bhk_type),
-    price: onRequest || !hasFrom ? null : from,
-    price_words: onRequest ? "On Request" : (hasRange ? formatPrice(from) + " – " + formatPrice(to) : ""),
+    price: onRequest || !hasFrom || unit ? null : from,
+    unitPrice,
+    unit,
+    price_words: onRequest ? "On Request"
+      : unitPrice !== null ? (hasRange ? "₹ " + from.toLocaleString("en-IN") + " – " + to.toLocaleString("en-IN") + unit : formatUnitPrice(from, unit))
+      : (hasRange ? formatPrice(from) + " – " + formatPrice(to) : ""),
     sqft: config.carpet_area,
     areaUnit: config.area_unit === "sq_m" ? "Sq.M" : "Sq.Ft",
     priceType: config.price_type || "total_price",
@@ -2094,6 +2104,11 @@ function getNumericPrice(option){
     return price;
   }
   return null;
+}
+
+/* "₹ 7,000 / Sq.Ft" - rates are shown in full, not as "₹ 7K". */
+function formatUnitPrice(value, unit){
+  return "₹ " + Number(value).toLocaleString("en-IN") + unit;
 }
 
 function formatPrice(price){
@@ -2396,9 +2411,16 @@ function createPropertyCard(property, badgeLabel, badgeClass){
      BHK rows. Cards with no configuration already say "Price on
      Request" in their single row, so they skip this line. */
   const optionPrices = options.map(getNumericPrice).filter(price => price !== null);
+  /* Only per-sq-ft rates given: show the lowest rate instead. */
+  const rateOptions = options.filter(option => option.unitPrice);
+  const lowestRate = rateOptions.length
+    ? rateOptions.reduce((a, b) => (b.unit === a.unit && b.unitPrice < a.unitPrice ? b : a))
+    : null;
   const startingPriceHtml = !options.length ? "" : optionPrices.length
     ? `<p class="card-price"><span>Starting from</span> <strong>${escapeHtml(formatPrice(Math.min(...optionPrices)))}</strong></p>`
-    : `<p class="card-price"><strong>Price on Request</strong></p>`;
+    : lowestRate
+      ? `<p class="card-price"><span>Starting from</span> <strong>${escapeHtml(formatUnitPrice(lowestRate.unitPrice, lowestRate.unit))}</strong></p>`
+      : `<p class="card-price"><strong>Price on Request</strong></p>`;
 
   const firstOption = options[0];
   const bhkValue = firstOption && firstOption.type ? String(firstOption.type).toLowerCase() : "";
