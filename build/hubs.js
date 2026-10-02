@@ -150,6 +150,23 @@ function bhkCopy(H, hub){
     oneArea = hi === lo;
   }
 
+  /* Price per sq ft, as on the project page (js/project-core.js). */
+  const SQFT_PER_SQM = 10.7639;
+  const rates = options.map(o => {
+    const price = H.getNumericPrice(o);
+    if(price === null) return null;
+    if(o.priceType === "price_per_sq_ft") return price;
+    if(o.priceType === "price_per_sq_m") return price / SQFT_PER_SQM;
+    const area = parseFloat(o.sqft);
+    if(!(area > 0)) return null;
+    return price / (o.areaUnit === "Sq.M" ? area * SQFT_PER_SQM : area);
+  }).filter(r => r).map(r => Math.round(r / 10) * 10);
+  const inr = v => "₹ " + Number(v).toLocaleString("en-IN");
+  const rateText = !rates.length ? ""
+    : Math.max(...rates) > Math.min(...rates)
+      ? `${inr(Math.min(...rates))} – ${Number(Math.max(...rates)).toLocaleString("en-IN")} / Sq.Ft`
+      : `${inr(rates[0])} / Sq.Ft`;
+
   const localities = [...new Set(hub.props.map(p => H.titleCaseName(p.locality)).filter(Boolean))];
   const developers = [...new Set(hub.props.map(p => H.titleCaseName(p.developer)).filter(Boolean))];
   const projects = plural(n, "new project", "new projects");
@@ -158,6 +175,7 @@ function bhkCopy(H, hub){
     `Explore ${projects} with ${label} flats for sale in ${city} on Keys99.`,
     priceRange ? `${label} prices ${maxPrice > minPrice ? "range" : "start"} ${priceRange}.` : "",
     areaText ? (oneArea ? `Carpet area is ${areaText}.` : `Carpet areas range from ${areaText}.`) : "",
+    rateText ? `That works out to ${rateText} of carpet area.` : "",
     localities.length ? `Available in ${listText(localities, 5)}.` : "",
     developers.length ? `Developers include ${listText(developers, 4)}.` : ""
   ].filter(Boolean).join(" ");
@@ -197,6 +215,7 @@ function bhkCopy(H, hub){
       ["Projects", String(n)],
       minPrice !== null ? ["Starting from", H.formatPrice(minPrice)] : null,
       areaText ? ["Carpet area", areaText] : null,
+      rateText ? ["Price / Sq.Ft", rateText] : null,
       localities.length ? ["Localities", String(localities.length)] : null
     ].filter(Boolean)
   };

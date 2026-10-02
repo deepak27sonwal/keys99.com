@@ -1946,6 +1946,7 @@ function mapConfiguration(config, projectPriceOnRequest){
     price_words: onRequest ? "On Request" : (hasRange ? formatPrice(from) + " – " + formatPrice(to) : ""),
     sqft: config.carpet_area,
     areaUnit: config.area_unit === "sq_m" ? "Sq.M" : "Sq.Ft",
+    priceType: config.price_type || "total_price",
     availability: AVAILABILITY_LABELS[config.availability] || ""
   };
 }

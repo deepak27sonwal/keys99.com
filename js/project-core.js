@@ -184,6 +184,12 @@
     return "₹ " + n.toLocaleString("en-IN");
   }
 
+  const SQFT_PER_SQM = 10.7639;
+
+  function formatRate(perSqft){
+    return "₹ " + formatNumber(Math.round(perSqft / 10) * 10) + " / Sq.Ft";
+  }
+
   function formatNumber(n){
     n = Number(n);
     return Number.isFinite(n) ? (+n.toFixed(2)).toLocaleString("en-IN") : "";
@@ -273,15 +279,32 @@
         price = formatPrice(from) + (to > from ? " – " + formatPrice(to) : "") + perUnit;
       }
       const area = Number(c.carpet_area);
+      /* Price per sq ft: quoted directly for per-sq-ft pricing, otherwise
+         the starting price over the carpet area (sq m converted). */
+      const sqft = area > 0 ? (c.area_unit === "sq_m" ? area * SQFT_PER_SQM : area) : 0;
+      let rate = null;
+      if(!onRequest && from > 0){
+        if(c.price_type === "price_per_sq_ft") rate = from;
+        else if(c.price_type === "price_per_sq_m") rate = from / SQFT_PER_SQM;
+        else if(sqft > 0) rate = from / sqft;
+      }
       return {
         bhk: normaliseBhk(c.bhk_type),
         variant: clean(c.variant_name),
         price,
         priceValue: !onRequest && from > 0 && !perUnit ? from : null,
         area: area > 0 ? formatNumber(area) + " " + (c.area_unit === "sq_m" ? "Sq.M" : "Sq.Ft") : "",
-        availability: AVAILABILITY_LABELS[c.availability] || "Available"
+        availability: AVAILABILITY_LABELS[c.availability] || "Available",
+        rate: rate ? Math.round(rate / 10) * 10 : null,
+        rateText: rate ? formatRate(rate) : ""
       };
     });
+
+    const rates = configurations.map(c => c.rate).filter(Boolean);
+    const rateMin = rates.length ? Math.min(...rates) : null;
+    const rateMax = rates.length ? Math.max(...rates) : null;
+    const rateRange = rateMin === null ? ""
+      : rateMax > rateMin ? `₹ ${formatNumber(rateMin)} – ${formatNumber(rateMax)} / Sq.Ft` : formatRate(rateMin);
 
     const bhkLabels = [...new Set(configurations.map(c => c.bhk).filter(Boolean))];
     const prices = configurations.map(c => c.priceValue).filter(Boolean);
@@ -332,6 +355,7 @@
 
     const facts = [];
     const addFact = (label, value) => { if(clean(value)) facts.push({ label, value: clean(value) }); };
+    addFact("Price / Sq.Ft", rateRange);
     if(Number(row.total_land_area) > 0) addFact("Land Area", formatNumber(row.total_land_area) + " " + (UNIT_LABELS[row.land_area_unit] || ""));
     addFact("Towers", row.total_towers_buildings);
     addFact("Floors", row.total_floors);
@@ -416,7 +440,7 @@
     return p.configurations.map(c => `
       <tr>
         <td>${escapeHtml(c.bhk)}${c.variant ? ` <small>${escapeHtml(c.variant)}</small>` : ""}</td>
-        <td>${escapeHtml(c.price)}</td>
+        <td>${escapeHtml(c.price)}${c.rateText && !/\/ Sq/.test(c.price) ? `<small class="config-rate">${escapeHtml(c.rateText)}</small>` : ""}</td>
         <td>${escapeHtml(c.area || "—")}</td>
         <td><span class="status-pill status-${c.availability === "Sold Out" ? "sold" : "available"}">${escapeHtml(c.availability)}</span></td>
       </tr>`).join("");
