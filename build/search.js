@@ -22,8 +22,8 @@ const PRICE_STEPS = [
 
 const TYPES = [
   ["residential", "Residential"], ["luxury", "Luxury / Villa"],
-  ["plots", "Plots & Land"], ["commercial", "Commercial"],
-  ["resale", "Resale"], ["rent", "Rent"]
+  ["commercial", "Commercial"], ["resale", "Resale"], ["rent", "Rent"],
+  ["plots", "Plots & Land"]
 ];
 
 function buildSearchPage({ H, indexHtml, props, siteOrigin }){
