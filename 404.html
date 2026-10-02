@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en-IN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Page not found | Keys99</title>
+<script>
+/* A project published after the last page build has no
+   /projects/<slug>/ folder yet. Send visitors to the project page
+   that loads by slug instead of leaving them on a 404. The next
+   build (build/generate.js) writes the real page.
+
+   Served from any URL, so everything here is computed from the
+   address: on GitHub Pages the site lives under /<repo>/. */
+(function(){
+  var path = location.pathname;
+  var m = path.match(/^(.*\/)projects\/([a-z0-9]+(?:-[a-z0-9]+)*)\/?$/);
+  if(m && m[2] !== "property-details" && m[2] !== "search"){
+    location.replace(m[1] + "projects/property-details.html?slug=" + m[2] + location.hash);
+    return;
+  }
+  var base = /\.github\.io$/.test(location.hostname)
+    ? "/" + (path.split("/")[1] || "") + "/"
+    : "/";
+  window.__KEYS99_HOME__ = base;
+})();
+</script>
+<style>
+  body{margin:0;min-height:100vh;display:grid;place-items:center;background:#f7faf9;color:#092c3d;
+       font:15px/1.5 "DM Sans",system-ui,-apple-system,"Segoe UI",sans-serif;padding:24px;text-align:center}
+  .box{max-width:420px}
+  h1{font-size:22px;margin:14px 0 6px}
+  p{color:#6c7d86;margin:0 0 20px}
+  .icon{width:56px;height:56px;border-radius:50%;background:#eaf7f3;color:#006b5b;display:grid;place-items:center;margin:0 auto;font-size:26px;font-weight:800}
+  a{display:inline-block;padding:11px 20px;border-radius:10px;background:#006b5b;color:#fff;text-decoration:none;font-weight:700}
+</style>
+</head>
+<body>
+  <div class="box">
+    <div class="icon">?</div>
+    <h1>Page not found</h1>
+    <p>The page you are looking for may have moved or no longer exists.</p>
+    <a id="homeLink" href="/">← Back to Keys99</a>
+  </div>
+  <script>
+    if(window.__KEYS99_HOME__) document.getElementById("homeLink").href = window.__KEYS99_HOME__;
+  </script>
+</body>
+</html>

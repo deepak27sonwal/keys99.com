@@ -5,7 +5,7 @@ name: Build project pages
 on:
   workflow_dispatch:
   schedule:
-    - cron: "37 0 * * *"   # daily, 06:07 IST
+    - cron: "17 * * * *"   # hourly; new projects open via 404.html until then
   push:
     branches: [main]
     paths:
