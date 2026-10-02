@@ -274,7 +274,9 @@ function crumbPath(c){
 }
 
 function hubPage(ctx, hub){
-  const { H, chrome, siteOrigin, robots } = ctx;
+  const { H, chrome, siteOrigin, robots, shareImageFor } = ctx;
+  /* Link preview: the first project on the page that has one. */
+  const shareImage = shareImageFor ? hub.props.map(shareImageFor).find(Boolean) || null : null;
   const base = hub.base || "projects";                    // top-level folder
   const dirPath = [base, ...hub.path.split("/").filter(Boolean)].join("/");
   const depth = dirPath.split("/").length;                 // projects/<city>[/<locality>]/, developers/[<slug>/]
@@ -347,7 +349,10 @@ function hubPage(ctx, hub){
 <meta property="og:title" content="${e(title)}">
 <meta property="og:description" content="${e(description)}">
 <meta property="og:url" content="${e(url)}">
-<meta property="og:image" content="${e(siteOrigin)}/assets/og-default.jpg">
+<meta property="og:image" content="${e(shareImage || siteOrigin + "/assets/og-default.jpg")}">${shareImage ? `
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">` : ""}
 <meta property="og:locale" content="en_IN">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="favicon.ico">
@@ -700,9 +705,9 @@ function collectDeveloperHubs(H, props, rows){
   return pages;
 }
 
-function buildHubs({ H, indexHtml, props, rows, reservedSlugs, siteOrigin, robots }){
+function buildHubs({ H, indexHtml, props, rows, reservedSlugs, siteOrigin, robots, shareImageFor }){
   const chrome = homepageChrome(indexHtml);
-  const ctx = { H, chrome, siteOrigin, robots };
+  const ctx = { H, chrome, siteOrigin, robots, shareImageFor };
   return [...collectHubs(H, props, reservedSlugs), ...collectDeveloperHubs(H, props, rows)]
     .map(hub => hubPage(ctx, hub));
 }

@@ -221,13 +221,24 @@
   const IMAGE_WIDTHS = { large: 1280, small: 320 };
   const IMG_FALLBACK = "if(this.dataset.full){this.src=this.dataset.full;this.dataset.full=''}";
 
-  function thumbName(url, width){
+  function urlHash(url){
     let hash = 0x811c9dc5;
     for(let i = 0; i < url.length; i++){
       hash ^= url.charCodeAt(i);
       hash = Math.imul(hash, 0x01000193) >>> 0;
     }
-    return hash.toString(16).padStart(8, "0") + (width ? "-" + width : "") + ".webp";
+    return hash.toString(16).padStart(8, "0");
+  }
+
+  function thumbName(url, width){
+    return urlHash(url) + (width ? "-" + width : "") + ".webp";
+  }
+
+  /* Link-preview image (WhatsApp, Facebook...): 1200x630 JPEG, small
+     enough for WhatsApp to show. Made by build/thumbs.js. */
+  const OG_SIZE = { width: 1200, height: 630 };
+  function ogName(url){
+    return urlHash(url) + "-og.jpg";
   }
 
   function resized(url, width, root){
@@ -620,6 +631,8 @@
     IMAGE_WIDTHS,
     IMG_FALLBACK,
     thumbName,
+    ogName,
+    OG_SIZE,
     pageTitle,
     pageDescription,
     structuredData,

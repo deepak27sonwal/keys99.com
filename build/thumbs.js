@@ -11,6 +11,9 @@
                                 floor plans and master plans
      <hash>-320.webp    320px   project page gallery strip
                                 (thumbName() in js/project-core.js)
+     <hash>-og.jpg   1200x630   link preview (og:image) for WhatsApp,
+                                Facebook etc. - JPEG, as WhatsApp only
+                                shows small JPEG/PNG previews
 
    Existing copies are kept, and ones nothing uses any more are
    deleted.
@@ -46,7 +49,7 @@ async function download(url){
 /* Every copy the site links to: name -> { url, width, quality }. */
 function plannedCopies({ H, P, props, rows, supabaseUrl }){
   const wanted = new Map();
-  const add = (name, url, width, quality) => { if(!wanted.has(name)) wanted.set(name, { url, width, quality }); };
+  const add = (name, url, width, quality, og) => { if(!wanted.has(name)) wanted.set(name, { url, width, quality, og: !!og }); };
   const remote = url => /^https?:\/\//i.test(url || "");
 
   props.forEach(p => {
@@ -57,7 +60,10 @@ function plannedCopies({ H, P, props, rows, supabaseUrl }){
   rows.forEach(row => {
     const p = P.normalizeProject(row, { supabaseUrl });
     /* "Similar Projects" cards use the 640px card copy of the first photo. */
-    if(p.images[0] && remote(p.images[0].url)) add(P.thumbName(p.images[0].url, 0), p.images[0].url, CARD_WIDTH, 70);
+    if(p.images[0] && remote(p.images[0].url)){
+      add(P.thumbName(p.images[0].url, 0), p.images[0].url, CARD_WIDTH, 70);
+      add(P.ogName(p.images[0].url), p.images[0].url, P.OG_SIZE.width, 78, true);
+    }
     p.images.filter(i => remote(i.url)).forEach(i => {
       add(P.thumbName(i.url, P.IMAGE_WIDTHS.large), i.url, P.IMAGE_WIDTHS.large, 72);
       add(P.thumbName(i.url, P.IMAGE_WIDTHS.small), i.url, P.IMAGE_WIDTHS.small, 65);
@@ -112,14 +118,23 @@ async function buildThumbs({ H, P, props, rows, supabaseUrl, root }){
       console.warn(`  skipped  copies of ${url}: ${error.message}`);
       continue;
     }
-    for(const { name, width, quality } of jobs){
+    for(const { name, width, quality, og } of jobs){
       const file = path.join(dir, name);
       try{
-        await sharp(input)
-          .rotate()                                 // honour EXIF orientation from phones
-          .resize({ width, withoutEnlargement: true })
-          .webp({ quality })
-          .toFile(file);
+        const image = sharp(input).rotate();        // honour EXIF orientation from phones
+        if(og){
+          /* Exact 1200x630, cropped around the busiest part of the photo. */
+          await image
+            .resize({ width: P.OG_SIZE.width, height: P.OG_SIZE.height, fit: "cover", position: sharp.strategy.attention })
+            .flatten({ background: "#ffffff" })
+            .jpeg({ quality, mozjpeg: true })
+            .toFile(file);
+        }else{
+          await image
+            .resize({ width, withoutEnlargement: true })
+            .webp({ quality })
+            .toFile(file);
+        }
         stats.made++;
         console.log(`  wrote    /${H.THUMB_DIR}${name}  (${Math.round(input.length / 1024)} KB -> ${Math.round(fs.statSync(file).size / 1024)} KB)`);
       }catch(error){
@@ -131,7 +146,7 @@ async function buildThumbs({ H, P, props, rows, supabaseUrl, root }){
   }
 
   fs.readdirSync(dir).forEach(name => {
-    if(name.endsWith(".webp") && !wanted.has(name)){
+    if((name.endsWith(".webp") || name.endsWith("-og.jpg")) && !wanted.has(name)){
       fs.rmSync(path.join(dir, name));
       stats.removed++;
       console.log(`  removed  /${H.THUMB_DIR}${name}`);

@@ -123,12 +123,13 @@ function toggle($, selector, show){
   $(selector).toggleClass("hidden", !show);
 }
 
-function buildPage(template, row, config, allProjects){
+function buildPage(template, row, config, allProjects, shareImage){
   const p = P.normalizeProject(row, { supabaseUrl: config.url, root: "../" });   // template-relative; rebaseLinks() adds the extra ../
   const pageUrl = `${SITE_ORIGIN}/projects/${p.slug}/`;
   const title = P.pageTitle(p);
   const description = P.pageDescription(p);
-  const image = p.images.length ? p.images[0].url : `${SITE_ORIGIN}/assets/og-default.jpg`;
+  const ogCopy = p.images.length && shareImage ? shareImage(p.images[0].url) : null;
+  const image = ogCopy || (p.images.length ? p.images[0].url : `${SITE_ORIGIN}/assets/og-default.jpg`);
 
   const $ = cheerio.load(template);
 
@@ -142,6 +143,13 @@ function buildPage(template, row, config, allProjects){
   setMeta($, 'meta[property="og:description"]', "content", description);
   setMeta($, 'meta[property="og:url"]', "content", pageUrl);
   setMeta($, 'meta[property="og:image"]', "content", image);
+  if(ogCopy){
+    $('meta[property="og:image"]').after(
+      `\n<meta property="og:image:type" content="image/jpeg">` +
+      `\n<meta property="og:image:width" content="${P.OG_SIZE.width}">` +
+      `\n<meta property="og:image:height" content="${P.OG_SIZE.height}">` +
+      `\n<meta property="og:image:alt" content="${P.escapeHtml(p.name)}">`);
+  }
   setMeta($, 'meta[name="twitter:title"]', "content", title);
   setMeta($, 'meta[name="twitter:description"]', "content", description);
   setMeta($, 'meta[name="twitter:image"]', "content", image);
@@ -301,6 +309,25 @@ async function main(){
     .filter(r => r && SLUG_RE.test(String(r.slug || "")) && r.slug !== "property-details" && r.slug !== "search")
     .map(r => P.normalizeProject(r, { supabaseUrl: config.url, root: "../" }));
 
+  const indexPath = path.join(ROOT, "index.html");
+  const goodRows = rows.filter(r => r && SLUG_RE.test(String(r.slug || "")));
+  const H = loadHomepageFunctions(fs.readFileSync(indexPath, "utf8"), config.url);
+  const allProps = goodRows.map(row => H.mapResidentialProject(row));
+
+  /* Resized images first, so pages only point at copies that exist. */
+  const thumbs = await buildThumbs({ H, P, props: allProps, rows: goodRows, supabaseUrl: config.url, root: ROOT });
+  console.log(`  thumbnails: ${thumbs.made} made, ${thumbs.kept} kept, ${thumbs.removed} removed` +
+    (thumbs.failed ? `, ${thumbs.failed} failed (those images use the original photo)` : ""));
+
+  /* Link-preview image for a photo: the 1200x630 JPEG copy, or null if
+     it could not be made (the page then keeps its previous image). */
+  const shareImage = url => {
+    if(!/^https?:\/\//i.test(url || "")) return null;
+    const name = P.ogName(url);
+    return fs.existsSync(path.join(ROOT, "assets", "thumbs", name)) ? `${SITE_ORIGIN}/assets/thumbs/${name}` : null;
+  };
+  const shareById = new Map(allProjects.map(p => [p.id, p.images[0] ? shareImage(p.images[0].url) : null]));
+
   const pages = [];
   for(const row of rows){
     if(!row || !SLUG_RE.test(String(row.slug || ""))){
@@ -311,7 +338,7 @@ async function main(){
       console.warn(`  skipped  project ${row.id}: slug "${row.slug}" is reserved`);
       continue;
     }
-    const page = buildPage(template, row, config, allProjects);
+    const page = buildPage(template, row, config, allProjects, shareImage);
     const dir = path.join(ROOT, "projects", page.slug);
     fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(path.join(dir, "index.html"), page.html);
@@ -320,9 +347,6 @@ async function main(){
   }
 
   /* City + locality hubs, from the same projects. */
-  const indexPath = path.join(ROOT, "index.html");
-  const goodRows = rows.filter(r => r && SLUG_RE.test(String(r.slug || "")));
-  const H = loadHomepageFunctions(fs.readFileSync(indexPath, "utf8"), config.url);
   const hubs = buildHubs({
     H,
     indexHtml: fs.readFileSync(indexPath, "utf8"),
@@ -330,6 +354,7 @@ async function main(){
     rows: goodRows,
     reservedSlugs: new Set([...pages.map(p => p.slug), "property-details", "search"]),
     siteOrigin: SITE_ORIGIN,
+    shareImageFor: prop => shareById.get(prop.id) || null,
     robots: count => !INDEXABLE ? "noindex,nofollow"
       : count >= HUB_MIN_INDEXED ? "index,follow,max-image-preview:large" : "noindex,follow"
   });
@@ -340,15 +365,10 @@ async function main(){
     console.log(`  wrote    /${hub.dir}/  (${hub.count} project${hub.count === 1 ? "" : "s"})`);
   });
 
-  const allProps = goodRows.map(row => H.mapResidentialProject(row));
   fs.writeFileSync(path.join(ROOT, "projects", "search.html"), buildSearchPage({
     H, indexHtml: fs.readFileSync(indexPath, "utf8"), props: allProps, siteOrigin: SITE_ORIGIN
   }));
   console.log(`  wrote    /projects/search.html  (${allProps.length} projects)`);
-
-  const thumbs = await buildThumbs({ H, P, props: allProps, rows: goodRows, supabaseUrl: config.url, root: ROOT });
-  console.log(`  thumbnails: ${thumbs.made} made, ${thumbs.kept} kept, ${thumbs.removed} removed` +
-    (thumbs.failed ? `, ${thumbs.failed} failed (those images use the original photo)` : ""));
 
   buildLegalPages({ root: ROOT, indexHtml: fs.readFileSync(indexPath, "utf8"), siteOrigin: SITE_ORIGIN, robots: ROBOTS })
     .forEach(page => {
