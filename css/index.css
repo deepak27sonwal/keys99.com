@@ -1019,6 +1019,15 @@ section{
   color:#092c3d;
 }
 
+/* Project status tags - one colour each. Same palette on the
+   project page (css/project-extra.css). */
+.badge.st-upcoming{ background:#6b4fd8; }
+.badge.st-new-launch{ background:var(--gold); color:#092c3d; }
+.badge.st-under-construction{ background:#1f6fd1; }
+.badge.st-ready-to-move{ background:var(--green); }
+.badge.st-completed{ background:#3d5361; }
+.badge.st-resale{ background:#c2416b; }
+
 .fav{
   position:absolute;
 

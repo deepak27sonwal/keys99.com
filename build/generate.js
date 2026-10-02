@@ -164,6 +164,7 @@ function buildPage(template, row, config){
   $("#mapLocation").text(p.location || "Project Location");
   $("#statusBadge").text(p.status);
   toggle($, "#statusBadge", !!p.status);
+  if(p.statusClass) $("#statusBadge").addClass(p.statusClass);
   $("#propertyPrice").text(p.startingPriceText);
   toggle($, "#priceNote", !!p.startingPrice);
   $("#priceDisclaimer").text(p.priceDisclaimer);

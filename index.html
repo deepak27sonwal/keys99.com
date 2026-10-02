@@ -946,7 +946,10 @@ function mapResidentialProject(row){
     .slice()
     .sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
 
-  const statusKey = row.construction_stage === "new_launch" ? "new_launch" : row.status;
+  /* The badge shows the project's own status. "New launch" can be
+     marked either as the status or as the construction stage; both
+     put the project in the New Launch section. */
+  const statusKey = row.status;
 
   return {
     id: row.id,
@@ -956,6 +959,7 @@ function mapResidentialProject(row){
     type_label: PROJECT_TYPE_LABELS[row.project_type] || "Property",
     category: PROJECT_TYPE_CATEGORY[row.project_type] || "residential",
     is_new_launch: row.status === "new_launch" || row.construction_stage === "new_launch",
+    status_key: statusKey,
 
     /* Developers are only readable when active and verified, so an
        unverified developer comes back null and the card omits it. */
@@ -1188,7 +1192,12 @@ function getStatusText(property){
   return status || "Available";
 }
 
-function getStatusClass(status){
+/* One colour per project status - see .badge.st-* in css/index.css. */
+function getStatusClass(status, property){
+  if(property && property.status_key){
+    return "st-" + String(property.status_key).replace(/_/g, "-");
+  }
+
   const value = String(status || "").toLowerCase();
   if(value.includes("rent") || value.includes("lease")){
     return "rent";
@@ -1338,7 +1347,7 @@ function createPropertyCard(property, badgeLabel, badgeClass){
   const developer = titleCaseName(property.developer);
 
   const status = badgeLabel || getStatusText(property);
-  const statusClass = badgeClass || getStatusClass(getStatusText(property));
+  const statusClass = badgeClass || getStatusClass(getStatusText(property), property);
 
   const category = getCategory(property);
 
@@ -1808,24 +1817,15 @@ if(viewAllBtn){
 
 /* =========================================================
    RENDER NEW LAUNCHES
-   Only properties listed within the last 30 days count as
-   a "new launch". "View All" behaves just like the Popular
+   Only projects marked as a new launch (status or construction
+   stage = new_launch) appear here, however long ago they were
+   listed. "View All" behaves just like the Popular
    Properties section's button - it sends visitors to the
    full search page.
 ========================================================= */
 
-const NEW_LAUNCH_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
-
 function getNewLaunchProperties(){
-
-  const cutoff = Date.now() - NEW_LAUNCH_WINDOW_MS;
-
-  return allProperties.filter(property => {
-    if(property.is_new_launch) return true;
-    const created = new Date(property.created_at).getTime();
-    return Number.isFinite(created) && created >= cutoff;
-  });
-
+  return allProperties.filter(property => property.is_new_launch);
 }
 
 function renderNewLaunches(){
@@ -1836,7 +1836,7 @@ function renderNewLaunches(){
 
   if(!newLaunches.length){
     newLaunchesState.style.display = "block";
-    newLaunchesState.textContent = "No new launches in the last 30 days.";
+    newLaunchesState.textContent = "No new launch projects right now.";
     newLaunchesList.innerHTML = "";
     newLaunchesHint.style.display = "none";
     newLaunchesViewAllBtn.style.display = "none";
@@ -1845,7 +1845,7 @@ function renderNewLaunches(){
 
   const items = newLaunches.slice(0, NEW_LAUNCH_COUNT);
 
-  newLaunchesList.innerHTML = items.map(p => createPropertyCard(p, "New Launch", "new")).join("");
+  newLaunchesList.innerHTML = items.map(p => createPropertyCard(p, "New Launch", "st-new-launch")).join("");
 
   newLaunchesHint.style.display = items.length > 1 ? "block" : "none";
   newLaunchesViewAllBtn.style.display = "inline-flex";

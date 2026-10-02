@@ -258,7 +258,7 @@
     const startingPrice = priceOnRequest ? null
       : (prices.length ? Math.min(...prices) : (projectFrom > 0 ? projectFrom : null));
 
-    const statusKey = row.construction_stage === "new_launch" ? "new_launch" : row.status;
+    const statusKey = row.status;
     const city = row.city ? titleCase(row.city.name) : "";
     const locality = row.locality ? titleCase(row.locality.name) : "";
     const state = row.city ? titleCase(row.city.state) : "";
@@ -318,6 +318,7 @@
       name,
       typeLabel,
       status: STATUS_LABELS[statusKey] || "",
+      statusClass: statusKey ? "st-" + String(statusKey).replace(/_/g, "-") : "",
       city, locality, state,
       location: [locality, city, state].filter((v,i,a) => v && a.indexOf(v) === i).join(", "),
       address: clean(row.address),

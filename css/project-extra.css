@@ -7,6 +7,14 @@
 
 .breadcrumb .hidden{display:none}
 
+/* Project status tag - same colours as the homepage cards. */
+.status-badge.st-upcoming{background:#6b4fd8}
+.status-badge.st-new-launch{background:#e1a400;color:#092c3d}
+.status-badge.st-under-construction{background:#1f6fd1}
+.status-badge.st-ready-to-move{background:#006b5b}
+.status-badge.st-completed{background:#3d5361}
+.status-badge.st-resale{background:#c2416b}
+
 .price-disclaimer{display:block;margin-top:6px;font-size:10.5px;line-height:1.4;color:#6b7f86}
 
 .highlights{display:flex;flex-wrap:wrap;gap:9px;margin:0;padding:0;list-style:none}

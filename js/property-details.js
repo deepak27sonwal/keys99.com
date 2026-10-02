@@ -150,6 +150,8 @@ function renderProject(p){
   setText("mapLocation", p.location || "Project Location");
   setText("statusBadge", p.status || "For Sale");
   $("statusBadge").classList.toggle("hidden", !p.status);
+  $("statusBadge").className = $("statusBadge").className.replace(/\bst-\S+/g, "").trim();
+  if(p.statusClass) $("statusBadge").classList.add(p.statusClass);
   setText("propertyPrice", p.startingPriceText);
   $("priceNote").classList.toggle("hidden", !p.startingPrice);
   setText("priceDisclaimer", p.priceDisclaimer);
