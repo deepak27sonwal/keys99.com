@@ -86,3 +86,27 @@
 
 /* Price per sq ft under each configuration price */
 .config-rate{display:block;margin-top:2px;font-size:10.5px;font-weight:600;color:#6b7f86;white-space:nowrap}
+
+/* Contact form shown before WhatsApp / Call (property-details.js) */
+.contact-gate{position:fixed;inset:0;z-index:600;display:grid;place-items:center;padding:18px}
+.contact-gate.hidden{display:none}
+.contact-gate-backdrop{position:absolute;inset:0;background:rgba(2,16,15,.62);backdrop-filter:blur(3px)}
+.contact-gate-card{position:relative;width:min(400px,100%);max-height:calc(100vh - 36px);overflow:auto;background:#fff;border-radius:18px;padding:24px 22px 20px;box-shadow:0 24px 60px rgba(0,0,0,.28);display:grid;gap:12px;animation:gate-in .16s ease-out}
+@keyframes gate-in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.contact-gate-card h2{margin:0;padding-right:34px;font:800 20px Manrope,sans-serif;color:var(--text)}
+.contact-gate-note{margin:-4px 0 2px;font-size:12.5px;line-height:1.5;color:#53666d}
+.contact-gate-close{position:absolute;right:12px;top:12px;width:34px;height:34px;border:0;border-radius:50%;background:#eef3f1;color:var(--text);font-size:22px;line-height:1;cursor:pointer}
+.contact-gate-field{display:grid;gap:5px}
+.contact-gate-field>span{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#6b7f86}
+.contact-gate-field input,.contact-gate-field select{width:100%;padding:11px 12px;border:1px solid #d3e0dc;border-radius:10px;background:#fafcfb;font:inherit;font-size:14px;color:var(--text);outline:0}
+.contact-gate-field input:focus,.contact-gate-field select:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(0,107,91,.12)}
+.contact-gate-error{margin:0;font-size:12px;font-weight:600;color:#c0392b}
+.contact-gate-submit{margin-top:2px;padding:13px;border:0;border-radius:10px;background:var(--green);color:#fff;font:inherit;font-size:14px;font-weight:700;cursor:pointer}
+.contact-gate-submit.whatsapp{background:#1f9d55}
+.contact-gate-submit:disabled{opacity:.65;cursor:wait}
+.contact-gate-privacy{font-size:11px;line-height:1.5;color:#6b7f86}
+.contact-gate-privacy a{color:var(--green)}
+@media (max-width:560px){
+  .contact-gate{place-items:end center;padding:0}
+  .contact-gate-card{width:100%;border-radius:18px 18px 0 0;padding-bottom:calc(20px + env(safe-area-inset-bottom))}
+}

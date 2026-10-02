@@ -456,26 +456,25 @@ function contactNumbers(p){
   };
 }
 
-function whatsappMessage(p){
-  const bhk = $("enquiryBhk").value;
+function whatsappMessage(p, name, bhk){
   return [
-    `Hi Keys99, I am interested in ${p.name}${p.location ? ", " + p.location : ""}.`,
+    `Hi Keys99, ${name ? `I am ${name} and ` : ""}I am interested in ${p.name}${p.location ? ", " + p.location : ""}.`,
     bhk ? `Preferred configuration: ${bhk}` : "",
     window.location.href
   ].filter(Boolean).join("\n");
 }
 
+/* WhatsApp and Call never go straight to the agent: they open the
+   contact form (#contactGate), save the enquiry, then continue. */
 function setupContactButtons(p){
   const { phone, whatsapp } = contactNumbers(p);
 
   $("stickyCallBtn").disabled = !phone;
-  $("stickyCallBtn").onclick = () => { if(phone) window.location.href = "tel:" + phone; };
+  $("stickyCallBtn").onclick = () => { if(phone) openGate("call"); };
 
   $("stickyWhatsappBtn").disabled = !whatsapp;
   $("whatsappBtn").classList.toggle("hidden", !whatsapp);
-  const openWhatsapp = () => {
-    if(whatsapp) window.open(`https://wa.me/${whatsapp}?text=${encodeURIComponent(whatsappMessage(p))}`, "_blank", "noopener,noreferrer");
-  };
+  const openWhatsapp = () => { if(whatsapp) openGate("whatsapp"); };
   $("stickyWhatsappBtn").onclick = openWhatsapp;
   $("whatsappBtn").onclick = openWhatsapp;
 
@@ -486,7 +485,134 @@ function setupContactButtons(p){
 }
 
 
+/* ---------------- CONTACT FORM BEFORE WHATSAPP / CALL ---------------- */
+
+const SAVED_CONTACT = "k99_contact";
+let gateMode = null;
+let gateReturnFocus = null;
+
+/* Name and number from the last form sent, so the next one is a
+   single tap. Kept in this browser only (Privacy Policy, section 6). */
+function savedContact(){
+  try{ return JSON.parse(localStorage.getItem(SAVED_CONTACT) || "null") || {}; }catch(_){ return {}; }
+}
+function saveContact(name, phone){
+  try{ localStorage.setItem(SAVED_CONTACT, JSON.stringify({ name, phone })); }catch(_){}
+}
+
+function openGate(mode){
+  if(!project) return;
+  gateMode = mode;
+  gateReturnFocus = document.activeElement;
+  const whatsappMode = mode === "whatsapp";
+  const saved = savedContact();
+
+  $("contactGateTitle").textContent = whatsappMode ? "Chat on WhatsApp" : "Call the project expert";
+  $("contactGateNote").textContent = `Share your details so the expert for ${project.name} knows who is getting in touch.`;
+  $("gateSubmit").textContent = whatsappMode ? "Continue to WhatsApp" : "Continue to call";
+  $("gateSubmit").classList.toggle("whatsapp", whatsappMode);
+  $("gateError").hidden = true;
+
+  /* Prefer what is typed in the enquiry card, then the saved details. */
+  $("gateName").value = $("enquiryName").value.trim() || $("gateName").value || saved.name || "";
+  $("gatePhone").value = $("enquiryPhone").value.trim() || $("gatePhone").value || saved.phone || "";
+
+  const bhkSelect = $("gateBhk");
+  bhkSelect.innerHTML = $("enquiryBhk").innerHTML;
+  bhkSelect.value = $("enquiryBhk").value;
+  $("gateBhkField").classList.toggle("hidden", !project.bhkLabels.length);
+
+  $("contactGate").classList.remove("hidden");
+  $("contactGate").setAttribute("aria-hidden", "false");
+  document.body.style.overflow = "hidden";
+  setTimeout(() => ($("gateName").value ? $("gateSubmit") : $("gateName")).focus(), 50);
+}
+
+function closeGate(){
+  $("contactGate").classList.add("hidden");
+  $("contactGate").setAttribute("aria-hidden", "true");
+  document.body.style.overflow = "";
+  gateMode = null;
+  if(gateReturnFocus && gateReturnFocus.focus) gateReturnFocus.focus();
+}
+
+document.querySelectorAll("[data-close-gate]").forEach(el => el.addEventListener("click", closeGate));
+document.addEventListener("keydown", e => {
+  if(e.key === "Escape" && gateMode) closeGate();
+});
+
+$("contactGateForm").addEventListener("submit", async event => {
+  event.preventDefault();
+  if(!project || !gateMode) return;
+
+  const mode = gateMode;
+  const name = $("gateName").value.trim();
+  const phone = $("gatePhone").value.trim();
+  const bhk = $("gateBhk").value.trim();
+  if(!name || phone.replace(/\D/g, "").length < 10){
+    $("gateError").textContent = "Please enter your name and a valid 10-digit mobile number.";
+    $("gateError").hidden = false;
+    return;
+  }
+
+  const numbers = contactNumbers(project);
+  const target = mode === "whatsapp"
+    ? `https://wa.me/${numbers.whatsapp}?text=${encodeURIComponent(whatsappMessage(project, name, bhk))}`
+    : "tel:" + numbers.phone;
+
+  /* Open the WhatsApp tab now, while this still counts as the
+     visitor's click - browsers block tabs opened after a wait. */
+  const tab = mode === "whatsapp" ? window.open("about:blank", "_blank") : null;
+
+  const button = $("gateSubmit");
+  button.disabled = true;
+  button.textContent = "Please wait...";
+
+  try{
+    await sendEnquiry({
+      project_id: project.id,
+      contact_person: name,
+      phone,
+      whatsapp: phone,
+      enquiry_type: mode === "whatsapp" ? "whatsapp_now" : "request_callback",
+      preferred_contact_method: mode === "whatsapp" ? "whatsapp" : "phone",
+      message: [
+        mode === "whatsapp" ? `Opened WhatsApp chat about ${project.name}.` : `Called about ${project.name}.`,
+        bhk ? `Preferred BHK: ${bhk}` : ""
+      ].filter(Boolean).join("\n"),
+      source: "website"
+    });
+  }catch(error){
+    /* Still connect them: a lost lead is worse than a missing record. */
+    console.error("Contact enquiry failed:", error);
+  }
+
+  saveContact(name, phone);
+  closeGate();
+  button.disabled = false;
+
+  if(tab && !tab.closed){
+    tab.opener = null;
+    tab.location.href = target;
+  }else{
+    window.location.href = target;
+  }
+});
+
+
 /* ---------------- ENQUIRY ---------------- */
+
+/* Saves an enquiry with where the visitor came from (js/attribution.js).
+   If the database does not have those columns yet
+   (supabase/04-enquiry-source.sql not run), it is sent without them. */
+async function sendEnquiry(enquiry){
+  const tracking = window.Keys99Attribution ? window.Keys99Attribution.get() : {};
+  let { error } = await supabaseClient.from("residential_enquiries").insert({ ...enquiry, ...tracking });
+  if(error && Object.keys(tracking).length && (error.code === "PGRST204" || /column/i.test(error.message || ""))){
+    ({ error } = await supabaseClient.from("residential_enquiries").insert(enquiry));
+  }
+  if(error) throw error;
+}
 
 function populateEnquiry(p){
   $("enquiryDeveloper").value = p.developer;
@@ -522,7 +648,7 @@ $("enquiryForm").addEventListener("submit", async event => {
   button.textContent = "Sending...";
 
   try{
-    const enquiry = {
+    await sendEnquiry({
       project_id: project.id,
       contact_person: name,
       phone,
@@ -532,17 +658,8 @@ $("enquiryForm").addEventListener("submit", async event => {
       preferred_contact_method: "whatsapp",
       message: [message || `Interested in ${project.name}.`, bhk ? `Preferred BHK: ${bhk}` : ""].filter(Boolean).join("\n"),
       source: "website"
-    };
-
-    /* Where the visitor came from (js/attribution.js). If the database
-       does not have those columns yet (supabase/04-enquiry-source.sql
-       not run), send the enquiry without them rather than fail. */
-    const tracking = window.Keys99Attribution ? window.Keys99Attribution.get() : {};
-    let { error } = await supabaseClient.from("residential_enquiries").insert({ ...enquiry, ...tracking });
-    if(error && Object.keys(tracking).length && (error.code === "PGRST204" || /column/i.test(error.message || ""))){
-      ({ error } = await supabaseClient.from("residential_enquiries").insert(enquiry));
-    }
-    if(error) throw error;
+    });
+    saveContact(name, phone);
 
     showToast("Enquiry sent. Our expert will contact you soon.");
     $("enquiryForm").reset();
