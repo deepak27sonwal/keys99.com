@@ -215,6 +215,8 @@
             <option value="commercial">Commercial</option>
             <option value="plots">Plots & Land</option>
             <option value="luxury">Luxury Homes</option>
+            <option value="resale">Resale</option>
+            <option value="rent">Rent</option>
           </select>
         </label>
 
@@ -441,6 +443,34 @@
             <div>
               <h3>Luxury Homes</h3>
               <p data-type-count="luxury">1 Project</p>
+            </div>
+            <span class="arrow">→</span>
+          </div>
+        </div>
+      </article>
+      <article class="type-card" data-type="resale" tabindex="0" role="button">
+        <div class="type-img">
+          <img src="assets/type-resale.svg" alt="Resale flats and homes" loading="lazy" width="700" height="420">
+        </div>
+        <div class="type-body">
+          <div class="type-row">
+            <div>
+              <h3>Resale Homes</h3>
+              <p data-type-count="resale">Coming soon</p>
+            </div>
+            <span class="arrow">→</span>
+          </div>
+        </div>
+      </article>
+      <article class="type-card" data-type="rent" tabindex="0" role="button">
+        <div class="type-img">
+          <img src="assets/type-rent.svg" alt="Flats and homes for rent" loading="lazy" width="700" height="420">
+        </div>
+        <div class="type-body">
+          <div class="type-row">
+            <div>
+              <h3>Rent</h3>
+              <p data-type-count="rent">Coming soon</p>
             </div>
             <span class="arrow">→</span>
           </div>
@@ -1980,6 +2010,8 @@ function mapResidentialProject(row){
     type_label: PROJECT_TYPE_LABELS[row.project_type] || "Property",
     category: PROJECT_TYPE_CATEGORY[row.project_type] || "residential",
     is_new_launch: row.status === "new_launch" || row.construction_stage === "new_launch",
+    /* Resale can be marked as the status or the construction stage. */
+    is_resale: row.status === "resale" || row.construction_stage === "resale",
     status_key: statusKey,
 
     /* Developers are only readable when active and verified, so an
@@ -2476,6 +2508,7 @@ function createPropertyCard(property, badgeLabel, badgeClass){
       data-locality="${escapeHtml(slugify(property.locality))}"
       data-price="${optionPrices.length ? Math.min(...optionPrices) : ""}"
       data-status="${escapeHtml(property.status_key || "")}"
+      data-listing="${property.is_resale ? "resale" : "new"}"
       data-created="${escapeHtml(property.created_at || "")}"
     >
 
@@ -3064,10 +3097,14 @@ function localityChipHtml(item){
    counted from the published projects. */
 function computeSiteStats(properties){
   const distinct = values => new Set(values.map(v => String(v || "").trim().toLowerCase()).filter(Boolean)).size;
-  const types = { residential:0, commercial:0, plots:0, luxury:0 };
+  /* Resale and rent are listing types, counted alongside the
+     categories. Rentals are not listed yet, so rent stays 0
+     ("Coming soon"). */
+  const types = { residential:0, commercial:0, plots:0, luxury:0, resale:0, rent:0 };
   properties.forEach(p => {
     const category = getCategory(p);
     if(category in types) types[category]++;
+    if(p.is_resale) types.resale++;
   });
   return {
     projects: properties.length,

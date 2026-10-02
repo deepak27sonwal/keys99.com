@@ -70,7 +70,13 @@
     }
     if(v.city && d.city !== v.city) return false;
     if(v.locality && d.locality !== v.locality) return false;
-    if(v.type && d.type !== v.type) return false;
+    /* "resale" is a listing type across categories (data-listing);
+       the rest are categories (data-type). */
+    if(v.type === "resale"){
+      if(d.listing !== "resale") return false;
+    }else if(v.type && d.type !== v.type){
+      return false;
+    }
     if(v.bhk){
       const list = (d.bhks || "").split("|").filter(Boolean);
       if(v.bhk === "4+ bhk"){
@@ -109,7 +115,7 @@
     const v = values();
 
     /* Projects are new homes for sale; there are no rentals yet. */
-    const rentals = v.status === "rent";
+    const rentals = v.status === "rent" || v.type === "rent";
     const visible = rentals ? [] : cards.filter(c => matches(c, v));
 
     cards.forEach(c => { c.hidden = !visible.includes(c); });
@@ -123,9 +129,10 @@
 
     const where = label(localitySel) || label(citySel);
     const bhk = label(document.getElementById("sfBhk"));
+    const noun = v.type === "resale" ? "Resale Homes" : rentals ? "Homes for Rent" : "Projects";
     heading.textContent = where
-      ? `${bhk ? bhk + " " : ""}Projects in ${where}`
-      : (bhk ? `${bhk} Projects` : "Search Projects");
+      ? `${bhk ? bhk + " " : ""}${noun} in ${where}`
+      : (bhk ? `${bhk} ${noun}` : (noun === "Projects" ? "Search Projects" : noun));
 
     const query = new URLSearchParams();
     Object.entries(v).forEach(([k, val]) => { if(val && !(k === "sort" && val === "newest")) query.set(k, val); });

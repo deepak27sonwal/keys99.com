@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 420" width="700" height="420" role="img" aria-label="Resale homes">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fdf3df"/>
+      <stop offset="1" stop-color="#ffffff"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="700" height="420" fill="url(#bg)"/>
+  <circle cx="110" cy="92" r="30" fill="#006b5b" opacity=".12"/>
+
+  <!-- house -->
+  <path d="M190 210 L330 110 L470 210 Z" fill="#004f45"/>
+  <rect x="215" y="206" width="230" height="140" rx="6" fill="#006b5b"/>
+  <g fill="#fdf3df" opacity=".9">
+    <rect x="240" y="232" width="40" height="36" rx="3"/>
+    <rect x="380" y="232" width="40" height="36" rx="3"/>
+  </g>
+  <rect x="306" y="270" width="48" height="76" rx="4" fill="#e1a400"/>
+  <circle cx="344" cy="310" r="3.5" fill="#004f45"/>
+
+  <!-- price tag hanging from the roof line -->
+  <path d="M470 178 L470 214" stroke="#004f45" stroke-width="3"/>
+  <g transform="rotate(-8 520 250)">
+    <path d="M478 216 H566 a8 8 0 0 1 8 8 V284 a8 8 0 0 1 -8 8 H478 L456 254 Z" fill="#e1a400"/>
+    <circle cx="474" cy="254" r="6" fill="#fdf3df"/>
+    <rect x="492" y="240" width="62" height="9" rx="4.5" fill="#004f45" opacity=".75"/>
+    <rect x="492" y="258" width="42" height="9" rx="4.5" fill="#004f45" opacity=".45"/>
+  </g>
+
+  <rect x="150" y="344" width="440" height="5" rx="2.5" fill="#004f45" opacity=".28"/>
+</svg>
