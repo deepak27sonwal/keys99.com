@@ -176,6 +176,16 @@ function buildGuide(H, props){
     ? ` Flats by size in ${e(H.titleCaseName(mainCity))}: ${listText(sizes.map(b => link(`${H.cityUrl(mainCity)}${bhkSlug(b)}/`, b)))}.`
     : "";
 
+  /* Developer pages (build/hubs.js). */
+  const devs = [];
+  props.forEach(p => {
+    const slug = H.slugify(p.developer);
+    if(slug && !devs.some(d => d.slug === slug)) devs.push({ slug, name: H.titleCaseName(p.developer) });
+  });
+  const devLinks = devs.length
+    ? ` Projects by developer: ${listText(devs.slice(0, 6).map(d => link(`developers/${d.slug}/`, d.name)))} (${link("developers/", "all developers")}).`
+    : "";
+
   const html = `
 <section id="guide" class="home-guide" aria-labelledby="guideTitle">
   <div class="container">
@@ -186,7 +196,7 @@ function buildGuide(H, props){
       </div>
     </div>
     <p class="home-guide-intro">${e(introText(H, s, place))}</p>
-    <p class="home-guide-links">${browse}${sizeLinks}</p>
+    <p class="home-guide-links">${browse}${sizeLinks}${devLinks}</p>
     <h3>Frequently Asked Questions</h3>
     <div class="hub-faqs">${questions.map(f => `
       <details class="hub-faq">

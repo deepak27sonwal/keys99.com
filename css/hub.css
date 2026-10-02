@@ -135,3 +135,17 @@
 .hub section.hub-section{
   padding:0;
 }
+
+/* Developer pages: description and website from the developer record. */
+.hub-about{
+  max-width:860px;
+  margin:0 0 12px;
+  font-size:13.5px;
+  line-height:1.7;
+  color:#3d5560;
+  white-space:pre-line;
+}
+
+.hub-website{ margin:0 0 16px; font-size:13px; }
+.hub-website a{ color:var(--green); font-weight:700; text-decoration:none; }
+.hub-website a:hover{ text-decoration:underline; }

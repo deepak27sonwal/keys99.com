@@ -79,6 +79,12 @@
   RewriteCond %{REQUEST_FILENAME}       !-f
   RewriteCond %{REQUEST_FILENAME}       !-d
   RewriteRule ^projects/([A-Za-z0-9-]+)/?$  /projects/property-details.html?slug=$1 [R=302,L,QSA]
+
+  # A developer whose page has not been built yet: the list of all
+  # developers (/developers/), which the build always writes.
+  RewriteCond %{REQUEST_FILENAME}       !-f
+  RewriteCond %{REQUEST_FILENAME}       !-d
+  RewriteRule ^developers/([A-Za-z0-9-]+)/?$  /developers/ [R=302,L]
 </IfModule>
 
 

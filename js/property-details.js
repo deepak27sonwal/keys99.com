@@ -143,7 +143,15 @@ function renderProject(p){
   setCrumb("crumbLocality", p.locality, citySlug && localitySlug ? citySlug + "/" + localitySlug : "");
   setText("miniBreadcrumb", p.typeLabel);
   setText("propertyType", p.typeLabel);
-  setText("developer", p.developer || "—");
+  /* Generated pages link the name to the developer's page; keep the
+     link while the developer is the same one it points to. */
+  const devLink = $("developer").querySelector("a");
+  if(devLink && p.developer && devLink.getAttribute("href").endsWith("/" + P.slugify(p.developer) + "/")){
+    devLink.textContent = p.developer;
+  }else{
+    setText("developer", p.developer || "—");
+    $("developerLink").classList.add("hidden");
+  }
   setText("developerName", p.developer || "—");
   setText("developerDescription", p.developerDescription);
   $("developerSection").classList.toggle("hidden", !p.developer);

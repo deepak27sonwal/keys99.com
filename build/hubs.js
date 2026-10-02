@@ -234,13 +234,36 @@ function rebase($, prefix){
   });
 }
 
+/* Crumb paths are relative to their base folder ("projects" unless
+   the crumb says otherwise); Home has neither. */
+function devLinksSection(hub, e){
+  return `
+    <section class="hub-section" aria-labelledby="hubDevelopers">
+      <h2 class="section-title" id="hubDevelopers">${e(hub.devLinksHeading)}</h2>
+      <div class="hub-localities">
+        ${hub.devLinks.map(d => `
+        <a class="locality-chip" href="developers/${e(d.slug)}/">
+          <strong>${e(d.name)}</strong>
+          <span class="count">${plural(d.count, "Project", "Projects")}</span>
+        </a>`).join("")}
+      </div>
+    </section>`;
+}
+
+function crumbPath(c){
+  if(!c.path && !c.base) return "";
+  return `${c.base || "projects"}/${c.path ? c.path + "/" : ""}`;
+}
+
 function hubPage(ctx, hub){
   const { H, chrome, siteOrigin, robots } = ctx;
-  const depth = hub.path.split("/").length + 1;            // projects/<city>[/<locality>]/
+  const base = hub.base || "projects";                    // top-level folder
+  const dirPath = [base, ...hub.path.split("/").filter(Boolean)].join("/");
+  const depth = dirPath.split("/").length;                 // projects/<city>[/<locality>]/, developers/[<slug>/]
   const prefix = "../".repeat(depth);
-  const url = `${siteOrigin}/projects/${hub.path}/`;
+  const url = `${siteOrigin}/${dirPath}/`;
   const s = summarise(H, hub.props);
-  const copy = hub.bhk ? bhkCopy(H, hub) : null;
+  const copy = hub.bhk ? bhkCopy(H, hub) : hub.copy ? hub.copy(H, s) : null;
   const title = copy ? copy.title : pageTitle(H, s, hub.place);
   const intro = copy ? copy.intro : introText(H, s, hub.place, hub.introExtra);
   const description = intro.length > 300 ? intro.slice(0, 297).replace(/\s+\S*$/, "") + "…" : intro;
@@ -274,7 +297,7 @@ function hubPage(ctx, hub){
         "@type": "BreadcrumbList",
         itemListElement: crumbs.map((c, i) => ({
           "@type": "ListItem", position: i + 1, name: c.name,
-          item: `${siteOrigin}/${c.path ? "projects/" + c.path + "/" : ""}`
+          item: `${siteOrigin}/${crumbPath(c)}`
         }))
       },
       {
@@ -300,7 +323,7 @@ function hubPage(ctx, hub){
 <title>${e(title)}</title>
 <meta name="description" content="${e(description)}">
 <link rel="canonical" href="${e(url)}">
-<meta name="robots" content="${robots(hub.props.length)}">
+<meta name="robots" content="${robots(hub.indexCount || hub.props.length)}">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Keys99">
 <meta property="og:title" content="${e(title)}">
@@ -328,7 +351,7 @@ ${chrome.mobileMenu}
 
     <nav class="hub-breadcrumb" aria-label="Breadcrumb">
       ${crumbs.map((c, i) => i < crumbs.length - 1
-        ? `<a href="${c.path ? "projects/" + c.path + "/" : "index.html"}">${e(c.name)}</a><span>›</span>`
+        ? `<a href="${crumbPath(c) || "index.html"}">${e(c.name)}</a><span>›</span>`
         : `<span aria-current="page">${e(c.name)}</span>`).join("\n      ")}
     </nav>
 
@@ -336,17 +359,24 @@ ${chrome.mobileMenu}
       <div class="section-kicker">${e(hub.kicker)}</div>
       <h1>${e(hub.h1)}</h1>
       <p class="hub-intro">${e(intro)}</p>
+      ${hub.about ? `<p class="hub-about">${e(hub.about)}</p>` : ""}
+      ${hub.website ? `<p class="hub-website"><a href="${e(hub.website)}" target="_blank" rel="noopener nofollow">Visit the ${e(hub.websiteLabel || "official")} website ↗</a></p>` : ""}
       <dl class="hub-facts">
         ${facts.map(([k, v]) => `<div><dt>${e(k)}</dt><dd>${e(v)}</dd></div>`).join("\n        ")}
       </dl>
     </header>
 
+    ${hub.devLinks && hub.devLinks.length && hub.devLinksFirst ? devLinksSection(hub, e) : ""}
+
+    ${hub.hideGrid ? "" : `
     <section class="hub-section" aria-labelledby="hubProjects">
       <h2 class="section-title" id="hubProjects">${e(hub.listHeading)}</h2>
       <div class="hub-grid">
         ${hub.props.map(p => H.createPropertyCard(p)).join("")}
       </div>
-    </section>
+    </section>`}
+
+    ${hub.devLinks && hub.devLinks.length && !hub.devLinksFirst ? devLinksSection(hub, e) : ""}
 
     ${hub.bhkLinks && hub.bhkLinks.length ? `
     <section class="hub-section" aria-labelledby="hubBhk">
@@ -409,7 +439,7 @@ ${chrome.bottomNav}
 
   const $ = cheerio.load(html);
   rebase($, prefix);
-  return { path: hub.path, html: $.html(), lastmod: hub.lastmod, count: hub.props.length };
+  return { base, path: hub.path, dir: dirPath, html: $.html(), lastmod: hub.lastmod, count: hub.indexCount || hub.props.length };
 }
 
 /* Group mapped projects into city and locality hubs. */
@@ -511,10 +541,151 @@ function collectHubs(H, props, reservedSlugs){
   return hubs;
 }
 
-function buildHubs({ H, indexHtml, props, reservedSlugs, siteOrigin, robots }){
+/* ---------- Developer pages: /developers/ and /developers/<slug>/ ----------
+   "<builder name> projects" is a common search. Each developer with a
+   published project gets a page listing all of their projects; the
+   description, logo and website appear when the developer record has
+   them. /developers/ lists every developer. */
+
+function developerCopy(H, s, dev, place){
+  const n = s.count;
+  const names = dev.props.map(p => p.project_name || p.title).filter(Boolean);
+  const localities = [...new Set(dev.props.map(p => H.titleCaseName(p.locality)).filter(Boolean))];
+  const priceRange = s.minPrice === null ? ""
+    : s.maxPrice > s.minPrice ? `from ${H.formatPrice(s.minPrice)} to ${H.formatPrice(s.maxPrice)}` : `from ${H.formatPrice(s.minPrice)}`;
+
+  const intro = [
+    `${dev.name} has ${plural(n, "residential project", "residential projects")} listed on Keys99 in ${localities.length ? listText(localities, 5) + ", " : ""}${place}.`,
+    s.bhks.length ? `Configurations: ${listText(s.bhks)}.` : "",
+    priceRange ? `Prices ${s.maxPrice > s.minPrice ? "range" : "start"} ${priceRange}.` : "",
+    s.statuses.length ? `Status: ${s.statuses.map(([label, c]) => `${c} ${label.toLowerCase()}`).join(", ")}.` : ""
+  ].filter(Boolean).join(" ");
+
+  const questions = [{
+    q: `Which ${dev.name} projects are listed on Keys99?`,
+    a: names.length ? `${dev.name} projects on Keys99: ${listText(names)}.` : `Keys99 lists ${plural(n, "project", "projects")} by ${dev.name}.`
+  }];
+  if(priceRange){
+    questions.push({
+      q: `What is the price of ${dev.name} projects?`,
+      a: `${dev.name} projects on Keys99 are priced ${priceRange}, depending on the project and configuration.`
+    });
+  }
+  if(localities.length){
+    questions.push({
+      q: `Where are ${dev.name} projects located?`,
+      a: `${dev.name} has projects in ${listText(localities)}, ${place}.`
+    });
+  }
+  questions.push({
+    q: `Are ${dev.name} projects RERA registered?`,
+    a: (s.rera
+      ? `${s.rera === n ? (n === 1 ? "The project lists" : "All " + n + " projects list") : s.rera + " of " + n + " projects list"} a RERA registration number on its Keys99 page.`
+      : `None of these projects lists a RERA registration number on Keys99 yet.`) +
+      " Always check the number on the state RERA portal (MahaRERA in Maharashtra) before booking."
+  });
+
+  return {
+    title: `${dev.name} Projects in ${place} | Prices & Configurations | Keys99`,
+    intro,
+    questions,
+    facts: [
+      ["Projects", String(n)],
+      s.minPrice !== null ? ["Starting from", H.formatPrice(s.minPrice)] : null,
+      s.bhks.length ? ["Configurations", s.bhks.join(", ")] : null,
+      localities.length ? ["Localities", String(localities.length)] : null
+    ].filter(Boolean)
+  };
+}
+
+function collectDeveloperHubs(H, props, rows){
+  const info = new Map();
+  (rows || []).forEach(r => {
+    const d = r && r.developer;
+    if(d && d.name) info.set(H.slugify(d.name), d);
+  });
+
+  const groups = new Map();
+  props.forEach(p => {
+    const slug = H.slugify(p.developer);
+    if(!slug) return;
+    if(!groups.has(slug)) groups.set(slug, { slug, name: H.titleCaseName(p.developer), props: [] });
+    groups.get(slug).props.push(p);
+  });
+  const devs = [...groups.values()]
+    .map(d => ({ ...d, count: d.props.length }))
+    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+  if(!devs.length) return [];
+
+  const latest = list => list.map(p => p.created_at).filter(Boolean).sort().pop();
+  const citiesOf = list => [...new Set(list.map(p => H.titleCaseName(p.city)).filter(Boolean))];
+  const allCities = citiesOf(props);
+  const place = listText(allCities, 3) || "India";
+  const devProps = devs.flatMap(d => d.props);
+  const text = v => String(v == null ? "" : v).replace(/\s+/g, " ").trim();
+
+  const pages = [{
+    base: "developers",
+    path: "",
+    place,
+    h1: `Real Estate Developers in ${place}`,
+    kicker: "Developers",
+    crumbs: [{ name: "Developers", base: "developers" }],
+    props: devProps,
+    hideGrid: true,
+    devLinks: devs,
+    devLinksFirst: true,
+    devLinksHeading: "All Developers on Keys99",
+    indexCount: devs.length,
+    copy: () => ({
+      title: `Real Estate Developers & Builders in ${place} | Keys99`,
+      intro: `Browse ${plural(devs.length, "developer", "developers")} with ${plural(devProps.length, "new residential project", "new residential projects")} in ${place} on Keys99, including ${listText(devs.map(d => d.name), 4)}. Open a developer to see all of their projects, prices and configurations.`,
+      questions: [{
+        q: `Which developers have new projects in ${place}?`,
+        a: `Keys99 lists projects by ${listText(devs.map(d => d.name))}.`
+      }, {
+        q: `Which developer has the most projects on Keys99?`,
+        a: `${devs[0].name} has the most, with ${plural(devs[0].count, "project", "projects")}.`
+      }],
+      facts: [
+        ["Developers", String(devs.length)],
+        ["Projects", String(devProps.length)],
+        ["Cities", String(allCities.length)]
+      ]
+    }),
+    lastmod: latest(devProps)
+  }];
+
+  devs.forEach(d => {
+    const extra = info.get(d.slug) || {};
+    const website = /^https?:\/\//i.test(text(extra.website)) ? text(extra.website) : "";
+    const dPlace = listText(citiesOf(d.props), 3) || "India";
+    pages.push({
+      base: "developers",
+      path: d.slug,
+      place: dPlace,
+      h1: `${d.name} Projects in ${dPlace}`,
+      kicker: "Developer",
+      listHeading: `Projects by ${d.name}`,
+      crumbs: [{ name: "Developers", base: "developers" }, { name: d.name, base: "developers", path: d.slug }],
+      props: d.props,
+      about: text(extra.description),
+      website,
+      websiteLabel: d.name,
+      devLinks: devs.filter(o => o.slug !== d.slug),
+      devLinksHeading: "Other Developers",
+      copy: (H, s) => developerCopy(H, s, d, dPlace),
+      lastmod: latest(d.props)
+    });
+  });
+  return pages;
+}
+
+function buildHubs({ H, indexHtml, props, rows, reservedSlugs, siteOrigin, robots }){
   const chrome = homepageChrome(indexHtml);
   const ctx = { H, chrome, siteOrigin, robots };
-  return collectHubs(H, props, reservedSlugs).map(hub => hubPage(ctx, hub));
+  return [...collectHubs(H, props, reservedSlugs), ...collectDeveloperHubs(H, props, rows)]
+    .map(hub => hubPage(ctx, hub));
 }
 
 module.exports = { buildHubs, homepageChrome, rebase, summarise, introText, faqs, listText, bhkSlug, bhkLabelsOf };

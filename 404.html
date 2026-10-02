@@ -20,6 +20,12 @@
     location.replace(m[1] + "projects/property-details.html?slug=" + m[2] + location.hash);
     return;
   }
+  /* A developer whose page has not been built yet: the list of all developers. */
+  var d = path.match(/^(.*\/)developers\/[a-z0-9]+(?:-[a-z0-9]+)*\/?$/);
+  if(d){
+    location.replace(d[1] + "developers/");
+    return;
+  }
   var base = /\.github\.io$/.test(location.hostname)
     ? "/" + (path.split("/")[1] || "") + "/"
     : "/";
