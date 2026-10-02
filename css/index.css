@@ -2071,3 +2071,73 @@ footer{
   }
 
 }
+
+
+/* =========================================================
+   PROPERTY CARD REFINEMENTS
+   - clearer border
+   - BHK rows run the full width of the card, edge to edge at
+     the bottom; the scroller sits over their right edge
+   - starting price the same size as the project name
+   - smaller BHK values so they never crowd their cell
+========================================================= */
+
+.property-card{
+  border:1px solid #d3e0dc;
+}
+
+.property-card:hover{
+  border-color:#b9d3cb;
+}
+
+.card-price strong{
+  font-size:14px;
+}
+
+#propertyList .card-bottom,
+#newLaunchesList .card-bottom,
+#recentlyViewedList .card-bottom{
+  margin-left:-13px;
+  margin-right:-13px;
+  margin-bottom:-13px;
+  max-width:none;
+}
+
+.card-bottom .card-price{
+  padding:0 13px;
+}
+
+.card-bottom .bhk-wrap,
+.card-bottom .bhk-wrap.has-more{
+  padding-right:0;
+}
+
+.card-bottom .bhk-scroll{
+  gap:0;
+}
+
+.card-bottom .bhk-chip{
+  border:0;
+  border-top:1px solid #d3e0dc;
+  border-radius:0;
+  background:#f6faf9;
+}
+
+.card-bottom .bhk-stat:last-child{
+  padding-right:9px;
+}
+
+.card-bottom .bhk-track{
+  top:13px;
+  right:3px;
+  bottom:3px;
+  width:3px;
+}
+
+.card-bottom .bhk-count{
+  right:13px;
+}
+
+.bhk-stat strong{
+  font-size:10px;
+}
