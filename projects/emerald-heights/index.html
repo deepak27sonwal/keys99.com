@@ -552,6 +552,35 @@ Ndndmmfmfm</div>
 </footer>
 
 
+<!-- CONTACT FORM BEFORE WHATSAPP / CALL
+     The WhatsApp and Call buttons open this first: the enquiry is
+     saved, then WhatsApp opens or the phone dials (property-details.js). -->
+
+<div class="contact-gate hidden" id="contactGate" role="dialog" aria-modal="true" aria-labelledby="contactGateTitle" aria-hidden="true">
+  <div class="contact-gate-backdrop" data-close-gate=""></div>
+  <form class="contact-gate-card" id="contactGateForm" novalidate="">
+    <button type="button" class="contact-gate-close" data-close-gate="" aria-label="Close">×</button>
+    <h2 id="contactGateTitle">Chat on WhatsApp</h2>
+    <p class="contact-gate-note" id="contactGateNote">Share your details so the project expert knows who is getting in touch.</p>
+    <label class="contact-gate-field">
+      <span>Your Name</span>
+      <input id="gateName" type="text" autocomplete="name" maxlength="80" required="">
+    </label>
+    <label class="contact-gate-field">
+      <span>Mobile Number</span>
+      <input id="gatePhone" type="tel" inputmode="tel" autocomplete="tel" maxlength="16" placeholder="10-digit number" required="">
+    </label>
+    <label class="contact-gate-field" id="gateBhkField">
+      <span>Preferred BHK (optional)</span>
+      <select id="gateBhk"></select>
+    </label>
+    <p class="contact-gate-error" id="gateError" role="alert" hidden=""></p>
+    <button type="submit" class="contact-gate-submit" id="gateSubmit">Continue to WhatsApp</button>
+    <small class="contact-gate-privacy">By continuing you agree to be contacted about this project. <a href="../../privacy-policy.html">Privacy Policy</a></small>
+  </form>
+</div>
+
+
 <!-- STICKY MOBILE CONTACT BAR -->
 
 <div class="sticky-contact-bar" id="stickyContactBar">
