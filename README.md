@@ -36,3 +36,16 @@ The homepage reads the existing schema; it does not create tables.
 Links to search, project, city/locality, login, profile, post-property, reels,
 terms and privacy pages will 404 until those steps are added. The chat widget
 needs the `chat-agent` Edge Function, which is also a later step.
+
+## Search engines (pre-launch)
+
+The site is deliberately kept out of Google until the final version:
+
+- `index.html` has `<meta name="robots" content="noindex,nofollow">`
+- `.htaccess` sends `X-Robots-Tag: noindex, nofollow` on every response
+
+At launch, set the meta tag back to `index,follow,max-image-preview:large`,
+delete the `X-Robots-Tag` line, then add the site in Google Search Console and
+submit the sitemap. Do **not** block the site with a `robots.txt`
+`Disallow: /` instead — Google then can't read the noindex and may still list
+the URLs.
