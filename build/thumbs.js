@@ -5,7 +5,8 @@
    This writes WebP copies to assets/thumbs/, named by a hash of the
    original URL so the live pages can find them without a lookup:
 
-     <hash>.webp        640px   cards (thumbName() in index.html)
+     <hash>.webp        640px   cards (thumbName() in index.html) and
+                                similar-project cards on project pages
      <hash>-1280.webp  1280px   project page main photo, lightbox,
                                 floor plans and master plans
      <hash>-320.webp    320px   project page gallery strip
@@ -55,6 +56,8 @@ function plannedCopies({ H, P, props, rows, supabaseUrl }){
 
   rows.forEach(row => {
     const p = P.normalizeProject(row, { supabaseUrl });
+    /* "Similar Projects" cards use the 640px card copy of the first photo. */
+    if(p.images[0] && remote(p.images[0].url)) add(P.thumbName(p.images[0].url, 0), p.images[0].url, CARD_WIDTH, 70);
     p.images.filter(i => remote(i.url)).forEach(i => {
       add(P.thumbName(i.url, P.IMAGE_WIDTHS.large), i.url, P.IMAGE_WIDTHS.large, 72);
       add(P.thumbName(i.url, P.IMAGE_WIDTHS.small), i.url, P.IMAGE_WIDTHS.small, 65);

@@ -54,3 +54,27 @@
 @media (max-width:560px){
   .pros-cons{grid-template-columns:1fr}
 }
+
+/* Similar projects (built into the page by build/generate.js) */
+.similar-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.similar-card{display:flex;flex-direction:column;border:1px solid #d3e0dc;border-radius:14px;overflow:hidden;background:#fff;color:inherit;text-decoration:none;transition:box-shadow .2s,transform .2s;min-width:0}
+.similar-card:hover{box-shadow:0 10px 26px rgba(8,45,56,.12);transform:translateY(-2px)}
+.similar-img{position:relative;display:block;aspect-ratio:16/9;overflow:hidden;background:#eef3f1}
+.similar-img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.similar-status{position:absolute;left:10px;top:10px;padding:4px 9px;border-radius:999px;background:var(--green);color:#fff;font-size:10px;font-weight:700}
+.similar-status.st-upcoming{background:#6b4fd8}
+.similar-status.st-new-launch{background:#e1a400;color:#092c3d}
+.similar-status.st-under-construction{background:#1f6fd1}
+.similar-status.st-ready-to-move{background:#006b5b}
+.similar-status.st-completed{background:#3d5361}
+.similar-status.st-resale{background:#c2416b}
+.similar-body{display:flex;flex-direction:column;gap:4px;padding:12px 13px 14px;min-width:0}
+.similar-body strong{font:800 14px Manrope,sans-serif;color:var(--text);overflow-wrap:anywhere}
+.similar-loc{font-size:11.5px;color:#6b7f86}
+.similar-price{font-weight:800;color:var(--green);font-size:13px;margin-top:2px}
+.similar-price small{font-weight:600;color:#6b7f86;font-size:10.5px}
+.similar-bhk{font-size:11px;font-weight:700;color:#3d5560}
+@media (max-width:640px){
+  .similar-list{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:12px;margin:0 -4px;padding:0 4px 6px}
+  .similar-card{flex:0 0 74%;scroll-snap-align:start}
+}

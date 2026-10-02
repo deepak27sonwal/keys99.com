@@ -121,7 +121,7 @@ function toggle($, selector, show){
   $(selector).toggleClass("hidden", !show);
 }
 
-function buildPage(template, row, config){
+function buildPage(template, row, config, allProjects){
   const p = P.normalizeProject(row, { supabaseUrl: config.url, root: "../" });   // template-relative; rebaseLinks() adds the extra ../
   const pageUrl = `${SITE_ORIGIN}/projects/${p.slug}/`;
   const title = P.pageTitle(p);
@@ -213,6 +213,14 @@ function buildPage(template, row, config){
     toggle($, section, !!html.trim());
   });
 
+  const similar = P.pickSimilar(p, allProjects || [], 4);
+  if(similar.length){
+    const sameCity = p.city && similar.every(o => o.city === p.city);
+    $("#similarTitle").html(`<i></i>Similar Projects${sameCity ? " in " + P.escapeHtml(p.city) : ""}`);
+    $("#similarList").html(P.renderSimilar(similar, "../"));   // template-relative; rebaseLinks() adds the extra ../
+  }
+  toggle($, "#similarSection", similar.length > 0);
+
   $("#locationAdvantages").html(P.renderNearbyRows(p));
   toggle($, "#locationSection", p.nearby.length > 0 || !!p.location);
 
@@ -273,6 +281,11 @@ async function main(){
   const rows = dataArg > -1 ? readDataFile(process.argv[dataArg + 1]) : await fetchProjects(config);
   const template = fs.readFileSync(TEMPLATE, "utf8");
 
+  /* Every project that gets a page, for the "Similar Projects" links. */
+  const allProjects = rows
+    .filter(r => r && SLUG_RE.test(String(r.slug || "")) && r.slug !== "property-details" && r.slug !== "search")
+    .map(r => P.normalizeProject(r, { supabaseUrl: config.url, root: "../" }));
+
   const pages = [];
   for(const row of rows){
     if(!row || !SLUG_RE.test(String(row.slug || ""))){
@@ -283,7 +296,7 @@ async function main(){
       console.warn(`  skipped  project ${row.id}: slug "${row.slug}" is reserved`);
       continue;
     }
-    const page = buildPage(template, row, config);
+    const page = buildPage(template, row, config, allProjects);
     const dir = path.join(ROOT, "projects", page.slug);
     fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(path.join(dir, "index.html"), page.html);

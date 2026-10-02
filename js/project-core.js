@@ -206,7 +206,8 @@
   /* Photos are uploaded at full camera size (often 1-2 MB). The build
      (build/thumbs.js) writes WebP copies to assets/thumbs/, named by a
      hash of the original URL plus the width: 1280px for the main photo,
-     lightbox and floor plans, 320px for the gallery strip. The hash is
+     lightbox and floor plans, 320px for the gallery strip, and the
+     640px card copy (no width suffix) for similar projects. The hash is
      the same 32-bit FNV-1a as thumbName() in index.html. A copy that
      does not exist yet (project added since the last build) falls back
      to the original through IMG_FALLBACK. */
@@ -220,7 +221,7 @@
       hash ^= url.charCodeAt(i);
       hash = Math.imul(hash, 0x01000193) >>> 0;
     }
-    return hash.toString(16).padStart(8, "0") + "-" + width + ".webp";
+    return hash.toString(16).padStart(8, "0") + (width ? "-" + width : "") + ".webp";
   }
 
   function resized(url, width, root){
@@ -239,7 +240,8 @@
     const root = (opts && opts.root) || "";
     const withCopies = item => Object.assign(item, {
       large: resized(item.url, IMAGE_WIDTHS.large, root),
-      small: resized(item.url, IMAGE_WIDTHS.small, root)
+      small: resized(item.url, IMAGE_WIDTHS.small, root),
+      card: resized(item.url, 0, root)
     });
     const mediaUrl = m => clean(m.media_url) || storagePublicUrl(supabaseUrl, m.storage_bucket, m.media_path);
 
@@ -491,6 +493,53 @@
       </button>`).join("");
   }
 
+  /* ---------------- SIMILAR PROJECTS ----------------
+     Other published projects a buyer looking at this one would also
+     consider: same locality first, then same city, sharing BHK sizes,
+     at a similar price. Built into the page by build/generate.js. */
+
+  function pickSimilar(p, all, limit){
+    const lower = v => clean(v).toLowerCase();
+    const bhks = new Set(p.bhkLabels);
+    return all
+      .filter(o => o.slug !== p.slug && lower(o.name) !== lower(p.name))
+      .map(o => {
+        let score = 0;
+        if(p.locality && lower(o.locality) === lower(p.locality) && lower(o.city) === lower(p.city)) score += 4;
+        else if(p.city && lower(o.city) === lower(p.city)) score += 2;
+        score += Math.min(2, o.bhkLabels.filter(b => bhks.has(b)).length);
+        if(p.startingPrice && o.startingPrice && Math.abs(o.startingPrice - p.startingPrice) <= p.startingPrice * 0.3) score += 1;
+        return { o, score };
+      })
+      .filter(x => x.score >= 2)
+      .sort((a, b) => b.score - a.score || String(b.o.publishedAt || "").localeCompare(String(a.o.publishedAt || "")))
+      .slice(0, limit || 4)
+      .map(x => x.o);
+  }
+
+  /* root: path from the page to the site root, as for normalizeProject. */
+  function renderSimilar(list, root){
+    root = root || "";
+    return list.map(o => {
+      const img = o.images[0];
+      const placeholder = root + "assets/property-placeholder.svg";
+      const where = [o.locality, o.city].filter(Boolean).join(", ");
+      return `
+      <a class="similar-card" href="${escapeHtml(root + "projects/" + o.slug + "/")}">
+        <span class="similar-img">
+          <img src="${escapeHtml(img ? img.card : placeholder)}"${img ? ` data-full="${escapeHtml(img.url)}"` : ""} onerror="${IMG_FALLBACK}" alt="${escapeHtml(o.name)}" loading="lazy" decoding="async" width="400" height="300">
+          ${o.status ? `<span class="similar-status ${escapeHtml(o.statusClass)}">${escapeHtml(o.status)}</span>` : ""}
+        </span>
+        <span class="similar-body">
+          <strong>${escapeHtml(o.name)}</strong>
+          ${where ? `<span class="similar-loc">${escapeHtml(where)}</span>` : ""}
+          <span class="similar-price">${o.startingPrice ? `<small>Starting from</small> ${escapeHtml(o.startingPriceText)}` : "Price on Request"}</span>
+          ${o.bhkLabels.length ? `<span class="similar-bhk">${escapeHtml(o.bhkLabels.join(" · "))}</span>` : ""}
+        </span>
+      </a>`;
+    }).join("");
+  }
+
   /* ---------------- STRUCTURED DATA ---------------- */
 
   function structuredData(p, pageUrl, siteUrl){
@@ -561,6 +610,8 @@
     renderFaqs,
     renderFloorPlans,
     renderThumbs,
+    pickSimilar,
+    renderSimilar,
     escapeHtml,
     formatPrice,
     slugify
