@@ -41,6 +41,13 @@ const TEMPLATE = path.join(ROOT, "projects", "property-details.html");
 const manifestFor = base => path.join(ROOT, base, ".generated.json");
 
 const SITE_ORIGIN = (process.env.SITE_ORIGIN || "https://keys99.com").replace(/\/+$/, "");
+/* Where the files are actually served. Link-preview images (og:image)
+   must load from a working address, or WhatsApp shows no picture.
+   While testing on GitHub Pages the workflow sets this to the Pages
+   address; at launch on keys99.com it is unset and equals SITE_ORIGIN.
+   Canonical URLs, the sitemap and structured data always use SITE_ORIGIN. */
+const ASSET_ORIGIN = (process.env.ASSET_ORIGIN || SITE_ORIGIN).replace(/\/+$/, "");
+const DEFAULT_SHARE_IMAGE = `${ASSET_ORIGIN}/assets/og-default.jpg`;
 const INDEXABLE = process.env.SITE_INDEXABLE === "true";
 const ROBOTS = INDEXABLE ? "index,follow,max-image-preview:large" : "noindex,nofollow";
 
@@ -129,7 +136,7 @@ function buildPage(template, row, config, allProjects, shareImage){
   const title = P.pageTitle(p);
   const description = P.pageDescription(p);
   const ogCopy = p.images.length && shareImage ? shareImage(p.images[0].url) : null;
-  const image = ogCopy || (p.images.length ? p.images[0].url : `${SITE_ORIGIN}/assets/og-default.jpg`);
+  const image = ogCopy || (p.images.length ? p.images[0].url : DEFAULT_SHARE_IMAGE);
 
   const $ = cheerio.load(template);
 
@@ -324,7 +331,7 @@ async function main(){
   const shareImage = url => {
     if(!/^https?:\/\//i.test(url || "")) return null;
     const name = P.ogName(url);
-    return fs.existsSync(path.join(ROOT, "assets", "thumbs", name)) ? `${SITE_ORIGIN}/assets/thumbs/${name}` : null;
+    return fs.existsSync(path.join(ROOT, "assets", "thumbs", name)) ? `${ASSET_ORIGIN}/assets/thumbs/${name}` : null;
   };
   const shareById = new Map(allProjects.map(p => [p.id, p.images[0] ? shareImage(p.images[0].url) : null]));
 
@@ -355,6 +362,7 @@ async function main(){
     reservedSlugs: new Set([...pages.map(p => p.slug), "property-details", "search"]),
     siteOrigin: SITE_ORIGIN,
     shareImageFor: prop => shareById.get(prop.id) || null,
+    defaultShareImage: DEFAULT_SHARE_IMAGE,
     robots: count => !INDEXABLE ? "noindex,nofollow"
       : count >= HUB_MIN_INDEXED ? "index,follow,max-image-preview:large" : "noindex,follow"
   });
@@ -381,6 +389,9 @@ async function main(){
   writeSitemap(pages, hubs);
 
   const home = buildHomepage(indexPath, goodRows, config.url);
+  /* Homepage link preview: the brand image, from where the site is served. */
+  fs.writeFileSync(indexPath, fs.readFileSync(indexPath, "utf8")
+    .replace(/(<meta (?:property="og:image"|name="twitter:image") content=")[^"]*(")/g, `$1${DEFAULT_SHARE_IMAGE}$2`));
   console.log(`  wrote    / (homepage sections: ${home.projects} projects, ${home.stats.cities} cities)`);
 
   console.log(`\n  ${pages.length} project page(s), ${hubs.length} city/locality page(s), sitemap.xml updated` +
