@@ -108,6 +108,100 @@ function faqs(H, s, place){
   return list;
 }
 
+/* ---------- BHK pages: /projects/<city>/<n>-bhk-flats/ ----------
+   "2 BHK flats in Pune" is how many buyers search, so each city
+   gets one page per BHK size it has. The copy quotes the prices and
+   carpet areas of that size only, not of the whole project. */
+
+const BHK_LABEL = /^\d+(?:\.\d+)? BHK$/;
+
+function bhkSlug(label){
+  return label.replace(/ BHK$/, "").replace(".", "-") + "-bhk-flats";
+}
+
+function bhkLabelsOf(H, p){
+  return [...new Set(H.getBhkOptions(p).map(o => H.normaliseBhkType(o.type)).filter(b => BHK_LABEL.test(b)))];
+}
+
+function bhkCopy(H, hub){
+  const label = hub.bhk;
+  const city = hub.cityName;
+  const n = hub.props.length;
+  const options = [];
+  hub.props.forEach(p => H.getBhkOptions(p).forEach(o => {
+    if(H.normaliseBhkType(o.type) === label) options.push(o);
+  }));
+
+  const prices = options.map(o => H.getNumericPrice(o)).filter(v => v !== null);
+  const minPrice = prices.length ? Math.min(...prices) : null;
+  const maxPrice = prices.length ? Math.max(...prices) : null;
+  const priceRange = minPrice === null ? ""
+    : maxPrice > minPrice ? `from ${H.formatPrice(minPrice)} to ${H.formatPrice(maxPrice)}` : `from ${H.formatPrice(minPrice)}`;
+
+  const sized = options.filter(o => Number.isFinite(parseFloat(o.sqft)));
+  const units = [...new Set(sized.map(o => o.areaUnit || "Sq.Ft"))];
+  let areaText = "";
+  let oneArea = false;
+  if(sized.length && units.length === 1){
+    const areas = sized.map(o => parseFloat(o.sqft));
+    const fmt = v => Number(v).toLocaleString("en-IN");
+    const lo = Math.min(...areas), hi = Math.max(...areas);
+    areaText = (hi > lo ? `${fmt(lo)} to ${fmt(hi)}` : fmt(lo)) + " " + units[0];
+    oneArea = hi === lo;
+  }
+
+  const localities = [...new Set(hub.props.map(p => H.titleCaseName(p.locality)).filter(Boolean))];
+  const developers = [...new Set(hub.props.map(p => H.titleCaseName(p.developer)).filter(Boolean))];
+  const projects = plural(n, "new project", "new projects");
+
+  const intro = [
+    `Explore ${projects} with ${label} flats for sale in ${city} on Keys99.`,
+    priceRange ? `${label} prices ${maxPrice > minPrice ? "range" : "start"} ${priceRange}.` : "",
+    areaText ? (oneArea ? `Carpet area is ${areaText}.` : `Carpet areas range from ${areaText}.`) : "",
+    localities.length ? `Available in ${listText(localities, 5)}.` : "",
+    developers.length ? `Developers include ${listText(developers, 4)}.` : ""
+  ].filter(Boolean).join(" ");
+
+  const questions = [{
+    q: `How many new projects in ${city} have ${label} flats?`,
+    a: `Keys99 currently lists ${projects} in ${city} with ${label} flats.`
+  }];
+  if(priceRange){
+    questions.push({
+      q: `What is the price of a ${label} flat in ${city}?`,
+      a: maxPrice > minPrice
+        ? `${label} flats in new projects in ${city} are priced ${priceRange}, depending on the project, floor and carpet area.`
+        : `${label} flats in new projects in ${city} start ${priceRange}.`
+    });
+  }
+  if(areaText){
+    questions.push({
+      q: `What is the carpet area of a ${label} flat in ${city}?`,
+      a: oneArea
+        ? `${label} flats in these projects have a carpet area of ${areaText}.`
+        : `${label} flats in these projects have carpet areas from ${areaText}.`
+    });
+  }
+  if(localities.length){
+    questions.push({
+      q: `Which localities in ${city} have ${label} projects?`,
+      a: `${label} flats are available in ${listText(localities)}.`
+    });
+  }
+
+  return {
+    title: `${label} Flats for Sale in ${city} | ${plural(n, "New Project", "New Projects")} | Keys99`,
+    intro,
+    questions,
+    facts: [
+      ["Projects", String(n)],
+      minPrice !== null ? ["Starting from", H.formatPrice(minPrice)] : null,
+      areaText ? ["Carpet area", areaText] : null,
+      localities.length ? ["Localities", String(localities.length)] : null
+    ].filter(Boolean)
+  };
+}
+
 function pageTitle(H, s, place){
   const bhk = s.bhks.length ? `${listText(s.bhks.map(b => b.replace(/ BHK$/, "")), 4)} BHK Flats` : "Flats";
   return `New Projects in ${place} | ${bhk} for Sale | Keys99`;
@@ -146,10 +240,11 @@ function hubPage(ctx, hub){
   const prefix = "../".repeat(depth);
   const url = `${siteOrigin}/projects/${hub.path}/`;
   const s = summarise(H, hub.props);
-  const title = pageTitle(H, s, hub.place);
-  const intro = introText(H, s, hub.place, hub.introExtra);
+  const copy = hub.bhk ? bhkCopy(H, hub) : null;
+  const title = copy ? copy.title : pageTitle(H, s, hub.place);
+  const intro = copy ? copy.intro : introText(H, s, hub.place, hub.introExtra);
   const description = intro.length > 300 ? intro.slice(0, 297).replace(/\s+\S*$/, "") + "…" : intro;
-  const questions = faqs(H, s, hub.place);
+  const questions = copy ? copy.questions : faqs(H, s, hub.place);
   const e = H.escapeHtml;
 
   const crumbs = [{ name:"Home", path:"" }, ...hub.crumbs];
@@ -189,7 +284,7 @@ function hubPage(ctx, hub){
     ]
   };
 
-  const facts = [
+  const facts = copy ? copy.facts : [
     ["Projects", String(s.count)],
     s.minPrice !== null ? ["Starting from", H.formatPrice(s.minPrice)] : null,
     s.bhks.length ? ["Configurations", s.bhks.join(", ")] : null,
@@ -252,6 +347,18 @@ ${chrome.mobileMenu}
         ${hub.props.map(p => H.createPropertyCard(p)).join("")}
       </div>
     </section>
+
+    ${hub.bhkLinks && hub.bhkLinks.length ? `
+    <section class="hub-section" aria-labelledby="hubBhk">
+      <h2 class="section-title" id="hubBhk">${hub.bhk ? `Other flat sizes in ${e(hub.cityName)}` : `Flats by Size in ${e(hub.cityName)}`}</h2>
+      <div class="hub-localities">
+        ${hub.bhkLinks.map(b => `
+        <a class="locality-chip" href="projects/${e(b.path)}/">
+          <strong>${e(b.label)} Flats</strong>
+          <span class="count">${plural(b.count, "Project", "Projects")}</span>
+        </a>`).join("")}
+      </div>
+    </section>` : ""}
 
     ${hub.localities && hub.localities.length ? `
     <section class="hub-section" aria-labelledby="hubLocalities">
@@ -338,6 +445,20 @@ function collectHubs(H, props, reservedSlugs){
       .sort((a, b) => b.props.length - a.props.length || a.name.localeCompare(b.name))
       .map(l => ({ path: `${city.slug}/${l.slug}`, name: l.name, count: l.props.length, props: l.props }));
 
+    const bhkGroups = new Map();
+    city.props.forEach(p => bhkLabelsOf(H, p).forEach(label => {
+      if(!bhkGroups.has(label)) bhkGroups.set(label, []);
+      bhkGroups.get(label).push(p);
+    }));
+    const bhkPages = [...bhkGroups]
+      .sort((a, b) => parseFloat(a[0]) - parseFloat(b[0]))
+      .map(([label, props]) => ({ label, slug: bhkSlug(label), path: `${city.slug}/${bhkSlug(label)}`, count: props.length, props }))
+      .filter(b => {
+        if(!city.localities.has(b.slug)) return true;
+        console.warn(`  skipped  BHK page /projects/${b.path}/: a locality already uses that slug`);
+        return false;
+      });
+
     hubs.push({
       path: city.slug,
       place: city.name,
@@ -349,7 +470,25 @@ function collectHubs(H, props, reservedSlugs){
       crumbs: [{ name: city.name, path: city.slug }],
       props: city.props,
       localities,
+      bhkLinks: bhkPages,
       lastmod: latest(city.props)
+    });
+
+    bhkPages.forEach(b => {
+      hubs.push({
+        path: b.path,
+        place: city.name,
+        cityName: city.name,
+        bhk: b.label,
+        h1: `${b.label} Flats for Sale in ${city.name}`,
+        kicker: `${b.label} · ${city.name}`,
+        listHeading: `New Projects with ${b.label} Flats in ${city.name}`,
+        crumbs: [{ name: city.name, path: city.slug }, { name: `${b.label} Flats`, path: b.path }],
+        props: b.props,
+        bhkLinks: bhkPages.filter(o => o.path !== b.path),
+        localities,
+        lastmod: latest(b.props)
+      });
     });
 
     localities.forEach(l => {
@@ -378,4 +517,4 @@ function buildHubs({ H, indexHtml, props, reservedSlugs, siteOrigin, robots }){
   return collectHubs(H, props, reservedSlugs).map(hub => hubPage(ctx, hub));
 }
 
-module.exports = { buildHubs, homepageChrome, rebase, summarise, introText, faqs, listText };
+module.exports = { buildHubs, homepageChrome, rebase, summarise, introText, faqs, listText, bhkSlug, bhkLabelsOf };

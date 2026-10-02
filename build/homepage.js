@@ -18,7 +18,7 @@ const fs = require("fs");
 const vm = require("vm");
 const acorn = require("acorn");
 const cheerio = require("cheerio");
-const { summarise, introText, faqs, listText } = require("./hubs");
+const { summarise, introText, faqs, listText, bhkSlug, bhkLabelsOf } = require("./hubs");
 
 const EXPORTS = [
   "mapResidentialProject", "createPropertyCard", "cityCardHtml", "localityChipHtml",
@@ -168,6 +168,14 @@ function buildGuide(H, props){
       : ""
   ].filter(Boolean).join(" ");
 
+  /* BHK pages of the main city (build/hubs.js makes one per size). */
+  const mainCity = cities[0].city;
+  const sizes = [...new Set(props.filter(p => H.slugify(p.city) === H.slugify(mainCity)).flatMap(p => bhkLabelsOf(H, p)))]
+    .sort((a, b) => parseFloat(a) - parseFloat(b));
+  const sizeLinks = sizes.length
+    ? ` Flats by size in ${e(H.titleCaseName(mainCity))}: ${listText(sizes.map(b => link(`${H.cityUrl(mainCity)}${bhkSlug(b)}/`, b)))}.`
+    : "";
+
   const html = `
 <section id="guide" class="home-guide" aria-labelledby="guideTitle">
   <div class="container">
@@ -178,7 +186,7 @@ function buildGuide(H, props){
       </div>
     </div>
     <p class="home-guide-intro">${e(introText(H, s, place))}</p>
-    <p class="home-guide-links">${browse}</p>
+    <p class="home-guide-links">${browse}${sizeLinks}</p>
     <h3>Frequently Asked Questions</h3>
     <div class="hub-faqs">${questions.map(f => `
       <details class="hub-faq">
