@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 420" width="700" height="420" role="img" aria-label="Luxury homes">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#eaf7f3"/>
+      <stop offset="1" stop-color="#ffffff"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="700" height="420" fill="url(#bg)"/>
+  <circle cx="576" cy="92" r="30" fill="#e1a400" opacity=".2"/>
+
+  <!-- villa: low wing + main wing -->
+  <rect x="168" y="228" width="150" height="102" rx="6" fill="#006b5b"/>
+  <g fill="#eaf7f3" opacity=".85">
+    <rect x="192" y="252" width="38" height="30" rx="3"/>
+    <rect x="248" y="252" width="38" height="30" rx="3"/>
+  </g>
+
+  <rect x="318" y="176" width="192" height="154" rx="6" fill="#004f45"/>
+  <path d="M300 180 L414 116 L528 180 Z" fill="#006b5b"/>
+  <g fill="#eaf7f3" opacity=".9">
+    <rect x="344" y="204" width="44" height="34" rx="3"/>
+    <rect x="440" y="204" width="44" height="34" rx="3"/>
+  </g>
+  <rect x="392" y="262" width="44" height="68" rx="4" fill="#e1a400"/>
+
+  <!-- pool -->
+  <rect x="170" y="346" width="230" height="30" rx="15" fill="#006b5b" opacity=".28"/>
+  <g stroke="#006b5b" stroke-width="2.5" opacity=".5" stroke-linecap="round">
+    <path d="M196 361 q13 -8 26 0 t26 0"/>
+    <path d="M276 361 q13 -8 26 0 t26 0"/>
+  </g>
+
+  <!-- palm -->
+  <rect x="546" y="250" width="8" height="82" rx="4" fill="#004f45"/>
+  <g fill="#006b5b">
+    <path d="M550 250 q-40 -14 -56 10 q34 -8 56 4 Z"/>
+    <path d="M550 250 q40 -14 56 10 q-34 -8 -56 4 Z"/>
+    <path d="M550 246 q-8 -36 16 -48 q4 32 -8 50 Z"/>
+  </g>
+
+  <rect x="140" y="330" width="460" height="5" rx="2.5" fill="#004f45" opacity=".26"/>
+</svg>

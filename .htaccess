@@ -1,0 +1,152 @@
+# =========================================================
+# KEYS99 - APACHE CONFIG (Hostinger shared hosting)
+#
+# Upload this to public_html alongside index.html. It sets
+# up HTTPS, redirects, caching, compression and security
+# headers.
+# =========================================================
+
+
+# ---------------------------------------------------------
+# HTTPS
+# Google treats http:// and https:// as different sites, so
+# serving both splits your ranking signals between them.
+# ---------------------------------------------------------
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # Force HTTPS
+  RewriteCond %{HTTPS} !=on
+  RewriteCond %{HTTP:X-Forwarded-Proto} !https
+  RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
+
+  # Force non-www. The canonical tags all say https://keys99.com,
+  # so www must redirect here rather than serve a duplicate copy of
+  # every page - Google treats the two hostnames as separate sites.
+  RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
+  RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
+
+  # --- pages that moved into /projects/ ---------------------------
+  # search.html and property-details.html used to sit at the site
+  # root. Anything already linking to, bookmarking or indexing the
+  # old paths would hit a 404 without these. QSA keeps the query
+  # string, so /property-details.html?id=<uuid> still resolves.
+  RewriteRule ^search\.html$            /projects/search.html [R=301,L,QSA]
+  RewriteRule ^property-details\.html$  /projects/property-details.html [R=301,L,QSA]
+
+  # --- listings approved since the last build ---------------------
+  # A listing gets its slug the moment it is posted, and the homepage
+  # links to /projects/<slug>/ as soon as it is approved - but the
+  # folder for it only exists after build/generate.js next runs. In
+  # that gap the link would 404.
+  #
+  # So: if the requested path under /projects/ is neither a real file
+  # nor a real directory, send the visitor to the dynamic page, which
+  # looks the listing up by slug.
+  #
+  # These are redirects (R=302), NOT internal rewrites. Both fallback
+  # pages load their assets relatively ("../css/property-details.css"),
+  # and a browser resolves those against the address bar, not against
+  # the file Apache served - so an internal rewrite of
+  # /projects/<slug>/ would ask for /projects/css/... and lose every
+  # stylesheet and script on the page.
+  #
+  # 302 rather than 301 because this is temporary by definition: once
+  # the build runs, the slug URL is a real page and these stop firing.
+  # A 301 would be cached by browsers and would outlive the gap.
+  #
+  # The two -f/-d conditions are what keep this from hijacking the 19
+  # generated folders: an existing path never reaches the rule.
+  # A new city or locality has the same gap - its hub page does not
+  # exist until the build runs either - so those fall back to the
+  # search page with the filters already applied. Not as good as the
+  # real hub, but it answers the visitor instead of a 404.
+  #
+  # Order matters: the BHK rule has to be tried before the locality
+  # one, or /projects/pune/2-bhk-flats/ would be read as a locality
+  # named "2-bhk-flats".
+  RewriteCond %{REQUEST_FILENAME}       !-f
+  RewriteCond %{REQUEST_FILENAME}       !-d
+  RewriteRule ^projects/([A-Za-z0-9-]+)/([0-9]+(?:-[0-9]+)?)-bhk-flats/?$  /projects/search.html?city=$1&bhk=$2 [R=302,L,QSA]
+
+  RewriteCond %{REQUEST_FILENAME}       !-f
+  RewriteCond %{REQUEST_FILENAME}       !-d
+  RewriteRule ^projects/([A-Za-z0-9-]+)/([A-Za-z0-9-]+)/?$  /projects/search.html?city=$1&locality=$2 [R=302,L,QSA]
+
+  # Single segment: a listing slug. Tried last, so the two-segment
+  # rules above get first refusal.
+  RewriteCond %{REQUEST_FILENAME}       !-f
+  RewriteCond %{REQUEST_FILENAME}       !-d
+  RewriteRule ^projects/([A-Za-z0-9-]+)/?$  /projects/property-details.html?slug=$1 [R=302,L,QSA]
+</IfModule>
+
+
+# ---------------------------------------------------------
+# DIRECTORY INDEXES
+# The generated pages live at /projects/pune/kharadi/index.html
+# and are linked as /projects/pune/kharadi/ - Apache serves
+# index.html for that automatically, but being explicit stops
+# a directory listing appearing if the file is ever missing.
+# ---------------------------------------------------------
+
+DirectoryIndex index.html
+Options -Indexes
+
+
+# ---------------------------------------------------------
+# COMPRESSION
+# index.html is ~60KB uncompressed and mostly inline script;
+# gzip takes a large bite out of that on mobile connections.
+# ---------------------------------------------------------
+
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css
+  AddOutputFilterByType DEFLATE application/javascript application/x-javascript
+  AddOutputFilterByType DEFLATE application/json application/xml
+  AddOutputFilterByType DEFLATE image/svg+xml
+</IfModule>
+
+
+# ---------------------------------------------------------
+# CACHING
+# Long for static assets, short for HTML - the generated pages
+# change whenever listings are rebuilt and re-uploaded.
+# ---------------------------------------------------------
+
+<IfModule mod_expires.c>
+  ExpiresActive On
+
+  ExpiresByType text/css                  "access plus 7 days"
+  ExpiresByType application/javascript    "access plus 7 days"
+  ExpiresByType image/jpeg                "access plus 1 year"
+  ExpiresByType image/png                 "access plus 1 year"
+  ExpiresByType image/webp                "access plus 1 year"
+  ExpiresByType image/svg+xml             "access plus 1 year"
+
+  ExpiresByType text/html                 "access plus 1 hour"
+</IfModule>
+
+
+# ---------------------------------------------------------
+# SECURITY HEADERS
+# ---------------------------------------------------------
+
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set X-Frame-Options "SAMEORIGIN"
+</IfModule>
+
+
+# ---------------------------------------------------------
+# CORRECT TYPES
+# Apache on shared hosting sometimes serves .webp and .xml
+# with the wrong Content-Type, which breaks images and stops
+# Search Console accepting the sitemap.
+# ---------------------------------------------------------
+
+<IfModule mod_mime.c>
+  AddType image/webp  .webp
+  AddType text/xml    .xml
+</IfModule>

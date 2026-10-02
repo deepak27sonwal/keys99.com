@@ -1,0 +1,408 @@
+/* =========================================================
+   KEYS99 - CHAT WIDGET STYLES
+   Loaded on every page alongside that page's own stylesheet.
+   Deliberately the one exception to "no shared CSS beyond the
+   page's own file" - a floating widget is inherently cross-page.
+   Uses var(--token, fallback) so it inherits each page's own
+   brand colors automatically, with sane fallbacks if not found.
+========================================================= */
+
+#keys99-chat-widget{
+  font-family:"DM Sans", sans-serif;
+  --cw-green: var(--green, #006b5b);
+  --cw-green-dark: var(--green-dark, #004f45);
+  --cw-green-soft: var(--green-soft, #eaf7f3);
+  --cw-ink: var(--ink, #092c3d);
+  --cw-muted: var(--muted, #6c7d86);
+  --cw-line: var(--line, #e7eceb);
+}
+
+#keys99-chat-widget *{
+  box-sizing:border-box;
+}
+
+#keys99-chat-widget button{
+  cursor:pointer;
+  font:inherit;
+}
+
+
+/* =========================================================
+   LAUNCHER
+========================================================= */
+
+.cw-launcher{
+  position:fixed;
+  right:22px;
+  bottom:24px;
+
+  width:58px;
+  height:58px;
+
+  border-radius:50%;
+  border:0;
+
+  background:var(--cw-green);
+  color:#fff;
+
+  display:grid;
+  place-items:center;
+
+  font-size:26px;
+  line-height:1;
+
+  box-shadow:0 10px 28px rgba(0,0,0,.22);
+
+  z-index:500;
+
+  transition:transform .2s, background .2s;
+}
+
+.cw-launcher:hover{
+  transform:scale(1.06);
+  background:var(--cw-green-dark);
+}
+
+.cw-launcher::before{
+  content:"";
+  position:absolute;
+  inset:-6px;
+  border-radius:50%;
+  border:2px solid var(--cw-green);
+  opacity:.5;
+  animation:cwPulse 2.6s ease-out infinite;
+  pointer-events:none;
+}
+
+.cw-launcher.cw-launcher-open::before{
+  display:none;
+}
+
+@keyframes cwPulse{
+  0%{ transform:scale(1); opacity:.5; }
+  75%{ transform:scale(1.35); opacity:0; }
+  100%{ transform:scale(1.35); opacity:0; }
+}
+
+
+/* =========================================================
+   PANEL
+========================================================= */
+
+.cw-panel:not([hidden]){
+  position:fixed;
+  right:22px;
+  bottom:94px;
+
+  width:368px;
+  height:min(560px, 72vh);
+
+  background:#fff;
+  border-radius:20px;
+  overflow:hidden;
+
+  box-shadow:0 24px 60px rgba(8,45,56,.24);
+  border:1px solid var(--cw-line);
+
+  z-index:499;
+
+  display:flex;
+  flex-direction:column;
+}
+
+.cw-header{
+  flex:0 0 auto;
+
+  background:var(--cw-green);
+  color:#fff;
+
+  padding:16px 16px 16px 18px;
+
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+
+.cw-header-info{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.cw-avatar{
+  width:36px;
+  height:36px;
+
+  border-radius:50%;
+
+  background:rgba(255,255,255,.2);
+
+  display:grid;
+  place-items:center;
+
+  font-weight:800;
+  font-size:15px;
+}
+
+.cw-header-info strong{
+  display:block;
+  font-size:14px;
+}
+
+.cw-header-info span{
+  display:block;
+  font-size:11px;
+  color:rgba(255,255,255,.8);
+}
+
+.cw-close-btn{
+  width:30px;
+  height:30px;
+
+  border:0;
+  border-radius:50%;
+
+  background:rgba(255,255,255,.16);
+  color:#fff;
+
+  font-size:18px;
+  line-height:1;
+
+  display:grid;
+  place-items:center;
+}
+
+.cw-close-btn:hover{
+  background:rgba(255,255,255,.28);
+}
+
+
+/* MESSAGES */
+
+.cw-messages{
+  flex:1;
+  min-height:0;
+
+  overflow-y:auto;
+
+  padding:16px;
+
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+
+  background:#fbfcfc;
+}
+
+.cw-msg{
+  display:flex;
+  max-width:86%;
+}
+
+.cw-msg-assistant{
+  align-self:flex-start;
+}
+
+.cw-msg-user{
+  align-self:flex-end;
+}
+
+
+/* SUGGESTION CHIPS */
+
+.cw-suggestions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+
+  align-self:flex-start;
+  max-width:100%;
+
+  margin-top:-2px;
+}
+
+.cw-suggestion-chip{
+  border:1px solid var(--cw-green);
+  border-radius:16px;
+
+  padding:7px 13px;
+
+  background:#fff;
+  color:var(--cw-green-dark);
+
+  font-size:12px;
+  font-weight:600;
+  white-space:nowrap;
+
+  transition:background .2s, color .2s;
+}
+
+.cw-suggestion-chip:hover{
+  background:var(--cw-green);
+  color:#fff;
+}
+
+.cw-bubble{
+  padding:10px 13px;
+
+  border-radius:16px;
+
+  font-size:13px;
+  line-height:1.55;
+
+  word-wrap:break-word;
+}
+
+.cw-msg-assistant .cw-bubble{
+  background:#fff;
+  border:1px solid var(--cw-line);
+  color:var(--cw-ink);
+  border-bottom-left-radius:4px;
+}
+
+.cw-msg-user .cw-bubble{
+  background:var(--cw-green);
+  color:#fff;
+  border-bottom-right-radius:4px;
+}
+
+.cw-bubble a{
+  color:inherit;
+  font-weight:700;
+  text-decoration:underline;
+}
+
+.cw-msg-user .cw-bubble a{
+  color:#fff;
+}
+
+.cw-msg-assistant .cw-bubble a{
+  color:var(--cw-green-dark);
+}
+
+
+/* TYPING INDICATOR */
+
+.cw-typing-dots{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  padding:2px 0;
+}
+
+.cw-typing-dots span{
+  width:6px;
+  height:6px;
+
+  border-radius:50%;
+
+  background:var(--cw-muted);
+
+  animation:cwTypingBounce 1.1s infinite;
+}
+
+.cw-typing-dots span:nth-child(2){ animation-delay:.15s; }
+.cw-typing-dots span:nth-child(3){ animation-delay:.3s; }
+
+@keyframes cwTypingBounce{
+  0%,60%,100%{ transform:translateY(0); opacity:.5; }
+  30%{ transform:translateY(-4px); opacity:1; }
+}
+
+
+/* INPUT ROW */
+
+.cw-input-row{
+  flex:0 0 auto;
+
+  display:flex;
+  align-items:center;
+  gap:8px;
+
+  padding:12px;
+
+  border-top:1px solid var(--cw-line);
+  background:#fff;
+}
+
+.cw-input-row input{
+  flex:1;
+  min-width:0;
+
+  border:1px solid var(--cw-line);
+  border-radius:22px;
+
+  padding:11px 16px;
+
+  font-size:13px;
+  color:var(--cw-ink);
+
+  background:#fbfcfc;
+}
+
+.cw-input-row input:focus{
+  outline:none;
+  border-color:var(--cw-green);
+}
+
+.cw-input-row button{
+  flex:0 0 auto;
+
+  width:38px;
+  height:38px;
+
+  border:0;
+  border-radius:50%;
+
+  background:var(--cw-green);
+  color:#fff;
+
+  font-size:15px;
+
+  display:grid;
+  place-items:center;
+
+  transition:background .2s;
+}
+
+.cw-input-row button:hover{
+  background:var(--cw-green-dark);
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media(max-width:900px){
+
+  .cw-launcher{
+    bottom:78px;
+    right:16px;
+
+    width:52px;
+    height:52px;
+
+    font-size:23px;
+  }
+
+  .cw-panel:not([hidden]){
+    right:12px;
+    left:12px;
+    bottom:140px;
+
+    width:auto;
+    height:min(64vh, 520px);
+  }
+
+}
+
+@media(max-width:420px){
+
+  .cw-panel:not([hidden]){
+    right:8px;
+    left:8px;
+    bottom:132px;
+  }
+
+}

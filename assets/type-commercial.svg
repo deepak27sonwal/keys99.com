@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 420" width="700" height="420" role="img" aria-label="Commercial office space">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#eaf7f3"/>
+      <stop offset="1" stop-color="#ffffff"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="700" height="420" fill="url(#bg)"/>
+  <circle cx="118" cy="96" r="30" fill="#e1a400" opacity=".18"/>
+
+  <!-- short tower -->
+  <rect x="176" y="182" width="120" height="164" rx="6" fill="#006b5b"/>
+  <g fill="#eaf7f3" opacity=".8">
+    <rect x="194" y="202" width="84" height="16" rx="3"/>
+    <rect x="194" y="230" width="84" height="16" rx="3"/>
+    <rect x="194" y="258" width="84" height="16" rx="3"/>
+    <rect x="194" y="286" width="84" height="16" rx="3"/>
+    <rect x="194" y="314" width="84" height="16" rx="3"/>
+  </g>
+
+  <!-- main tower -->
+  <rect x="312" y="96" width="142" height="250" rx="6" fill="#004f45"/>
+  <g fill="#eaf7f3" opacity=".9">
+    <rect x="332" y="120" width="102" height="18" rx="3"/>
+    <rect x="332" y="152" width="102" height="18" rx="3"/>
+    <rect x="332" y="184" width="102" height="18" rx="3"/>
+    <rect x="332" y="216" width="102" height="18" rx="3"/>
+    <rect x="332" y="248" width="102" height="18" rx="3"/>
+  </g>
+  <rect x="356" y="286" width="54" height="60" rx="4" fill="#e1a400"/>
+  <rect x="376" y="62" width="14" height="34" rx="4" fill="#006b5b"/>
+
+  <!-- rear slab -->
+  <rect x="470" y="212" width="96" height="134" rx="6" fill="#006b5b" opacity=".72"/>
+  <g fill="#eaf7f3" opacity=".7">
+    <rect x="488" y="232" width="60" height="15" rx="3"/>
+    <rect x="488" y="258" width="60" height="15" rx="3"/>
+    <rect x="488" y="284" width="60" height="15" rx="3"/>
+  </g>
+
+  <rect x="140" y="344" width="470" height="5" rx="2.5" fill="#004f45" opacity=".28"/>
+</svg>
