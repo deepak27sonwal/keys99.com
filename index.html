@@ -1358,6 +1358,14 @@ function createPropertyCard(property, badgeLabel, badgeClass){
 
   const options = getBhkOptions(property);
 
+  /* Lowest numeric price across configurations, shown above the
+     BHK rows. Cards with no configuration already say "Price on
+     Request" in their single row, so they skip this line. */
+  const optionPrices = options.map(getNumericPrice).filter(price => price !== null);
+  const startingPriceHtml = !options.length ? "" : optionPrices.length
+    ? `<p class="card-price"><span>Starting from</span> <strong>${escapeHtml(formatPrice(Math.min(...optionPrices)))}</strong></p>`
+    : `<p class="card-price"><strong>Price on Request</strong></p>`;
+
   const firstOption = options[0];
   const bhkValue = firstOption && firstOption.type ? String(firstOption.type).toLowerCase() : "";
 
@@ -1370,20 +1378,20 @@ function createPropertyCard(property, badgeLabel, badgeClass){
         return `
         <div class="bhk-chip">
           <div class="bhk-stat">
-            <strong>${escapeHtml(option.type || "—")}</strong>
             <span>Config</span>
+            <strong>${escapeHtml(option.type || "—")}</strong>
           </div>
           <div class="bhk-stat">
-            <strong>${escapeHtml(getOptionAreaText(option))}</strong>
             <span>Carpet Area</span>
+            <strong>${escapeHtml(getOptionAreaText(option))}</strong>
           </div>
           <div class="bhk-stat price-stat">
-            <strong>${escapeHtml(getOptionPriceText(option))}</strong>
             <span>Price</span>
+            <strong>${escapeHtml(getOptionPriceText(option))}</strong>
           </div>
           <div class="bhk-stat status-stat status-${availabilityClass}">
-            <strong>${escapeHtml(availabilityText)}</strong>
             <span>Status</span>
+            <strong>${escapeHtml(availabilityText)}</strong>
           </div>
         </div>
       `;
@@ -1438,12 +1446,15 @@ function createPropertyCard(property, badgeLabel, badgeClass){
         ${developer ? `<p class="developer">By &nbsp; ${escapeHtml(developer)}</p>` : ""}
 
 
+        <div class="card-bottom">
+        ${startingPriceHtml}
         <div class="bhk-wrap${options.length > 1 ? " has-more" : ""}">
           <div class="bhk-scroll">
             ${bhkChips}
           </div>
           ${options.length > 1 ? `<span class="bhk-count" aria-hidden="true">1/${options.length} ↕</span>
           <span class="bhk-track" aria-hidden="true"><span class="bhk-thumb"></span></span>` : ""}
+        </div>
         </div>
 
       </div>
