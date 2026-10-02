@@ -1,0 +1,174 @@
+/* =========================================================
+   KEYS99 - CUSTOM DROPDOWN (see js/custom-select.js)
+   Base look plus variants for where dropdowns sit:
+   hero search bar, hero filter panel, enquiry card.
+========================================================= */
+
+.cs{
+  position:relative;
+  width:100%;
+  min-width:0;
+}
+
+/* The real <select> stays for forms and scripts, out of sight. */
+.cs .cs-native{
+  position:absolute !important;
+  inset:0;
+  width:100% !important;
+  height:100% !important;
+  opacity:0 !important;
+  pointer-events:none !important;
+}
+
+.cs-trigger{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  width:100%;
+  min-width:0;
+  padding:10px 11px;
+  border:1px solid #e7eceb;
+  border-radius:10px;
+  background:#fafcfb;
+  color:#092c3d;
+  font:inherit;
+  font-size:13px;
+  text-align:left;
+  cursor:pointer;
+  transition:border-color .15s, box-shadow .15s, background .15s;
+}
+
+.cs-trigger:hover{ border-color:#cfe3dd; }
+
+.cs-trigger:focus-visible,
+.cs-open .cs-trigger{
+  outline:0;
+  border-color:#006b5b;
+  box-shadow:0 0 0 3px rgba(0,107,91,.12);
+}
+
+.cs-value{
+  flex:1;
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.cs-placeholder .cs-value{ color:#8b9aa0; }
+
+.cs-arrow{
+  flex:none;
+  width:16px;
+  height:16px;
+  color:#006b5b;
+  transition:transform .2s;
+}
+
+.cs-open .cs-arrow{ transform:rotate(180deg); }
+
+.cs-disabled .cs-trigger{ opacity:.55; cursor:not-allowed; }
+
+.cs-menu{
+  position:fixed;
+  z-index:10000;
+  margin:0;
+  padding:6px;
+  max-height:260px;
+  overflow-y:auto;
+  list-style:none;
+  background:#fff;
+  border:1px solid #e7eceb;
+  border-radius:12px;
+  box-shadow:0 14px 34px rgba(8,45,56,.18);
+  font-family:inherit;
+  animation:cs-in .12s ease-out;
+}
+
+.cs-menu[hidden]{ display:none; }
+
+@keyframes cs-in{
+  from{ opacity:0; transform:translateY(-4px); }
+  to{ opacity:1; transform:none; }
+}
+
+.cs-menu--up{ animation-name:cs-in-up; }
+
+@keyframes cs-in-up{
+  from{ opacity:0; transform:translateY(4px); }
+  to{ opacity:1; transform:none; }
+}
+
+.cs-option{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:9px 11px;
+  border-radius:8px;
+  color:#092c3d;
+  font-size:13px;
+  line-height:1.35;
+  white-space:nowrap;
+  cursor:pointer;
+}
+
+.cs-option.cs-active{ background:#eaf7f3; }
+
+.cs-option[aria-selected="true"]{
+  color:#006b5b;
+  font-weight:700;
+}
+
+.cs-option[aria-selected="true"]:after{
+  content:"✓";
+  font-size:12px;
+}
+
+.cs-option[aria-disabled="true"]{
+  color:#b3bfc3;
+  cursor:default;
+}
+
+
+/* ---------- Hero search bar: blends into the bar ---------- */
+
+.search-field .cs-trigger{
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+  font-size:inherit;
+}
+
+.search-field .cs-open .cs-trigger,
+.search-field .cs-trigger:focus-visible{
+  box-shadow:none;
+}
+
+.search-field .cs-placeholder .cs-value{ color:#092c3d; }
+
+
+
+/* ---------- Enquiry card: on dark green ---------- */
+
+.enquiry-card .select-field:after{ display:none; }
+
+.enquiry-card .cs-trigger{
+  padding:12px 0;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  color:#fff;
+  font-size:12px;
+  box-shadow:none;
+}
+
+.enquiry-card .cs-open .cs-trigger,
+.enquiry-card .cs-trigger:focus-visible{ box-shadow:none; }
+
+.enquiry-card .cs-placeholder .cs-value{ color:rgba(255,255,255,.72); }
+
+.enquiry-card .cs-arrow{ color:#fff; opacity:.85; }

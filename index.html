@@ -48,6 +48,7 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/index.css">
 <link rel="stylesheet" href="css/chat-widget.css">
+<link rel="stylesheet" href="css/custom-select.css">
 
 <!-- defer: without it the browser stops and fetches ~100KB from a
      third-party CDN before painting anything, so first paint waits on
@@ -815,6 +816,7 @@
      finishes, but a plain script here would run DURING parsing - so
      config.js would call window.supabase before the deferred library
      had defined it. Defer keeps the three in order. -->
+<script defer src="js/custom-select.js"></script>
 <script defer src="js/config.js"></script>
 <script defer src="js/chat-widget.js"></script>
 
