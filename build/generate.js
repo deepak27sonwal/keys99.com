@@ -122,7 +122,7 @@ function toggle($, selector, show){
 }
 
 function buildPage(template, row, config){
-  const p = P.normalizeProject(row, { supabaseUrl: config.url });
+  const p = P.normalizeProject(row, { supabaseUrl: config.url, root: "../" });   // template-relative; rebaseLinks() adds the extra ../
   const pageUrl = `${SITE_ORIGIN}/projects/${p.slug}/`;
   const title = P.pageTitle(p);
   const description = P.pageDescription(p);
@@ -189,7 +189,7 @@ function buildPage(template, row, config){
   if(p.rera) $("#reraBadge").removeAttr("hidden");
 
   if(p.images.length){
-    $("#mainImage").attr("src", p.images[0].url).attr("alt", p.images[0].alt || p.name);
+    $("#mainImage").attr("src", p.images[0].large).attr("data-full", p.images[0].url).attr("alt", p.images[0].alt || p.name);
     $("#galleryThumbs").html(P.renderThumbs(p));
   }else{
     $("#mainPhoto").addClass("no-image");
@@ -317,9 +317,9 @@ async function main(){
   }));
   console.log(`  wrote    /projects/search.html  (${allProps.length} projects)`);
 
-  const thumbs = await buildThumbs({ H, props: allProps, root: ROOT });
+  const thumbs = await buildThumbs({ H, P, props: allProps, rows: goodRows, supabaseUrl: config.url, root: ROOT });
   console.log(`  thumbnails: ${thumbs.made} made, ${thumbs.kept} kept, ${thumbs.removed} removed` +
-    (thumbs.failed ? `, ${thumbs.failed} failed (those cards use the original photo)` : ""));
+    (thumbs.failed ? `, ${thumbs.failed} failed (those images use the original photo)` : ""));
 
   buildLegalPages({ root: ROOT, indexHtml: fs.readFileSync(indexPath, "utf8"), siteOrigin: SITE_ORIGIN, robots: ROBOTS })
     .forEach(page => {

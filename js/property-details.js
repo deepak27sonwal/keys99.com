@@ -29,7 +29,7 @@ let currentImage = 0;
 
 const $ = id => document.getElementById(id);
 
-const normalize = row => P.normalizeProject(row, { supabaseUrl: SUPABASE_URL });
+const normalize = row => P.normalizeProject(row, { supabaseUrl: SUPABASE_URL, root: SITE_ROOT });
 
 
 /* ---------------- FAVORITES (localStorage, shared across the site) ---------------- */
@@ -266,10 +266,18 @@ function renderGallery(p){
   updateGallery();
 }
 
+/* The 1280px copy, falling back to the original upload (the img's
+   onerror attribute) if the build has not made the copy yet. */
+function showImage(el, img){
+  if(el.getAttribute("src") === img.large && el.dataset.full === img.url) return;
+  el.dataset.full = img.url;
+  el.src = img.large;
+}
+
 function updateGallery(){
   if(!galleryImages.length) return;
   const img = galleryImages[currentImage];
-  $("mainImage").src = img.url;
+  showImage($("mainImage"), img);
   $("mainImage").alt = img.alt || `${project.name} image ${currentImage + 1}`;
   document.querySelectorAll(".gallery-thumb").forEach((el, i) => el.classList.toggle("active", i === currentImage));
   if(galleryImages.length > 1) $("imageCounter").textContent = `${currentImage + 1} / ${galleryImages.length}`;
@@ -298,7 +306,7 @@ function closeLightbox(){
 
 function updateLightbox(){
   if(!galleryImages.length) return;
-  $("lightboxImage").src = galleryImages[currentImage].url;
+  showImage($("lightboxImage"), galleryImages[currentImage]);
   $("lightboxCounter").textContent = `${currentImage + 1} / ${galleryImages.length}`;
 }
 

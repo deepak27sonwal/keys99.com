@@ -203,6 +203,30 @@
       String(path).split("/").map(encodeURIComponent).join("/");
   }
 
+  /* Photos are uploaded at full camera size (often 1-2 MB). The build
+     (build/thumbs.js) writes WebP copies to assets/thumbs/, named by a
+     hash of the original URL plus the width: 1280px for the main photo,
+     lightbox and floor plans, 320px for the gallery strip. The hash is
+     the same 32-bit FNV-1a as thumbName() in index.html. A copy that
+     does not exist yet (project added since the last build) falls back
+     to the original through IMG_FALLBACK. */
+  const THUMB_DIR = "assets/thumbs/";
+  const IMAGE_WIDTHS = { large: 1280, small: 320 };
+  const IMG_FALLBACK = "if(this.dataset.full){this.src=this.dataset.full;this.dataset.full=''}";
+
+  function thumbName(url, width){
+    let hash = 0x811c9dc5;
+    for(let i = 0; i < url.length; i++){
+      hash ^= url.charCodeAt(i);
+      hash = Math.imul(hash, 0x01000193) >>> 0;
+    }
+    return hash.toString(16).padStart(8, "0") + "-" + width + ".webp";
+  }
+
+  function resized(url, width, root){
+    return /^https?:\/\//i.test(url) ? (root || "") + THUMB_DIR + thumbName(url, width) : url;
+  }
+
   function slugify(v){
     return clean(v).toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g,"")
       .replace(/&/g," and ").replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
@@ -212,6 +236,11 @@
 
   function normalizeProject(row, opts){
     const supabaseUrl = (opts && opts.supabaseUrl) || "";
+    const root = (opts && opts.root) || "";
+    const withCopies = item => Object.assign(item, {
+      large: resized(item.url, IMAGE_WIDTHS.large, root),
+      small: resized(item.url, IMAGE_WIDTHS.small, root)
+    });
     const mediaUrl = m => clean(m.media_url) || storagePublicUrl(supabaseUrl, m.storage_bucket, m.media_path);
 
     const media = list(row.media).filter(m => m.is_active !== false);
@@ -220,13 +249,13 @@
 
     const images = [];
     const pushImage = (url, alt) => {
-      if(url && !images.some(i => i.url === url)) images.push({ url, alt: clean(alt) });
+      if(url && !images.some(i => i.url === url)) images.push(withCopies({ url, alt: clean(alt) }));
     };
     main.forEach(m => pushImage(mediaUrl(m), m.alt_text));
     pushImage(storagePublicUrl(supabaseUrl, row.main_image_bucket, row.main_image_path), "");
     pick("gallery").forEach(m => pushImage(mediaUrl(m), m.alt_text || m.title));
 
-    const masterPlans = pick("master_plan").map(m => ({ url: mediaUrl(m), title: clean(m.title) || "Master Plan", alt: clean(m.alt_text) })).filter(m => m.url);
+    const masterPlans = pick("master_plan").map(m => ({ url: mediaUrl(m), title: clean(m.title) || "Master Plan", alt: clean(m.alt_text) })).filter(m => m.url).map(withCopies);
     const videos = media.filter(m => ["video","virtual_tour","reel"].includes(m.media_type))
       .map(m => ({ url: mediaUrl(m), type: m.media_type, title: clean(m.title), platform: clean(m.platform) }))
       .filter(v => v.url);
@@ -287,7 +316,7 @@
       title: clean(f.title) || normaliseBhk(f.bhk_type) || "Floor Plan",
       bhk: normaliseBhk(f.bhk_type),
       alt: clean(f.alt_text)
-    })).filter(f => f.url);
+    })).filter(f => f.url).map(withCopies);
 
     const towers = list(row.towers).filter(t => clean(t.tower_name)).map(t => ({
       name: clean(t.tower_name),
@@ -448,7 +477,9 @@
   function renderFloorPlans(p){
     return [...p.floorPlans, ...p.masterPlans].map(f => `
       <figure class="floor-plan-card">
-        <img src="${escapeHtml(f.url)}" alt="${escapeHtml(f.alt || p.name + " " + f.title)}" loading="lazy">
+        <a href="${escapeHtml(f.url)}" target="_blank" rel="noopener" aria-label="Open ${escapeHtml(f.title)} at full size">
+          <img src="${escapeHtml(f.large)}" data-full="${escapeHtml(f.url)}" onerror="${IMG_FALLBACK}" alt="${escapeHtml(f.alt || p.name + " " + f.title)}" loading="lazy" decoding="async">
+        </a>
         <figcaption>${escapeHtml(f.title)}</figcaption>
       </figure>`).join("");
   }
@@ -456,7 +487,7 @@
   function renderThumbs(p){
     return p.images.map((img, i) => `
       <button type="button" class="gallery-thumb${i === 0 ? " active" : ""}" data-index="${i}" aria-label="View image ${i + 1}">
-        <img src="${escapeHtml(img.url)}" alt="${escapeHtml(img.alt || p.name + " image " + (i + 1))}" loading="lazy">
+        <img src="${escapeHtml(img.small)}" data-full="${escapeHtml(img.url)}" onerror="${IMG_FALLBACK}" alt="${escapeHtml(img.alt || p.name + " image " + (i + 1))}" loading="lazy" decoding="async">
       </button>`).join("");
   }
 
@@ -512,6 +543,10 @@
   return {
     PROJECT_DETAIL_SELECT,
     normalizeProject,
+    THUMB_DIR,
+    IMAGE_WIDTHS,
+    IMG_FALLBACK,
+    thumbName,
     pageTitle,
     pageDescription,
     structuredData,
