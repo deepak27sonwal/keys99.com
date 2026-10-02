@@ -77,6 +77,55 @@ function replaceBetween(html, key, content){
   return html.replace(re, (_, start, end) => `${start}${content}\n  ${end}`);
 }
 
+/* Title, description, preview tags and the H1 place name follow
+   where the projects actually are: "Pune" today, "Pune & Mumbai"
+   with two cities, "Pune, Mumbai & More" beyond that. */
+function placeText(cities){
+  if(cities.length <= 1) return cities[0] || "India";
+  if(cities.length === 2) return `${cities[0]} & ${cities[1]}`;
+  return `${cities[0]}, ${cities[1]} & More`;
+}
+
+function applyHomepageSeo(H, html, props){
+  const cities = H.computeTopCities(props, 50).map(c => H.titleCaseName(c.city));
+  const localities = H.computeTopLocalities(props, 50).map(l => H.titleCaseName(l.locality));
+  if(!cities.length) return html;
+
+  const place = placeText(cities);
+  const prices = [];
+  const bhks = new Set();
+  props.forEach(p => H.getBhkOptions(p).forEach(o => {
+    const price = H.getNumericPrice(o);
+    if(price !== null) prices.push(price);
+    const bhk = H.normaliseBhkType(o.type);
+    if(/bhk/i.test(bhk)) bhks.add(bhk.replace(/ BHK$/i, ""));
+  }));
+  const bhkList = [...bhks].sort((a, b) => parseFloat(a) - parseFloat(b));
+  const join = list => list.length > 1 ? list.slice(0, -1).join(", ") + " & " + list[list.length - 1] : (list[0] || "");
+
+  const title = `New Projects & Flats for Sale in ${place} | Keys99`;
+  const description = [
+    `Explore ${props.length} new residential project${props.length === 1 ? "" : "s"} in ${place}` +
+      (localities.length ? ` across ${join(localities.slice(0, 4))}` : "") + ".",
+    `Compare ${bhkList.length ? join(bhkList) + " BHK flats" : "flats"}` +
+      (prices.length ? ` from ${H.formatPrice(Math.min(...prices))}` : "") +
+      ", RERA details, floor plans and amenities on Keys99."
+  ].join(" ");
+
+  const attr = v => H.escapeHtml(v);
+  html = html
+    .replace(/<title>[^<]*<\/title>/, `<title>${attr(title)}</title>`)
+    .replace(/(<meta name="description" content=")[^"]*(")/, `$1${attr(description)}$2`)
+    .replace(/(<meta property="og:title" content=")[^"]*(")/, `$1${attr(title)}$2`)
+    .replace(/(<meta property="og:description" content=")[^"]*(")/, `$1${attr(description)}$2`)
+    .replace(/(<meta name="twitter:title" content=")[^"]*(")/, `$1${attr(title)}$2`)
+    .replace(/(<meta name="twitter:description" content=")[^"]*(")/, `$1${attr(description)}$2`)
+    .replace(/(<span data-seo="place">)[^<]*(<\/span>)/, `$1${attr(place)}$2`)
+    .replace(/("@type":"RealEstateAgent"[^<]*?"description":")[^"]*(")/,
+      `$1Property portal listing new residential projects and flats for sale in ${place.replace(/"/g, "")}.$2`);
+  return html;
+}
+
 function buildHomepage(indexPath, rows, supabaseUrl){
   let html = fs.readFileSync(indexPath, "utf8");
   const H = loadHomepageFunctions(html, supabaseUrl);
@@ -100,6 +149,8 @@ function buildHomepage(indexPath, rows, supabaseUrl){
     (_, open, key, close) => open + H.formatStatCount(stats[key]) + close);
   html = html.replace(/(<p data-type-count="(\w+)">)[^<]*(<\/p>)/g,
     (_, open, key, close) => open + H.typeCountText(stats.types[key]) + close);
+
+  html = applyHomepageSeo(H, html, props);
 
   fs.writeFileSync(indexPath, html);
   return { projects: props.length, stats };

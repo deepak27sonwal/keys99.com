@@ -5,23 +5,23 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#ffffff">
 
-<title>Buy, Rent &amp; Sell Property in India | Keys99</title>
-<meta name="description" content="Find verified flats, houses and new projects for sale and rent across India. Browse photos, floor plans, RERA details and prices on Keys99.">
+<title>New Projects &amp; Flats for Sale in Pune | Keys99</title>
+<meta name="description" content="Explore new residential projects and flats for sale in Pune. Compare BHK options, prices, RERA details, floor plans and amenities on Keys99.">
 <link rel="canonical" href="https://keys99.com/">
 <!-- PRE-LAUNCH: keeps the site out of Google. At launch change to: index,follow,max-image-preview:large -->
 <meta name="robots" content="noindex,nofollow">
 
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Keys99">
-<meta property="og:title" content="Buy, Rent &amp; Sell Property in India | Keys99">
-<meta property="og:description" content="Find verified flats, houses and new projects for sale and rent across India. Browse photos, floor plans, RERA details and prices on Keys99.">
+<meta property="og:title" content="New Projects &amp; Flats for Sale in Pune | Keys99">
+<meta property="og:description" content="Explore new residential projects and flats for sale in Pune. Compare BHK options, prices, RERA details, floor plans and amenities on Keys99.">
 <meta property="og:url" content="https://keys99.com/">
 <meta property="og:image" content="https://keys99.com/assets/og-default.jpg">
 <meta property="og:locale" content="en_IN">
 
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Buy, Rent &amp; Sell Property in India | Keys99">
-<meta name="twitter:description" content="Find verified flats, houses and new projects for sale and rent across India. Browse photos, floor plans, RERA details and prices on Keys99.">
+<meta name="twitter:title" content="New Projects &amp; Flats for Sale in Pune | Keys99">
+<meta name="twitter:description" content="Explore new residential projects and flats for sale in Pune. Compare BHK options, prices, RERA details, floor plans and amenities on Keys99.">
 <meta name="twitter:image" content="https://keys99.com/assets/og-default.jpg">
 
 <!-- The two blocks are joined by @id: the WebSite names the
@@ -31,7 +31,7 @@
      how a search engine confirms they are the same entity. telephone
      is still deliberately absent - see SEO-DEPLOY.md. Publishing a
      placeholder number here would put it in front of real buyers. -->
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"RealEstateAgent","@id":"https://keys99.com/#organisation","name":"Keys99","legalName":"Keys99.com","url":"https://keys99.com","description":"Property portal listing verified flats, houses and new projects for sale and rent across India.","logo":{"@type":"ImageObject","url":"https://keys99.com/assets/logo.png","width":866,"height":288},"image":"https://keys99.com/assets/og-default.jpg","address":{"@type":"PostalAddress","addressCountry":"IN"},"areaServed":{"@type":"Country","name":"India"},"sameAs":["https://www.facebook.com/profile.php?id=100066632434187","https://www.instagram.com/keys99com/","https://www.youtube.com/@Keys99"]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"RealEstateAgent","@id":"https://keys99.com/#organisation","name":"Keys99","legalName":"Keys99.com","url":"https://keys99.com","description":"Property portal listing new residential projects and flats for sale in Pune.","logo":{"@type":"ImageObject","url":"https://keys99.com/assets/logo.png","width":866,"height":288},"image":"https://keys99.com/assets/og-default.jpg","address":{"@type":"PostalAddress","addressCountry":"IN"},"areaServed":{"@type":"Country","name":"India"},"sameAs":["https://www.facebook.com/profile.php?id=100066632434187","https://www.instagram.com/keys99com/","https://www.youtube.com/@Keys99"]}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","@id":"https://keys99.com/#website","name":"Keys99","url":"https://keys99.com","inLanguage":"en-IN","publisher":{"@id":"https://keys99.com/#organisation"},"potentialAction":{"@type":"SearchAction","target":{"@type":"EntryPoint","urlTemplate":"https://keys99.com/projects/search.html?q={search_term_string}"},"query-input":"required name=search_term_string"}}</script>
 
 
@@ -164,13 +164,13 @@
         Sell &nbsp;•&nbsp; Rent &nbsp;•&nbsp; Invest
       </div>
 
-      <!-- The H1 is the strongest on-page signal there is, so it leads
-           with what people actually search for - buy, rent, property,
-           India - rather than with the brand. The brand stays in the
-           gold span, and the two-line shape is unchanged. -->
-      <h1>
-        Buy, Rent &amp; Sell<br>
-        Property with <span>Keys99</span>
+      <!-- The H1 is the strongest on-page signal there is, so it names
+           what people search for - new projects in a city. The place in
+           the gold span is written by the build from the cities that
+           have published projects (build/homepage.js). -->
+      <h1 id="heroTitle">
+        New Residential<br>
+        Projects in <span data-seo="place">Pune</span>
       </h1>
 
       <p>
@@ -2283,6 +2283,12 @@ function createPropertyCard(property, badgeLabel, badgeClass){
       data-search="${escapeHtml(searchText)}"
       data-type="${escapeHtml(category)}"
       data-bhk="${escapeHtml(bhkValue)}"
+      data-bhks="${escapeHtml(options.map(o => normaliseBhkType(o.type).toLowerCase()).filter(Boolean).join("|"))}"
+      data-city="${escapeHtml(slugify(property.city))}"
+      data-locality="${escapeHtml(slugify(property.locality))}"
+      data-price="${optionPrices.length ? Math.min(...optionPrices) : ""}"
+      data-status="${escapeHtml(property.status_key || "")}"
+      data-created="${escapeHtml(property.created_at || "")}"
     >
 
       <div class="property-image">
