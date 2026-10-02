@@ -4,6 +4,10 @@ name: Build project pages
 # commits the result, so the site always reflects published projects.
 on:
   workflow_dispatch:
+  # Sent by Supabase when a published project changes
+  # (supabase/02-instant-page-build.sql).
+  repository_dispatch:
+    types: [project-changed]
   schedule:
     - cron: "17 * * * *"   # hourly; new projects open via 404.html until then
   push:
@@ -45,5 +49,6 @@ jobs:
             echo "No changes"
           else
             git commit -m "Rebuild project pages"
+            git pull --rebase origin main
             git push
           fi

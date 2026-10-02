@@ -73,3 +73,11 @@ Run locally: `npm install` then `npm run build`.
 - Enquiries go to `residential_enquiries`. Call / WhatsApp use the project's
   agent (when active and verified), else `SITE_CONTACT` in `js/config.js`.
 - Projects removed or unpublished disappear on the next build.
+
+### Instant rebuilds
+
+`supabase/02-instant-page-build.sql` adds database triggers that ask GitHub to
+run the build (a `repository_dispatch` event) as soon as a published project or
+anything on its page changes. It needs a GitHub token stored in Supabase Vault
+as `github_dispatch_token` (see the comments at the top of that file); without
+it the triggers do nothing and the hourly build still runs.
