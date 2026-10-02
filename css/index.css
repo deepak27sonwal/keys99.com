@@ -1186,10 +1186,47 @@ section{
   scroll-snap-align:start;
 }
 
+/* Custom scroller beside the BHK row when there is more than one
+   configuration (thumb sized and moved by fitBhkScrolls). */
+.bhk-wrap.has-more{
+  padding-right:9px;
+}
+
+.bhk-wrap.has-more .bhk-stat span{
+  white-space:nowrap;
+  letter-spacing:.2px;
+}
+
+.bhk-track{
+  position:absolute;
+  top:13px;
+  right:1px;
+  bottom:2px;
+  width:4px;
+
+  border-radius:4px;
+  background:var(--line);
+  overflow:hidden;
+}
+
+.bhk-thumb{
+  display:block;
+  width:100%;
+  border-radius:4px;
+  background:var(--green);
+  transition:transform .15s ease-out;
+}
+
+/* A soft fade at the bottom edge hints that more rows follow. */
+.bhk-wrap.has-more:not(.at-end) .bhk-scroll{
+  -webkit-mask-image:linear-gradient(to bottom, #000 78%, rgba(0,0,0,.35));
+          mask-image:linear-gradient(to bottom, #000 78%, rgba(0,0,0,.35));
+}
+
 .bhk-count{
   position:absolute;
   top:3px;
-  right:8px;
+  right:16px;
   z-index:1;
 
   padding:1px 7px;

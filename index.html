@@ -1438,11 +1438,12 @@ function createPropertyCard(property, badgeLabel, badgeClass){
         ${developer ? `<p class="developer">By &nbsp; ${escapeHtml(developer)}</p>` : ""}
 
 
-        <div class="bhk-wrap">
+        <div class="bhk-wrap${options.length > 1 ? " has-more" : ""}">
           <div class="bhk-scroll">
             ${bhkChips}
           </div>
-          ${options.length > 1 ? `<span class="bhk-count" aria-hidden="true">1/${options.length} ↕</span>` : ""}
+          ${options.length > 1 ? `<span class="bhk-count" aria-hidden="true">1/${options.length} ↕</span>
+          <span class="bhk-track" aria-hidden="true"><span class="bhk-thumb"></span></span>` : ""}
         </div>
 
       </div>
@@ -1473,16 +1474,34 @@ function fitBhkScrolls(root){
     if(!first) return;
     scroll.style.maxHeight = first.offsetHeight + "px";
 
-    const count = scroll.parentElement.querySelector(".bhk-count");
-    if(!count || scroll._bhkBound) return;
-    scroll._bhkBound = true;
+    const wrap = scroll.parentElement;
+    const count = wrap.querySelector(".bhk-count");
+    const thumb = wrap.querySelector(".bhk-thumb");
+    if(!count) return;
 
+    /* The scroller: a thin track beside the row whose thumb shows
+       how much there is and where you are - phones hide native
+       scrollbars, so this is drawn by hand. */
     const total = scroll.children.length;
-    scroll.addEventListener("scroll", () => {
+    const update = () => {
+      const max = scroll.scrollHeight - scroll.clientHeight;
+      const ratio = max > 0 ? scroll.scrollTop / max : 0;
       const step = first.offsetHeight + (parseFloat(getComputedStyle(scroll).rowGap) || 0);
       const index = Math.min(total, Math.round(scroll.scrollTop / step) + 1);
       count.textContent = `${index}/${total} ↕`;
-    }, { passive:true });
+      if(thumb){
+        const track = thumb.parentElement.clientHeight;
+        const size = Math.max(10, track / total);
+        thumb.style.height = size + "px";
+        thumb.style.transform = `translateY(${ratio * (track - size)}px)`;
+      }
+      wrap.classList.toggle("at-end", ratio >= 0.99);
+    };
+    update();
+
+    if(scroll._bhkBound) return;
+    scroll._bhkBound = true;
+    scroll.addEventListener("scroll", update, { passive:true });
   });
 }
 
