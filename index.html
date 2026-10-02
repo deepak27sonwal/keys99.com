@@ -1428,13 +1428,15 @@ function createPropertyCard(property, badgeLabel, badgeClass){
 
       <div class="property-body">
 
-        <h3><a class="card-link" href="${escapeHtml(propertyUrl(property))}">${escapeHtml(title)}</a></h3>
+        <div class="card-title-row">
+          <h3><a class="card-link" href="${escapeHtml(propertyUrl(property))}">${escapeHtml(title)}</a></h3>
+          ${property.rera_id ? `<span class="rera-badge" title="RERA registered">✓ RERA</span>` : ""}
+        </div>
 
         <p class="location">⌖ &nbsp; ${escapeHtml(location)}</p>
 
         ${developer ? `<p class="developer">By &nbsp; ${escapeHtml(developer)}</p>` : ""}
 
-        ${property.rera_id ? `<span class="rera-badge">✓ RERA</span>` : ""}
 
         <div class="bhk-wrap">
           <div class="bhk-scroll">
