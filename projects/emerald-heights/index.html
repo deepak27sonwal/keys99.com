@@ -101,7 +101,7 @@
     <!-- IMAGE GALLERY -->
     <section class="gallery-card">
       <div class="main-photo no-image" id="mainPhoto" tabindex="0" role="button" aria-label="Open property image">
-        <img id="mainImage" alt="No project image available">
+        <img id="mainImage" alt="No project image available" fetchpriority="high" decoding="async" onerror="if(this.dataset.full){this.src=this.dataset.full;this.dataset.full=''}">
         <span id="statusBadge" class="status-badge st-under-construction">Under Construction</span>
         <span class="zoom-hint">⌕ Tap to view large</span>
         <button id="prevImage" class="gallery-arrow left" type="button" aria-label="Previous image">‹</button>
@@ -422,7 +422,7 @@ Ndndmmfmfm</div>
   <div class="lightbox-dialog" role="dialog" aria-modal="true" aria-label="Property image viewer">
     <button id="lightboxClose" class="lightbox-close" type="button" aria-label="Close">×</button>
     <button id="lightboxPrev" class="lightbox-nav left" type="button" aria-label="Previous">‹</button>
-    <img id="lightboxImage" alt="Property image enlarged">
+    <img id="lightboxImage" alt="Property image enlarged" decoding="async" onerror="if(this.dataset.full){this.src=this.dataset.full;this.dataset.full=''}">
     <button id="lightboxNext" class="lightbox-nav right" type="button" aria-label="Next">›</button>
     <div id="lightboxCounter" class="lightbox-counter">1 / 1</div>
   </div>
