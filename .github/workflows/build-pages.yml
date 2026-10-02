@@ -30,26 +30,42 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
-          node-version: 20
+          node-version: 22
 
-      - run: npm install --no-audit --no-fund
-
+      # Build on the newest main and push. If main moved while this
+      # run was building (another push, or a Supabase trigger landed
+      # first), start again from the new main instead of merging:
+      # the pages are generated from the database, so a fresh build
+      # is always the right result and there is nothing to resolve.
       # SITE_INDEXABLE stays unset until launch, so pages are noindex.
-      - run: node build/generate.js
-
-      - name: Commit generated pages
+      - name: Build and commit pages
         run: |
           git config user.name "keys99-build"
           git config user.email "actions@users.noreply.github.com"
-          git add projects sitemap.xml index.html
-          if git diff --cached --quiet; then
-            echo "No changes"
-          else
-            git commit -m "Rebuild project pages"
-            git pull --rebase origin main
-            git push
-          fi
+
+          for attempt in 1 2 3; do
+            git fetch --quiet origin main
+            git reset --quiet --hard origin/main
+
+            npm install --no-audit --no-fund
+            node build/generate.js
+
+            git add projects sitemap.xml index.html
+            if git diff --cached --quiet; then
+              echo "No changes"
+              exit 0
+            fi
+
+            git commit --quiet -m "Rebuild project pages"
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            echo "main moved during the build - rebuilding on the latest commit (attempt $attempt)"
+          done
+
+          echo "Could not push after 3 attempts"
+          exit 1
