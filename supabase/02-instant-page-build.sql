@@ -1,4 +1,11 @@
 -- =========================================================
+-- SUPERSEDED - DO NOT RUN.
+-- Replaced by 08-cloudflare-build-hook.sql: the site is now built
+-- by Cloudflare Pages, not GitHub. This file was never applied.
+-- Kept only for reference.
+-- =========================================================
+
+-- =========================================================
 -- KEYS99 - REBUILD PROJECT PAGES AS SOON AS DATA CHANGES
 --
 -- When a published project (or anything shown on its page)

@@ -1,12 +1,12 @@
 /* =========================================================
    KEYS99 - CLOUDFLARE PAGES OUTPUT
 
-   Cloudflare Pages build command:  node build/cloudflare-dist.js
+   Cloudflare Pages build command:  npm run build:cloudflare
    Build output directory:          dist
 
-   The pages are already built and committed by the GitHub Action
-   (build/generate.js), so this does not rebuild anything. It copies
-   only the public website into dist/, so build scripts, SQL files,
+   npm run build:cloudflare first runs build/generate.js, which
+   writes every page from Supabase, then this script. It copies only
+   the public website into dist/, so build scripts, SQL files,
    content sources and node_modules are never published, then adds
    Cloudflare's _headers and _redirects from cloudflare/.
 ========================================================= */

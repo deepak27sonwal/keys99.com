@@ -76,8 +76,9 @@ Run locally: `npm install` then `npm run build`.
 
 ### Instant rebuilds
 
-`supabase/02-instant-page-build.sql` adds database triggers that ask GitHub to
-run the build (a `repository_dispatch` event) as soon as a published project or
-anything on its page changes. It needs a GitHub token stored in Supabase Vault
-as `github_dispatch_token` (see the comments at the top of that file); without
-it the triggers do nothing and the hourly build still runs.
+The site is built by Cloudflare Pages (see `CLOUDFLARE.md`).
+`supabase/08-cloudflare-build-hook.sql` adds database triggers that mark the
+site as needing a build whenever a published project or anything on its page
+changes, and a `pg_cron` job that calls the Cloudflare deploy hook once edits
+have settled for 2 minutes, plus a daily rebuild. The hook URL is stored in
+Supabase Vault as `cloudflare_deploy_hook`; until it is added, nothing is sent.
