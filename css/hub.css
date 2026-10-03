@@ -12,7 +12,7 @@
   flex-wrap:wrap;
   align-items:center;
   gap:6px;
-  font-size:12px;
+  font-size:var(--fs-small);
   color:var(--muted);
   margin-bottom:16px;
 }
@@ -41,7 +41,7 @@
 .hub-intro{
   max-width:820px;
   margin:0 0 16px;
-  font-size:14px;
+  font-size:var(--fs-body);
   line-height:1.65;
   color:#3d5560;
 }
@@ -61,7 +61,7 @@
 }
 
 .hub-facts dt{
-  font-size:10px;
+  font-size:var(--fs-label);
   font-weight:700;
   text-transform:uppercase;
   letter-spacing:.4px;
@@ -70,7 +70,7 @@
 
 .hub-facts dd{
   margin:2px 0 0;
-  font-size:14px;
+  font-size:var(--fs-lead);
   font-weight:700;
   color:var(--green-dark);
 }
@@ -140,27 +140,27 @@
 .hub-about{
   max-width:860px;
   margin:0 0 12px;
-  font-size:13.5px;
+  font-size:var(--fs-body);
   line-height:1.7;
   color:#3d5560;
   white-space:pre-line;
 }
 
-.hub-website{ margin:0 0 16px; font-size:13px; }
+.hub-website{ margin:0 0 16px; font-size:var(--fs-ui); }
 .hub-website a{ color:var(--green); font-weight:700; text-decoration:none; }
 .hub-website a:hover{ text-decoration:underline; }
 
 /* Locality guides: hand-written text from content/localities/. */
 .hub-guide{
   max-width:860px;
-  font-size:14px;
+  font-size:var(--fs-body);
   line-height:1.7;
   color:#3d5560;
 }
 
 .hub-guide h3{
   margin:20px 0 6px;
-  font-size:16px;
+  font-size:var(--fs-h4);
   color:var(--ink);
 }
 

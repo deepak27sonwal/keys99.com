@@ -33,7 +33,7 @@
   background:#fafcfb;
   color:#092c3d;
   font:inherit;
-  font-size:13px;
+  font-size:var(--fs-ui);
   text-align:left;
   cursor:pointer;
   transition:border-color .15s, box-shadow .15s, background .15s;
@@ -108,7 +108,7 @@
   padding:9px 11px;
   border-radius:8px;
   color:#092c3d;
-  font-size:13px;
+  font-size:var(--fs-ui);
   line-height:1.35;
   white-space:nowrap;
   cursor:pointer;
@@ -123,7 +123,7 @@
 
 .cs-option[aria-selected="true"]:after{
   content:"✓";
-  font-size:12px;
+  font-size:var(--fs-label);
 }
 
 .cs-option[aria-disabled="true"]{
@@ -162,7 +162,7 @@
   border-radius:0;
   background:transparent;
   color:#fff;
-  font-size:12px;
+  font-size:var(--fs-ui);
   box-shadow:none;
 }
 

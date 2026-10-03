@@ -146,12 +146,12 @@
 
 .cw-header-info strong{
   display:block;
-  font-size:14px;
+  font-size:var(--fs-ui);
 }
 
 .cw-header-info span{
   display:block;
-  font-size:11px;
+  font-size:var(--fs-label);
   color:rgba(255,255,255,.8);
 }
 
@@ -230,7 +230,7 @@
   background:#fff;
   color:var(--cw-green-dark);
 
-  font-size:12px;
+  font-size:var(--fs-label);
   font-weight:600;
   white-space:nowrap;
 
@@ -247,7 +247,7 @@
 
   border-radius:16px;
 
-  font-size:13px;
+  font-size:var(--fs-ui);
   line-height:1.55;
 
   word-wrap:break-word;
@@ -334,7 +334,7 @@
 
   padding:11px 16px;
 
-  font-size:13px;
+  font-size:var(--fs-input);
   color:var(--cw-ink);
 
   background:#fbfcfc;

@@ -11,7 +11,7 @@
 }
 .saved-page .search-empty[hidden]{ display:none; }
 .saved-page .search-empty strong,
-.reels-page .search-empty strong{ display:block; margin-bottom:6px; font-size:16px; color:var(--ink, #092c3d); }
+.reels-page .search-empty strong{ display:block; margin-bottom:6px; font-size:var(--fs-lead); color:var(--ink, #092c3d); }
 .saved-page .search-empty p,
 .reels-page .search-empty p{ margin:0 0 16px; }
 
@@ -49,9 +49,9 @@
 }
 
 .reel-body{ display:grid; gap:4px; padding:12px 14px 14px; }
-.reel-tag{ font-size:10.5px; font-weight:700; letter-spacing:.4px; text-transform:uppercase; color:var(--muted); }
-.reel-body strong{ font-size:14.5px; color:var(--ink, #092c3d); overflow-wrap:anywhere; }
-.reel-project{ font-size:12.5px; font-weight:700; color:var(--green); text-decoration:none; }
+.reel-tag{ font-size:var(--fs-label); font-weight:700; letter-spacing:.4px; text-transform:uppercase; color:var(--muted); }
+.reel-body strong{ font-size:var(--fs-lead); color:var(--ink, #092c3d); overflow-wrap:anywhere; }
+.reel-project{ font-size:var(--fs-small); font-weight:700; color:var(--green); text-decoration:none; }
 .reel-project:hover{ text-decoration:underline; }
 
 @media (max-width:560px){
