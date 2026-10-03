@@ -140,6 +140,7 @@
         <button id="shareBtn" type="button">⌯ &nbsp; Share</button>
         <button id="backBtn" type="button">← &nbsp; Back</button>
         <button id="enquireTopBtn" class="primary" type="button">✉ &nbsp; Enquire Now</button>
+        <button id="visitTopBtn" class="visit-btn" type="button">📅 &nbsp; Schedule a Free Site Visit</button>
       </div>
     </section>
 
@@ -461,6 +462,7 @@ Ndndmmfmfm</div>
 
             <button class="send-btn" id="sendBtn" type="submit">➤ &nbsp; Send Enquiry</button>
             <button class="whatsapp-btn" id="whatsappBtn" type="button">◉ &nbsp; WhatsApp Us</button>
+            <button class="visit-card-btn" id="visitBtn" type="button">📅 &nbsp; Schedule Site Visit</button>
           </form>
 
           <div class="dream">
@@ -570,6 +572,20 @@ Ndndmmfmfm</div>
       <span>Mobile Number</span>
       <input id="gatePhone" type="tel" inputmode="tel" autocomplete="tel" maxlength="16" placeholder="10-digit number" required="">
     </label>
+    <div class="contact-gate-row" id="gateVisitFields" hidden="">
+      <label class="contact-gate-field">
+        <span>Preferred Date</span>
+        <input id="gateDate" type="date">
+      </label>
+      <label class="contact-gate-field">
+        <span>Time</span>
+        <select id="gateTime">
+          <option value="Morning (10 am – 1 pm)">Morning</option>
+          <option value="Afternoon (1 pm – 4 pm)">Afternoon</option>
+          <option value="Evening (4 pm – 7 pm)">Evening</option>
+        </select>
+      </label>
+    </div>
     <label class="contact-gate-field" id="gateBhkField">
       <span>Preferred BHK (optional)</span>
       <select id="gateBhk"></select>
@@ -578,6 +594,14 @@ Ndndmmfmfm</div>
     <button type="submit" class="contact-gate-submit" id="gateSubmit">Continue to WhatsApp</button>
     <small class="contact-gate-privacy">By continuing you agree to be contacted about this project. <a href="../../privacy-policy.html">Privacy Policy</a></small>
   </form>
+  <div class="contact-gate-card contact-gate-done" id="gateDone" hidden="">
+    <button type="button" class="contact-gate-close" data-close-gate="" aria-label="Close">×</button>
+    <div class="contact-gate-tick" aria-hidden="true">✓</div>
+    <h2>Site visit requested</h2>
+    <p class="contact-gate-note" id="gateDoneText"></p>
+    <button type="button" class="contact-gate-submit whatsapp" id="gateDoneWhatsapp">Continue on WhatsApp</button>
+    <button type="button" class="contact-gate-secondary" data-close-gate="">Done</button>
+  </div>
 </div>
 
 
