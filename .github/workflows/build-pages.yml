@@ -69,7 +69,7 @@ jobs:
             npm install --no-audit --no-fund
             node build/generate.js
 
-            git add projects developers admin sitemap.xml index.html about.html contact.html home-loans.html privacy-policy.html terms.html saved.html reels.html assets/thumbs
+            git add projects developers blog admin sitemap.xml index.html about.html contact.html home-loans.html privacy-policy.html terms.html saved.html reels.html assets/thumbs
             if git diff --cached --quiet; then
               echo "No changes"
               exit 0

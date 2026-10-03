@@ -22,6 +22,8 @@ const SITE_ROOT = window.__KEYS99_ROOT__ || "../";
 const params = new URLSearchParams(window.location.search);
 const embeddedRow = window.__KEYS99_PROJECT__ || null;
 const requestedSlug = window.__KEYS99_SLUG__ || params.get("slug") || (embeddedRow && embeddedRow.slug) || null;
+/* Older links (and projects without a slug) open the page by id. */
+const requestedId = requestedSlug ? null : (params.get("id") || null);
 
 let project = null;
 let galleryImages = [];
@@ -85,7 +87,7 @@ async function loadProject(){
     renderProject(normalize(embeddedRow));
   }
 
-  if(!requestedSlug){
+  if(!requestedSlug && !requestedId){
     if(!embeddedRow) showError("No project was requested.");
     return;
   }
@@ -94,7 +96,7 @@ async function loadProject(){
     const { data, error } = await supabaseClient
       .from("residential_projects")
       .select(P.PROJECT_DETAIL_SELECT)
-      .eq("slug", requestedSlug)
+      .eq(requestedSlug ? "slug" : "id", requestedSlug || requestedId)
       .eq("moderation_status", "published")
       .is("deleted_at", null)
       .maybeSingle();
