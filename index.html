@@ -2044,6 +2044,7 @@ ndndmmfmfm dfghhjuuujh"
 <script defer src="js/config.js"></script>
 <script defer src="js/chat-widget.js"></script>
 <script defer src="js/attribution.js"></script>
+<script defer src="js/compare-tray.js"></script>
 
 <script>
 
@@ -2713,6 +2714,8 @@ function createPropertyCard(property, badgeLabel, badgeClass){
         <span class="badge ${statusClass}">${escapeHtml(status)}</span>
 
         <button class="fav" aria-label="Add to favorites" data-property-id="${id}" type="button">♡</button>
+
+        ${slugify(property.slug) ? `<button class="compare-toggle" type="button" aria-pressed="false" data-compare-slug="${escapeHtml(slugify(property.slug))}" data-compare-name="${escapeHtml(title)}">⇄ Compare</button>` : ""}
 
       </div>
 

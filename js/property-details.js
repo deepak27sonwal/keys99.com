@@ -134,6 +134,13 @@ function setCrumb(id, text, path){
 }
 
 function renderProject(p){
+  /* Compare button (js/compare-tray.js), also on the fallback page. */
+  if(p.slug){
+    $("compareBtn").dataset.compareSlug = p.slug;
+    $("compareBtn").dataset.compareName = p.name;
+    $("compareBtn").classList.remove("hidden");
+    if(window.Keys99Compare) window.Keys99Compare.refresh();
+  }
   project = p;
 
   setText("propertyName", p.name);
@@ -482,6 +489,14 @@ function setupContactButtons(p){
      expert calls back. */
   $("visitBtn").onclick = () => openGate("visit");
   $("visitTopBtn").onclick = () => openGate("visit");
+
+  /* Links such as the compare page's "Schedule Visit" go to
+     /projects/<slug>/#schedule-visit and open the form directly. */
+  if(location.hash === "#schedule-visit" && !setupContactButtons.visitOpened){
+    setupContactButtons.visitOpened = true;
+    history.replaceState(null, "", location.pathname + location.search);
+    setTimeout(() => openGate("visit"), 300);
+  }
 
   $("stickyEnquireBtn").onclick = () => {
     $("enquiryWrap").scrollIntoView({ behavior:"smooth", block:"start" });

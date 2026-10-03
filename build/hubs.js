@@ -457,6 +457,7 @@ ${chrome.bottomNav}
 
 <script defer src="js/hub.js"></script>
 <script defer src="js/attribution.js"></script>
+<script defer src="js/compare-tray.js"></script>
 </body>
 </html>
 `;

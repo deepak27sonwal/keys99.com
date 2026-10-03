@@ -28,6 +28,7 @@ const { buildThumbs } = require("./thumbs.js");
 const { buildHubs } = require("./hubs.js");
 const { buildSearchPage } = require("./search.js");
 const { buildLegalPages } = require("./legal.js");
+const { buildComparePage } = require("./compare.js");
 
 /* City/locality hubs with a single project are thin; they are built
    (the homepage links to them) but kept out of the index and the
@@ -230,6 +231,9 @@ function buildPage(template, row, config, allProjects, shareImage){
     toggle($, section, !!html.trim());
   });
 
+  /* Compare button on the main photo (js/compare-tray.js). */
+  $("#compareBtn").attr("data-compare-slug", p.slug).attr("data-compare-name", p.name).removeClass("hidden");
+
   /* Developer page (build/hubs.js writes /developers/<slug>/ for every
      developer with a published project). Template-relative path. */
   const devSlug = P.slugify(p.developer);
@@ -377,6 +381,11 @@ async function main(){
     H, indexHtml: fs.readFileSync(indexPath, "utf8"), props: allProps, siteOrigin: SITE_ORIGIN
   }));
   console.log(`  wrote    /projects/search.html  (${allProps.length} projects)`);
+
+  fs.writeFileSync(path.join(ROOT, "projects", "compare.html"), buildComparePage({
+    indexHtml: fs.readFileSync(indexPath, "utf8"), siteOrigin: SITE_ORIGIN
+  }));
+  console.log("  wrote    /projects/compare.html");
 
   buildLegalPages({ root: ROOT, indexHtml: fs.readFileSync(indexPath, "utf8"), siteOrigin: SITE_ORIGIN, robots: ROBOTS })
     .forEach(page => {

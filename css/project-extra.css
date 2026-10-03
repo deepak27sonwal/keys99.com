@@ -133,3 +133,8 @@
 .slot:hover span{border-color:var(--green)}
 .slot input:checked + span{background:var(--green);border-color:var(--green);color:#fff}
 .slot input:focus-visible + span{box-shadow:0 0 0 3px rgba(0,107,91,.25)}
+
+/* Compare button on the main photo (js/compare-tray.js) */
+.photo-compare{position:absolute;right:14px;top:14px;z-index:3;padding:7px 12px;border:0;border-radius:999px;background:rgba(255,255,255,.94);color:#082d38;font:inherit;font-size:12px;font-weight:700;box-shadow:0 4px 14px rgba(0,0,0,.16);cursor:pointer}
+.photo-compare.hidden{display:none}
+.photo-compare.is-compared{background:#e1a400}

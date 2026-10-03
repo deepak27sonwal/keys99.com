@@ -1,0 +1,103 @@
+/* =========================================================
+   KEYS99 - COMPARE PAGE  (projects/compare.html)
+   Layered on css/index.css + css/hub.css.
+========================================================= */
+
+.compare-status{ margin:8px 0 0; font-size:14px; color:var(--muted); }
+
+.compare-scroll{
+  overflow-x:auto;
+  border:1px solid #d3e0dc;
+  border-radius:16px;
+  background:#fff;
+  box-shadow:0 5px 20px rgba(0,0,0,.03);
+}
+.compare-scroll[hidden]{ display:none; }
+
+.compare-table{
+  width:100%;
+  min-width:calc(150px + var(--cols, 2) * 220px);
+  border-collapse:separate;
+  border-spacing:0;
+  font-size:13px;
+  table-layout:fixed;
+}
+
+.compare-table th,
+.compare-table td{
+  padding:12px 14px;
+  border-bottom:1px solid #eef3f1;
+  text-align:left;
+  vertical-align:top;
+  overflow-wrap:anywhere;
+}
+
+/* First column (row labels) stays in view while scrolling sideways. */
+.compare-table tbody th,
+.compare-corner{
+  position:sticky;
+  left:0;
+  z-index:1;
+  width:150px;
+  background:#f7faf9;
+  font-size:11px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:.4px;
+  color:#6b7f86;
+  overflow-wrap:normal;
+}
+.compare-corner{ vertical-align:bottom !important; }
+
+.compare-table tbody tr:last-child th,
+.compare-table tbody tr:last-child td{ border-bottom:0; }
+
+.compare-head{ position:relative; display:grid; gap:6px; }
+.compare-photo{ display:block; border-radius:12px; overflow:hidden; aspect-ratio:16/10; background:#eef3f1; }
+.compare-photo img{ width:100%; height:100%; object-fit:cover; display:block; }
+.compare-name{ font-size:15px; font-weight:800; color:var(--ink, #092c3d); text-decoration:none; }
+.compare-name:hover{ color:var(--green); }
+.compare-place{ font-size:12px; font-weight:500; color:#6b7f86; }
+
+.compare-remove{
+  position:absolute; top:6px; right:6px; z-index:2;
+  width:28px; height:28px; border:0; border-radius:50%;
+  background:rgba(255,255,255,.94); color:#082d38;
+  font-size:18px; line-height:1; cursor:pointer;
+  box-shadow:0 3px 10px rgba(0,0,0,.15);
+}
+
+.compare-best{
+  display:inline-block; margin-left:8px; padding:2px 8px; border-radius:999px;
+  background:#e4f5ef; color:#00664f; font-size:10.5px; font-weight:800; vertical-align:middle;
+}
+
+.compare-status-tag{
+  display:inline-block; padding:3px 10px; border-radius:999px;
+  background:var(--green); color:#fff; font-size:11px; font-weight:700;
+}
+.compare-status-tag.st-upcoming{ background:#6b4fd8; }
+.compare-status-tag.st-new-launch{ background:#e1a400; color:#092c3d; }
+.compare-status-tag.st-under-construction{ background:#1f6fd1; }
+.compare-status-tag.st-ready-to-move{ background:#006b5b; }
+.compare-status-tag.st-completed{ background:#3d5361; }
+.compare-status-tag.st-resale{ background:#c2416b; }
+
+.compare-amenities{ display:block; margin-top:3px; font-size:12px; color:#53666d; }
+
+.compare-actions td{ display:table-cell; }
+.compare-actions .btn-primary{ display:block; text-align:center; margin-bottom:8px; }
+.compare-view{ display:block; text-align:center; font-size:12.5px; font-weight:700; color:var(--green); text-decoration:none; }
+
+.compare-page .search-empty{
+  padding:36px 20px; border:1px dashed #c7d8d3; border-radius:16px; text-align:center; color:var(--muted);
+}
+.compare-page .search-empty[hidden]{ display:none; }
+.compare-page .search-empty strong{ display:block; margin-bottom:6px; font-size:16px; color:var(--ink, #092c3d); }
+.compare-page .search-empty p{ margin:0 0 16px; }
+
+@media (max-width:560px){
+  .compare-table{ min-width:calc(110px + var(--cols, 2) * 190px); font-size:12.5px; }
+  .compare-table tbody th, .compare-corner{ width:110px; }
+  .compare-table th, .compare-table td{ padding:10px; }
+}
