@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en-IN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#006b5b">
+<!-- Staff page. Not linked from the site and kept out of search results;
+     the leads themselves are protected by Supabase sign-in and row-level
+     security (admins see every lead, agents only the leads assigned to them). -->
+<meta name="robots" content="noindex,nofollow">
+<title>Leads | Keys99</title>
+<link rel="icon" href="../favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+
+<header class="adm-top">
+  <a class="adm-brand" href="../index.html"><img src="../assets/logo.png" alt="Keys99.com" width="866" height="288"></a>
+  <span class="adm-title">Leads</span>
+  <div class="adm-user" id="admUser" hidden>
+    <span id="admEmail"></span>
+    <button type="button" id="admSignOut">Sign out</button>
+  </div>
+</header>
+
+<!-- SIGN IN -->
+<main class="adm-signin" id="admSignIn" hidden>
+  <form class="adm-card" id="admSignInForm">
+    <h1>Staff sign in</h1>
+    <p>Sign in with your Keys99 admin or agent account to see enquiries.</p>
+    <label><span>Email</span><input id="admEmailInput" type="email" autocomplete="username" required></label>
+    <label><span>Password</span><input id="admPassword" type="password" autocomplete="current-password" required></label>
+    <p class="adm-error" id="admSignInError" role="alert" hidden></p>
+    <button type="submit" class="adm-primary" id="admSignInBtn">Sign in</button>
+  </form>
+</main>
+
+<!-- LEADS -->
+<main class="adm-main" id="admLeads" hidden>
+
+  <section class="adm-stats" aria-label="Summary">
+    <button type="button" class="adm-stat" data-quick="new"><strong id="statNew">0</strong><span>New</span></button>
+    <button type="button" class="adm-stat" data-quick="today"><strong id="statToday">0</strong><span>Today</span></button>
+    <button type="button" class="adm-stat" data-quick="visits"><strong id="statVisits">0</strong><span>Upcoming visits</span></button>
+    <button type="button" class="adm-stat" data-quick="all"><strong id="statAll">0</strong><span>All leads</span></button>
+  </section>
+
+  <section class="adm-filters" aria-label="Filters">
+    <div class="adm-chips" id="typeChips" role="group" aria-label="Lead type">
+      <button type="button" class="adm-chip is-on" data-type="">All</button>
+      <button type="button" class="adm-chip" data-type="enquire_now">Enquiry</button>
+      <button type="button" class="adm-chip" data-type="whatsapp_now">WhatsApp</button>
+      <button type="button" class="adm-chip" data-type="request_callback">Call</button>
+      <button type="button" class="adm-chip" data-type="schedule_site_visit">Site visit</button>
+    </div>
+    <div class="adm-row">
+      <input type="search" id="fSearch" placeholder="Search name or phone">
+      <select id="fStatus" aria-label="Status"><option value="">All statuses</option></select>
+      <select id="fProject" aria-label="Project"><option value="">All projects</option></select>
+      <label class="adm-check"><input type="checkbox" id="fUpcoming"> Upcoming visits only</label>
+      <button type="button" class="adm-ghost" id="admRefresh">↻ Refresh</button>
+    </div>
+  </section>
+
+  <p class="adm-count" id="admCount" aria-live="polite"></p>
+  <div class="adm-list" id="admList"></div>
+  <p class="adm-empty" id="admEmpty" hidden></p>
+
+</main>
+
+<div class="adm-toast" id="admToast" role="status"></div>
+
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
+<script defer src="../js/config.js"></script>
+<script defer src="../js/admin-leads.js"></script>
+</body>
+</html>

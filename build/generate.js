@@ -413,7 +413,7 @@ async function main(){
     indexPath,
     path.join(ROOT, "privacy-policy.html"),
     path.join(ROOT, "terms.html"),
-    ...htmlFiles(ROOT, ["projects", "developers"])
+    ...htmlFiles(ROOT, ["projects", "developers", "admin"])
   ]);
   console.log(`  versioned CSS/JS links in ${stamped} page(s)`);
 
