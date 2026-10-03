@@ -5,6 +5,6 @@ User-agent: *
 Allow: /
 
 # Template / fallback page - every project has its own URL.
-Disallow: /projects/property-details.html
+Disallow: /projects/property-details
 
 Sitemap: https://keys99.com/sitemap.xml

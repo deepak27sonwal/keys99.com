@@ -122,7 +122,7 @@ function applyHomepageSeo(H, html, props){
     .replace(/(<meta property="og:description" content=")[^"]*(")/, `$1${attr(description)}$2`)
     .replace(/(<meta name="twitter:title" content=")[^"]*(")/, `$1${attr(title)}$2`)
     .replace(/(<meta name="twitter:description" content=")[^"]*(")/, `$1${attr(description)}$2`)
-    .replace(/(<span data-seo="place">)[^<]*(<\/span>)/, `$1${attr(place)}$2`)
+    .replace(/(<span data-seo="place">)[^<]*(<\/span>)/g, `$1${attr(place)}$2`)
     .replace(/("@type":"RealEstateAgent"[^<]*?"description":")[^"]*(")/,
       `$1Property portal listing new residential projects and flats for sale in ${place.replace(/"/g, "")}.$2`);
   return html;
@@ -236,7 +236,7 @@ function buildHomepage(indexPath, rows, supabaseUrl){
      something to show - same rule as setTypeCardState() in the page. */
   html = html.replace(/<a class="type-card" data-type="(\w+)"(?: href="[^"]*"| aria-disabled="true")>/g,
     (_, key) => `<a class="type-card" data-type="${key}" ` +
-      (stats.types[key] ? `href="projects/search.html?type=${key}">` : `aria-disabled="true">`));
+      (stats.types[key] ? `href="projects/search?type=${key}">` : `aria-disabled="true">`));
 
   html = applyHomepageSeo(H, html, props);
 

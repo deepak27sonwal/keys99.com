@@ -17,7 +17,7 @@
   var path = location.pathname;
   var m = path.match(/^(.*\/)projects\/([a-z0-9]+(?:-[a-z0-9]+)*)\/?$/);
   if(m && m[2] !== "property-details" && m[2] !== "search"){
-    location.replace(m[1] + "projects/property-details.html?slug=" + m[2] + location.hash);
+    location.replace(m[1] + "projects/property-details?slug=" + m[2] + location.hash);
     return;
   }
   /* A developer whose page has not been built yet: the list of all developers. */

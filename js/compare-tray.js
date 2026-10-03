@@ -87,7 +87,7 @@
   }
 
   /* The compare page shows the selection itself. */
-  var ON_COMPARE_PAGE = /\/compare\.html$/.test(location.pathname);
+  var ON_COMPARE_PAGE = /\/compare(\.html)?$/.test(location.pathname);
 
   function render(){
     var list = read();
@@ -108,7 +108,7 @@
         '<button type="button" data-remove="' + esc(p.slug) + '" aria-label="Remove ' + esc(p.name || p.slug) + '">×</button></span>';
     }).join("");
     var go = tray.querySelector(".compare-tray-go");
-    go.href = ROOT + "projects/compare.html?p=" + list.map(function(p){ return p.slug; }).join(",");
+    go.href = ROOT + "projects/compare?p=" + list.map(function(p){ return p.slug; }).join(",");
     go.textContent = list.length < 2 ? "Add one more" : "Compare (" + list.length + ") →";
     go.setAttribute("aria-disabled", list.length < 2 ? "true" : "false");
     if(!tray.hidden) placeTray();

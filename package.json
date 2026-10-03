@@ -3,7 +3,8 @@
   "private": true,
   "description": "Keys99.com - static property portal with build-time project pages for SEO",
   "scripts": {
-    "build": "node build/generate.js"
+    "build": "node build/generate.js",
+    "build:cloudflare": "node build/generate.js && node build/cloudflare-dist.js"
   },
   "engines": {
     "node": ">=20"

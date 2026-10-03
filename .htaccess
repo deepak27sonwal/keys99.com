@@ -39,8 +39,21 @@
   # root. Anything already linking to, bookmarking or indexing the
   # old paths would hit a 404 without these. QSA keeps the query
   # string, so /property-details.html?id=<uuid> still resolves.
-  RewriteRule ^search\.html$            /projects/search.html [R=301,L,QSA]
-  RewriteRule ^property-details\.html$  /projects/property-details.html [R=301,L,QSA]
+  RewriteRule ^search(?:\.html)?$            /projects/search [R=301,L,QSA]
+  RewriteRule ^property-details(?:\.html)?$  /projects/property-details [R=301,L,QSA]
+
+  # --- clean URLs: no ".html" in the address ----------------------
+  # Pages are linked and canonicalised as /about, /projects/search
+  # (Cloudflare Pages does the same). An old /about.html link gets a
+  # 301 to /about, and /about is served from about.html. These come
+  # before the fallbacks below, which would otherwise read
+  # /projects/search as a project slug that has no page yet.
+  RewriteCond %{THE_REQUEST} \s/+([^\s?]*?)\.html[\s?] [NC]
+  RewriteRule ^ /%1 [R=301,L]
+
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{REQUEST_FILENAME}.html -f
+  RewriteRule ^(.+)$ $1.html [L]
 
   # --- listings approved since the last build ---------------------
   # A listing gets its slug the moment it is posted, and the homepage
@@ -75,17 +88,17 @@
   # named "2-bhk-flats".
   RewriteCond %{REQUEST_FILENAME}       !-f
   RewriteCond %{REQUEST_FILENAME}       !-d
-  RewriteRule ^projects/([A-Za-z0-9-]+)/([0-9]+(?:-[0-9]+)?)-bhk-flats/?$  /projects/search.html?city=$1&bhk=$2 [R=302,L,QSA]
+  RewriteRule ^projects/([A-Za-z0-9-]+)/([0-9]+(?:-[0-9]+)?)-bhk-flats/?$  /projects/search?city=$1&bhk=$2 [R=302,L,QSA]
 
   RewriteCond %{REQUEST_FILENAME}       !-f
   RewriteCond %{REQUEST_FILENAME}       !-d
-  RewriteRule ^projects/([A-Za-z0-9-]+)/([A-Za-z0-9-]+)/?$  /projects/search.html?city=$1&locality=$2 [R=302,L,QSA]
+  RewriteRule ^projects/([A-Za-z0-9-]+)/([A-Za-z0-9-]+)/?$  /projects/search?city=$1&locality=$2 [R=302,L,QSA]
 
   # Single segment: a listing slug. Tried last, so the two-segment
   # rules above get first refusal.
   RewriteCond %{REQUEST_FILENAME}       !-f
   RewriteCond %{REQUEST_FILENAME}       !-d
-  RewriteRule ^projects/([A-Za-z0-9-]+)/?$  /projects/property-details.html?slug=$1 [R=302,L,QSA]
+  RewriteRule ^projects/([A-Za-z0-9-]+)/?$  /projects/property-details?slug=$1 [R=302,L,QSA]
 
   # A developer whose page has not been built yet: the list of all
   # developers (/developers/), which the build always writes.

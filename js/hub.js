@@ -98,12 +98,12 @@
   }
 
   const loginBtn = document.getElementById("loginBtn");
-  if(loginBtn) loginBtn.addEventListener("click", () => { window.location.href = ROOT + "saved.html"; });
+  if(loginBtn) loginBtn.addEventListener("click", () => { window.location.href = ROOT + "saved"; });
 
   /* ---- bottom navigation ---- */
   const bottomNav = document.getElementById("bottomNav");
   if(bottomNav){
-    const targets = { home:"./", search:"projects/search.html", reels:"reels.html", saved:"saved.html", profile:"saved.html" };
+    const targets = { home:"./", search:"projects/search", reels:"reels", saved:"saved", profile:"saved" };
     bottomNav.addEventListener("click", e => {
       const btn = e.target.closest("button");
       if(btn && targets[btn.dataset.target]) window.location.href = ROOT + targets[btn.dataset.target];

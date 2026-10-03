@@ -1,0 +1,14 @@
+# Cloudflare Pages redirects - the path-based rules from .htaccess.
+# build/cloudflare-dist.js copies this file into dist/.
+#
+# Not needed here, because Cloudflare does them itself:
+#   /about.html -> /about, /index.html -> /   (built into Pages)
+#   http -> https, www -> keys99.com           (dashboard settings, see CLOUDFLARE.md)
+#   /projects/<slug>/ not built yet            (404.html sends it to the
+#                                               project page that loads by slug)
+
+# search and property-details used to sit at the site root.
+/search                  /projects/search             301
+/search.html             /projects/search             301
+/property-details        /projects/property-details   301
+/property-details.html   /projects/property-details   301

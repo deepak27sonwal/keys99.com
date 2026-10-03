@@ -82,7 +82,7 @@ function buildSavedPage({ H, indexHtml, props, siteOrigin }){
       <div class="search-empty" id="savedEmpty" hidden>
         <strong>No saved projects yet.</strong>
         <p>Tap the ♡ on any project to save it here.</p>
-        <a class="btn-primary" href="projects/search.html">Browse projects</a>
+        <a class="btn-primary" href="projects/search">Browse projects</a>
       </div>
     </section>
 
@@ -100,7 +100,7 @@ function buildSavedPage({ H, indexHtml, props, siteOrigin }){
     chrome,
     title: "Saved Projects | Keys99",
     description: "Your saved and recently viewed projects on Keys99.",
-    canonical: `${siteOrigin}/saved.html`,
+    canonical: `${siteOrigin}/saved`,
     robots: "noindex,follow",
     css: ["css/media-pages.css"],
     main,
@@ -165,7 +165,7 @@ function buildReelsPage({ H, P, indexHtml, rows, supabaseUrl, siteOrigin, robots
     <div class="search-empty">
       <strong>Videos coming soon.</strong>
       <p>Meanwhile, browse projects and their photos.</p>
-      <a class="btn-primary" href="projects/search.html">Browse projects</a>
+      <a class="btn-primary" href="projects/search">Browse projects</a>
     </div>`}
   </div>
 </main>`;
@@ -174,7 +174,7 @@ function buildReelsPage({ H, P, indexHtml, rows, supabaseUrl, siteOrigin, robots
     chrome,
     title: "Project Videos &amp; Reels | Keys99",
     description: "Watch walkthroughs and reels of new residential projects on Keys99.",
-    canonical: `${siteOrigin}/reels.html`,
+    canonical: `${siteOrigin}/reels`,
     robots,
     css: ["css/media-pages.css"],
     main,
