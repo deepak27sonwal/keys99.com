@@ -104,10 +104,11 @@ a{
   align-items:center;
 }
 
+/* assets/logo-wide.png is the logo cropped to its edges (logo.png
+   carries wide empty margins), so these widths are all logo. */
 .header-logo{
-  width:185px;
+  width:230px;
   height:auto;
-  max-height:54px;
   object-fit:contain;
   display:block;
 }
@@ -1030,7 +1031,7 @@ section{
 
   background:var(--green);
 
-  font-size:10px;
+  font-size:12px;
   font-weight:700;
 }
 
@@ -1086,7 +1087,8 @@ section{
 }
 
 .property-body h3{
-  font-size:14px;
+  font-size:16px;
+  line-height:1.3;
   margin-bottom:5px;
 }
 
@@ -1114,7 +1116,7 @@ section{
 
 .location,
 .developer{
-  font-size:10px;
+  font-size:13px;
   color:var(--muted);
 
   margin:4px 0;
@@ -1128,7 +1130,7 @@ section{
   background:var(--green-soft);
   color:var(--green-dark);
 
-  font-size:9px;
+  font-size:11px;
   font-weight:700;
 
   padding:3px 9px;
@@ -1152,7 +1154,7 @@ section{
 
 .card-price{
   margin:0;
-  font-size:11px;
+  font-size:13px;
   color:var(--muted);
 }
 
@@ -1289,7 +1291,7 @@ section{
   background:var(--green);
   color:#fff;
 
-  font-size:10px;
+  font-size:11px;
   font-weight:700;
   line-height:16px;
 
@@ -1336,7 +1338,7 @@ section{
 .bhk-stat span{
   display:block;
 
-  font-size:8px;
+  font-size:10px;
 
   color:var(--muted);
 
@@ -1535,20 +1537,31 @@ footer{
   gap:30px;
 }
 
+/* Sizes: 14px text and 15px headings keep the footer readable on a
+   phone; links get vertical padding so each is an easy tap target. */
 .footer-col h4{
-  font-size:12px;
-  margin-bottom:12px;
+  font-size:15px;
+  margin-bottom:10px;
 }
 
 .footer-col a,
 .footer-col p{
   display:block;
 
-  color:var(--muted);
+  /* Darker than --muted (4.3:1) so small text meets the 4.5:1
+     contrast minimum on white. */
+  color:#5b6c75;
 
-  font-size:10px;
+  font-size:14px;
+
+  line-height:1.5;
 
   margin:6px 0;
+}
+
+.footer-col a{
+  margin:0;
+  padding:5px 0;
 }
 
 .socials{
@@ -1557,8 +1570,10 @@ footer{
 }
 
 .socials a{
-  width:30px;
-  height:30px;
+  width:36px;
+  height:36px;
+
+  font-size:16px;
 
   border:1px solid var(--line);
 
@@ -1577,13 +1592,19 @@ footer{
 
   padding-top:14px;
 
-  color:#87959b;
+  color:#5b6c75;
 
-  font-size:9px;
+  font-size:13px;
 
   display:flex;
 
-  justify-content:space-between;
+  flex-wrap:wrap;
+
+  justify-content:center;
+
+  gap:4px 24px;
+
+  text-align:center;
 }
 
 
@@ -1624,8 +1645,7 @@ footer{
   /* MOBILE LOGO */
 
   .header-logo{
-    width:145px;
-    max-height:44px;
+    width:180px;
   }
 
 
@@ -1937,6 +1957,10 @@ footer{
     line-height:1.8;
   }
 
+  .copyright span{
+    display:block;
+  }
+
 
   /* BOTTOM NAV */
 
@@ -2044,7 +2068,7 @@ footer{
   }
 
   .header-logo{
-    width:135px;
+    width:165px;
   }
 
 }
@@ -2118,7 +2142,7 @@ footer{
 }
 
 .card-price strong{
-  font-size:14px;
+  font-size:17px;
 }
 
 #propertyList .card-bottom,
@@ -2166,7 +2190,26 @@ footer{
 }
 
 .bhk-stat strong{
-  font-size:10px;
+  font-size:12px;
+}
+
+/* Columns share the row by content, not equally, so a long value
+   ("1,250 Sq.Ft", "On Request") borrows room from a short one
+   ("2 BHK") instead of overflowing its cell. */
+.card-bottom .bhk-stat{
+  flex:1 1 auto;
+  padding-left:3px;
+  padding-right:3px;
+}
+
+.card-bottom .bhk-stat span{
+  letter-spacing:.2px;
+}
+
+/* The smallest phones (320px): cards are ~250px wide. */
+@media (max-width:359px){
+  .card-bottom .bhk-stat strong{ font-size:11px; }
+  .card-bottom .bhk-stat span{ font-size:9px; letter-spacing:0; }
 }
 
 
@@ -2262,7 +2305,7 @@ footer{
   background:rgba(255,255,255,.94);
   color:#082d38;
   font:inherit;
-  font-size:11px;
+  font-size:12px;
   font-weight:700;
   box-shadow:0 4px 14px rgba(0,0,0,.14);
   cursor:pointer;
