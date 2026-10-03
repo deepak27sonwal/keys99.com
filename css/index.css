@@ -1720,10 +1720,18 @@ footer{
 
   /* HERO */
 
+  /* Phones and small tablets: the hero sizes to its content, with
+     the search box in the normal flow under the text, instead of a
+     fixed 520px block with the search pinned below it (which left a
+     large empty gap above the title). */
   .hero{
-    min-height:520px;
+    min-height:0;
 
-    align-items:flex-start;
+    padding:26px 0 24px;
+
+    flex-direction:column;
+
+    align-items:stretch;
 
     background:
       linear-gradient(
@@ -1737,7 +1745,7 @@ footer{
   }
 
   .hero-content{
-    padding:43px 0 140px;
+    padding:0 0 22px;
     max-width:100%;
   }
 
@@ -1754,7 +1762,7 @@ footer{
   /* SEARCH */
 
   .search-wrap{
-    bottom:-100px;
+    position:static;
   }
 
   .search-bar{
@@ -1811,8 +1819,10 @@ footer{
 
   /* STATS */
 
+  /* The search box is in the hero's flow now, so no room needs
+     leaving for it to overlap. */
   .stats{
-    margin-top:130px;
+    margin-top:24px;
 
     grid-template-columns:repeat(2,1fr);
 
@@ -2496,5 +2506,54 @@ footer{
 
   .loan-partner img{
     max-height:38px;
+  }
+}
+
+
+/* =========================================================
+   PHONE HEADINGS (600px and below)
+   One heading scale for phones, so titles fit the screen
+   without crowding: hero 30px, page titles 24px, section
+   titles 21px, subheadings 19/17px. Kickers keep 12px but with
+   tighter spacing, and "View All" stays on one line. Article
+   pages (css/legal.css) follow the same sizes.
+========================================================= */
+
+@media (max-width:600px){
+
+  .hero h1{
+    font-size:30px;
+    letter-spacing:-.8px;
+  }
+
+  .hub-head h1{
+    font-size:24px;
+  }
+
+  .section-title,
+  .trust-intro h2,
+  .cta h2{
+    font-size:21px;
+    line-height:1.25;
+  }
+
+  .hub-guide h3,
+  .home-guide h3{
+    font-size:17px;
+  }
+
+  .eyebrow,
+  .section-kicker{
+    letter-spacing:1.5px;
+  }
+
+  .section-head{
+    gap:12px;
+    margin-bottom:16px;
+  }
+
+  .view-all{
+    flex:none;
+    white-space:nowrap;
   }
 }
