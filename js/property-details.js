@@ -562,13 +562,20 @@ function visitDateText(value){
    the visitor stays on the page and sees a confirmation. */
 async function requestVisit(name, phone, bhk){
   const date = $("gateDate").value;
-  const timeKey = $("gateTime").value;                 // morning / afternoon / evening
-  const time = $("gateTime").selectedOptions[0].textContent.trim();
+  const slot = document.querySelector('input[name="gateSlot"]:checked');
   if(!date || date < $("gateDate").min || date > $("gateDate").max){
     $("gateError").textContent = "Please pick a date between tomorrow and the next 60 days.";
     $("gateError").hidden = false;
     return;
   }
+  if(!slot){
+    $("gateError").textContent = "Please pick a time slot.";
+    $("gateError").hidden = false;
+    $("gateSlots").querySelector("input").focus();
+    return;
+  }
+  const timeKey = slot.value;                            // "14:00" -> preferred_visit_time
+  const time = slot.nextElementSibling.textContent.trim(); // "2:00 PM"
 
   const button = $("gateSubmit");
   button.disabled = true;
@@ -583,7 +590,7 @@ async function requestVisit(name, phone, bhk){
       preferred_contact_method: "phone",
       preferred_visit_date: date,
       message: [
-        `Site visit requested for ${visitDateText(date)}, ${time}.`,
+        `Site visit requested for ${visitDateText(date)} at ${time}.`,
         bhk ? `Preferred BHK: ${bhk}` : ""
       ].filter(Boolean).join("\n"),
       source: "website"
@@ -602,11 +609,11 @@ async function requestVisit(name, phone, bhk){
 
   const { whatsapp } = contactNumbers(project);
   $("gateDoneText").textContent =
-    `Your visit to ${project.name} is requested for ${visitDateText(date)}, ${time.toLowerCase()}. ` +
+    `Your visit to ${project.name} is requested for ${visitDateText(date)} at ${time}. ` +
     `The project expert will call ${phone} to confirm.`;
   $("gateDoneWhatsapp").hidden = !whatsapp;
   $("gateDoneWhatsapp").onclick = () => {
-    const text = `Hi Keys99, I am ${name}. I have requested a site visit to ${project.name} on ${visitDateText(date)}, ${time}.\n${window.location.href}`;
+    const text = `Hi Keys99, I am ${name}. I have requested a site visit to ${project.name} on ${visitDateText(date)} at ${time}.\n${window.location.href}`;
     window.open(`https://wa.me/${whatsapp}?text=${encodeURIComponent(text)}`, "_blank", "noopener");
     closeGate();
   };
@@ -624,6 +631,7 @@ function closeGate(){
 }
 
 document.querySelectorAll("[data-close-gate]").forEach(el => el.addEventListener("click", closeGate));
+$("gateSlots").addEventListener("change", () => { $("gateError").hidden = true; });
 document.addEventListener("keydown", e => {
   if(e.key === "Escape" && gateMode) closeGate();
 });

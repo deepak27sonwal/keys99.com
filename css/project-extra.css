@@ -114,14 +114,22 @@
 /* Site visit (property-details.js, contact form in "visit" mode) */
 .title-actions .visit-btn{grid-column:1/-1;background:#fff7e3;border:1px solid #f0d58e;color:#7a5a00;font-weight:700}
 .visit-card-btn{width:100%;padding:12px;border-radius:9px;border:0;background:#fff;color:var(--green);font-weight:700;font-size:12px;cursor:pointer}
-.contact-gate-row{display:grid;grid-template-columns:1.3fr 1fr;gap:10px}
-.contact-gate-row[hidden]{display:none}
 .contact-gate-done{text-align:center;justify-items:center}
 .contact-gate-done[hidden],.contact-gate-card[hidden]{display:none}
 .contact-gate-done h2{padding:0}
 .contact-gate-tick{width:54px;height:54px;border-radius:50%;background:#e4f5ef;color:var(--green);display:grid;place-items:center;font-size:26px;font-weight:800}
 .contact-gate-done .contact-gate-submit{width:100%}
 .contact-gate-secondary{width:100%;padding:11px;border:1px solid #d3e0dc;border-radius:10px;background:#fff;color:var(--text);font:inherit;font-size:13.5px;font-weight:700;cursor:pointer}
-@media (max-width:480px){
-  .contact-gate-row{grid-template-columns:1fr}
-}
+
+/* Site visit: date + time slot buttons */
+.contact-gate-visit{display:grid;gap:12px}
+.contact-gate-visit[hidden]{display:none}
+.slot-picker{margin:0;padding:0;border:0;min-width:0}
+.slot-picker legend{padding:0;margin-bottom:6px;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#6b7f86}
+.slot-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.slot{position:relative;display:block;cursor:pointer}
+.slot input{position:absolute;opacity:0;width:1px;height:1px}
+.slot span{display:block;padding:10px 4px;border:1px solid #d3e0dc;border-radius:10px;background:#fafcfb;text-align:center;font-size:13px;font-weight:700;color:var(--text);transition:background .15s,border-color .15s}
+.slot:hover span{border-color:var(--green)}
+.slot input:checked + span{background:var(--green);border-color:var(--green);color:#fff}
+.slot input:focus-visible + span{box-shadow:0 0 0 3px rgba(0,107,91,.25)}
