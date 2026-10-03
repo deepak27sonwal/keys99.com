@@ -70,9 +70,9 @@ function initBottomNav(){
     if(!button) return;
     const target = button.dataset.target;
     if(target === "home") window.location.href = SITE_ROOT;
-    else if(target === "search") window.location.href = SITE_ROOT + "projects/search.html";
-    else if(target === "reels") window.location.href = SITE_ROOT + "reels.html";
-    else if(target === "saved" || target === "profile") window.location.href = SITE_ROOT + "saved.html";
+    else if(target === "search") window.location.href = SITE_ROOT + "projects/search";
+    else if(target === "reels") window.location.href = SITE_ROOT + "reels";
+    else if(target === "saved" || target === "profile") window.location.href = SITE_ROOT + "saved";
   });
 }
 
@@ -867,7 +867,7 @@ function rememberViewed(id){
 
 function initLoginButton(){
   const loginBtn = $("loginBtn");
-  if(loginBtn) loginBtn.addEventListener("click", () => { window.location.href = SITE_ROOT + "saved.html"; });
+  if(loginBtn) loginBtn.addEventListener("click", () => { window.location.href = SITE_ROOT + "saved"; });
 }
 
 

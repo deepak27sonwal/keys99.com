@@ -22,7 +22,7 @@ function buildComparePage({ indexHtml, siteOrigin }){
 <meta name="theme-color" content="#006b5b">
 <title>Compare Projects | Keys99</title>
 <meta name="description" content="Compare new residential projects side by side: price, price per sq ft, configurations, possession, RERA and amenities.">
-<link rel="canonical" href="${siteOrigin}/projects/compare.html">
+<link rel="canonical" href="${siteOrigin}/projects/compare">
 <meta name="robots" content="noindex,follow">
 <link rel="icon" href="favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -43,7 +43,7 @@ ${chrome.mobileMenu}
 
     <nav class="hub-breadcrumb" aria-label="Breadcrumb">
       <a href="./">Home</a><span>›</span>
-      <a href="projects/search.html">Projects</a><span>›</span>
+      <a href="projects/search">Projects</a><span>›</span>
       <span aria-current="page">Compare</span>
     </nav>
 
@@ -62,7 +62,7 @@ ${chrome.mobileMenu}
     <div class="search-empty" id="compareEmpty" hidden>
       <strong>Pick at least two projects to compare.</strong>
       <p>Tap <b>⇄ Compare</b> on any project card or project page, then come back here.</p>
-      <a class="btn-primary" href="projects/search.html">Browse projects</a>
+      <a class="btn-primary" href="projects/search">Browse projects</a>
     </div>
 
   </div>

@@ -34,7 +34,7 @@
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"RealEstateAgent","@id":"https://keys99.com/#organisation","name":"Keys99","legalName":"Keys99.com","url":"https://keys99.com","description":"Property portal listing new residential projects and flats for sale in Pune & Hyderabad.","logo":{"@type":"ImageObject","url":"https://keys99.com/assets/logo.png","width":866,"height":288},"image":"https://keys99.com/assets/og-default.jpg","address":{"@type":"PostalAddress","addressCountry":"IN"},"areaServed":{"@type":"Country","name":"India"},"sameAs":["https://www.facebook.com/profile.php?id=100066632434187","https://www.instagram.com/keys99com/","https://www.youtube.com/@Keys99"]}</script>
 <!--keys99:faqld:start--><script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How many new residential projects are there in Pune & Hyderabad?","acceptedAnswer":{"@type":"Answer","text":"Keys99 currently lists 8 residential projects in Pune & Hyderabad."}},{"@type":"Question","name":"What is the starting price of flats in Pune & Hyderabad?","acceptedAnswer":{"@type":"Answer","text":"Prices for projects in Pune & Hyderabad start from ₹ 35 Lakh and go up to ₹ 9.89 Cr, depending on the project and configuration."}},{"@type":"Question","name":"Which BHK configurations are available in Pune & Hyderabad?","acceptedAnswer":{"@type":"Answer","text":"Projects in Pune & Hyderabad offer 1 BHK, 2 BHK, 2.5 BHK and 3 BHK homes."}},{"@type":"Question","name":"Which developers have projects in Pune & Hyderabad?","acceptedAnswer":{"@type":"Answer","text":"Projects in Pune & Hyderabad are by Mangalam Landmarks, Shyadri Buildcon, Spelndid Prestige Llp and Prism City."}},{"@type":"Question","name":"How do I check whether a project is RERA registered?","acceptedAnswer":{"@type":"Answer","text":"Each project page shows the RERA registration number provided for that project. Before you pay a booking amount, look the number up on your state's RERA portal - MahaRERA for projects in Maharashtra - and check the project details and approvals listed there."}},{"@type":"Question","name":"What is the difference between a new launch, under-construction and ready-to-move project?","acceptedAnswer":{"@type":"Answer","text":"A new launch has just opened for booking and usually has the widest choice of units, with possession several years away. An under-construction project is being built, with a possession date set by the developer. A ready-to-move project is complete, so you can see the finished home before you buy."}},{"@type":"Question","name":"How do I enquire about a project in Pune & Hyderabad?","acceptedAnswer":{"@type":"Answer","text":"Open the project page and use the Enquire Now form. Your name, number and message go to the Keys99 team and the agent assigned to that project, who will contact you with prices, floor plans and site-visit times."}}]}</script>
   <!--keys99:faqld:end-->
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","@id":"https://keys99.com/#website","name":"Keys99","url":"https://keys99.com","inLanguage":"en-IN","publisher":{"@id":"https://keys99.com/#organisation"},"potentialAction":{"@type":"SearchAction","target":{"@type":"EntryPoint","urlTemplate":"https://keys99.com/projects/search.html?q={search_term_string}"},"query-input":"required name=search_term_string"}}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","@id":"https://keys99.com/#website","name":"Keys99","url":"https://keys99.com","inLanguage":"en-IN","publisher":{"@id":"https://keys99.com/#organisation"},"potentialAction":{"@type":"SearchAction","target":{"@type":"EntryPoint","urlTemplate":"https://keys99.com/projects/search?q={search_term_string}"},"query-input":"required name=search_term_string"}}</script>
 
 
 <!-- Google shows a favicon beside every result on mobile, so this
@@ -97,11 +97,11 @@
     <nav class="nav-links">
 
       <a class="active" href="./">Home</a>
-      <a href="projects/search.html?status=sale">Buy</a>
-      <a href="projects/search.html?status=rent">Rent</a>
+      <a href="projects/search?status=sale">Buy</a>
+      <a href="projects/search?status=rent">Rent</a>
       <a href="./#types">Projects</a>
-      <a href="about.html">About</a>
-      <a href="contact.html">Contact</a>
+      <a href="about">About</a>
+      <a href="contact">Contact</a>
 
     </nav>
 
@@ -139,11 +139,11 @@
 <div class="mobile-menu" id="mobileMenu">
 
   <a href="./">Home</a>
-  <a href="projects/search.html?status=sale">Buy Property</a>
-  <a href="projects/search.html?status=rent">Rent Property</a>
+  <a href="projects/search?status=sale">Buy Property</a>
+  <a href="projects/search?status=rent">Rent Property</a>
   <a href="./#types">Projects</a>
   <a href="./#why">Why Keys99</a>
-  <a href="contact.html">Contact</a>
+  <a href="contact">Contact</a>
 
 </div>
 
@@ -376,7 +376,7 @@
         <h2 class="section-title">Property Types for Sale &amp; Rent</h2>
       </div>
 
-      <a class="view-all" href="projects/search.html">
+      <a class="view-all" href="projects/search">
         View All →
       </a>
 
@@ -385,7 +385,7 @@
 
     <div class="type-grid" id="typeGrid">
 
-      <a class="type-card" data-type="residential" href="projects/search.html?type=residential">
+      <a class="type-card" data-type="residential" href="projects/search?type=residential">
         <div class="type-img">
           <img src="assets/type-residential.svg" alt="Residential apartments and flats" loading="lazy" width="700" height="420">
         </div>
@@ -430,7 +430,7 @@
         </div>
       </a>
 
-      <a class="type-card" data-type="resale" href="projects/search.html?type=resale">
+      <a class="type-card" data-type="resale" href="projects/search?type=resale">
         <div class="type-img">
           <img src="assets/type-resale.svg" alt="Resale flats and homes" loading="lazy" width="700" height="420">
         </div>
@@ -445,7 +445,7 @@
         </div>
       </a>
 
-      <a class="type-card" data-type="luxury" href="projects/search.html?type=luxury">
+      <a class="type-card" data-type="luxury" href="projects/search?type=luxury">
         <div class="type-img">
           <img src="assets/type-luxury.svg" alt="Luxury villas and premium homes" loading="lazy" width="700" height="420">
         </div>
@@ -500,7 +500,7 @@
         <h2 class="section-title">New Launch Projects</h2>
       </div>
 
-      <a class="view-all" id="newLaunchesViewAllBtn" href="projects/search.html" style="display:none">
+      <a class="view-all" id="newLaunchesViewAllBtn" href="projects/search" style="display:none">
         View All →
       </a>
 
@@ -987,10 +987,10 @@ ndndmmfmfm dfghhjuuujh"
 
       <div>
         <div class="section-kicker">Featured Properties</div>
-        <h2 class="section-title">Popular New Projects in Pune</h2>
+        <h2 class="section-title">Popular New Projects in <span data-seo="place">Pune &amp; Hyderabad</span></h2>
       </div>
 
-      <a class="view-all" id="viewAllBtn" href="projects/search.html">
+      <a class="view-all" id="viewAllBtn" href="projects/search">
         View All →
       </a>
 
@@ -1943,7 +1943,7 @@ ndndmmfmfm dfghhjuuujh"
         <p>Your dream home is just a click away.</p>
       </div>
 
-      <a class="cta-btn" href="projects/search.html">
+      <a class="cta-btn" href="projects/search">
         Explore Properties &nbsp; →
       </a>
 
@@ -1983,17 +1983,17 @@ ndndmmfmfm dfghhjuuujh"
       <div class="footer-col">
         <h4>Quick Links</h4>
         <a href="./">Home</a>
-        <a href="projects/search.html?status=sale">Buy</a>
-        <a href="projects/search.html?status=rent">Rent</a>
+        <a href="projects/search?status=sale">Buy</a>
+        <a href="projects/search?status=rent">Rent</a>
         <a href="./#types">Projects</a>
       </div>
 
       <div class="footer-col">
         <h4>Company</h4>
-        <a href="about.html">About Us</a>
-        <a href="contact.html">Contact Us</a>
-        <a href="privacy-policy.html">Privacy Policy</a>
-        <a href="terms.html">Terms &amp; Conditions</a>
+        <a href="about">About Us</a>
+        <a href="contact">Contact Us</a>
+        <a href="privacy-policy">Privacy Policy</a>
+        <a href="terms">Terms &amp; Conditions</a>
       </div>
 
       <div class="footer-col">
@@ -2079,7 +2079,7 @@ ndndmmfmfm dfghhjuuujh"
 <script defer src="js/config.js?v=32fa3130"></script>
 <script defer src="js/chat-widget.js?v=94002eb8"></script>
 <script defer src="js/attribution.js?v=207c1e9f"></script>
-<script defer src="js/compare-tray.js?v=8c9c1fe9"></script>
+<script defer src="js/compare-tray.js?v=9bd20961"></script>
 
 <script>
 
@@ -2619,12 +2619,12 @@ function propertyUrl(property){
   if(slug){
     return "projects/" + slug + "/";
   }
-  return "projects/property-details.html?id=" + encodeURIComponent(property && property.id);
+  return "projects/property-details?id=" + encodeURIComponent(property && property.id);
 }
 
 function cityUrl(city){
   const slug = slugify(city);
-  return slug ? "projects/" + slug + "/" : "projects/search.html";
+  return slug ? "projects/" + slug + "/" : "projects/search";
 }
 
 function localityUrl(city, locality){
@@ -2633,7 +2633,7 @@ function localityUrl(city, locality){
   if(citySlug && localitySlug){
     return "projects/" + citySlug + "/" + localitySlug + "/";
   }
-  return "projects/search.html";
+  return "projects/search";
 }
 
 
@@ -2946,7 +2946,7 @@ function buildSearchUrl(params){
 
   const queryString = query.toString();
 
-  return "projects/search.html" + (queryString ? "?" + queryString : "");
+  return "projects/search" + (queryString ? "?" + queryString : "");
 
 }
 
@@ -2988,7 +2988,7 @@ function initLoginButton(){
 
   if(loginBtn){
     loginBtn.addEventListener("click", () => {
-      window.location.href = "saved.html";
+      window.location.href = "saved";
     });
   }
 
@@ -3026,15 +3026,15 @@ function initBottomNav(activeTarget){
 
     }else if(target === "search"){
 
-      window.location.href = "projects/search.html";
+      window.location.href = "projects/search";
 
     }else if(target === "reels"){
 
-      window.location.href = "reels.html";
+      window.location.href = "reels";
 
     }else if(target === "saved" || target === "profile"){
 
-      window.location.href = "saved.html";
+      window.location.href = "saved";
 
     }
 
@@ -3379,7 +3379,7 @@ function typeCountText(n){
    the same change in the pre-rendered HTML. */
 function setTypeCardState(card, count){
   if(count){
-    card.setAttribute("href", "projects/search.html?type=" + encodeURIComponent(card.dataset.type));
+    card.setAttribute("href", "projects/search?type=" + encodeURIComponent(card.dataset.type));
     card.removeAttribute("aria-disabled");
   }else{
     card.removeAttribute("href");
@@ -3855,7 +3855,7 @@ function renderSuggestions(matches){
 function selectSuggestion(item){
 
   if(item.type === "Property" && item.propertyId){
-    window.location.href = "projects/property-details.html?id=" + encodeURIComponent(item.propertyId);
+    window.location.href = "projects/property-details?id=" + encodeURIComponent(item.propertyId);
     return;
   }
 

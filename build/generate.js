@@ -299,8 +299,8 @@ function writeSitemap(pages, hubs){
   };
   const urls = [
     { loc: SITE_ORIGIN + "/", lastmod: "" },
-    { loc: SITE_ORIGIN + "/about.html", lastmod: "" },
-    { loc: SITE_ORIGIN + "/contact.html", lastmod: "" },
+    { loc: SITE_ORIGIN + "/about", lastmod: "" },
+    { loc: SITE_ORIGIN + "/contact", lastmod: "" },
     ...(hubs || []).filter(h => h.count >= HUB_MIN_INDEXED)
       .map(h => ({ loc: `${SITE_ORIGIN}/${h.dir}/`, lastmod: day(h.lastmod) })),
     ...pages.map(p => ({ loc: `${SITE_ORIGIN}/projects/${p.slug}/`, lastmod: day(p.lastmod) }))

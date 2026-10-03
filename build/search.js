@@ -51,7 +51,7 @@ function buildSearchPage({ H, indexHtml, props, siteOrigin }){
 <meta name="theme-color" content="#006b5b">
 <title>Search New Projects &amp; Flats for Sale | Keys99</title>
 <meta name="description" content="Search new residential projects by city, locality, BHK, budget and type on Keys99.">
-<link rel="canonical" href="${e(siteOrigin)}/projects/search.html">
+<link rel="canonical" href="${e(siteOrigin)}/projects/search">
 <meta name="robots" content="noindex,follow">
 <link rel="icon" href="favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com">

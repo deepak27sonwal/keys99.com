@@ -49,7 +49,10 @@ function buildLegalPages({ root, indexHtml, siteOrigin, robots }){
 
   return PAGES.map(page => {
     const body = fs.readFileSync(path.join(root, "content", page.file), "utf8");
-    const url = `${siteOrigin}/${page.file}`;
+    /* Served without ".html" (Cloudflare Pages redirects /x.html to
+       /x), so the canonical URL and the nav links use that form. */
+    const slug = page.file.replace(/\.html$/, "");
+    const url = `${siteOrigin}/${slug}`;
 
     const html = `<!doctype html>
 <html lang="en-IN">
@@ -107,7 +110,7 @@ ${chrome.bottomNav}
        normalise the markup. */
     const $ = cheerio.load(html);
     $(".nav-links a, #mobileMenu a").each((_, a) => {
-      if($(a).attr("href") === page.file) $(a).addClass("active");
+      if($(a).attr("href") === slug) $(a).addClass("active");
     });
     return { file: page.file, html: $.html() };
   });
