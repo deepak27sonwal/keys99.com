@@ -25,8 +25,6 @@ function buildComparePage({ indexHtml, siteOrigin }){
 <link rel="canonical" href="${siteOrigin}/projects/compare">
 <meta name="robots" content="noindex,follow">
 <link rel="icon" href="favicon.ico">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 ${chrome.fonts}
 <link rel="stylesheet" href="css/index.css">
 <link rel="stylesheet" href="css/hub.css">

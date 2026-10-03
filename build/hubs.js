@@ -506,7 +506,8 @@ function homepageChrome(indexHtml){
     mobileMenu: $.html($("#mobileMenu")),
     footer: $.html($("#footer")),
     bottomNav: $.html($("#bottomNav")),
-    fonts: $('link[href*="fonts.googleapis.com"]').map((_, el) => $.html(el)).get().join("\n")
+    /* The font preload and stylesheet (marked data-fonts in index.html). */
+    fonts: $("link[data-fonts]").map((_, el) => $.html($(el).clone().removeAttr("data-fonts"))).get().join("\n")
   };
 }
 
@@ -658,8 +659,6 @@ function hubPage(ctx, hub){
 <meta property="og:locale" content="en_IN">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="favicon.ico">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 ${chrome.fonts}
 <link rel="stylesheet" href="css/index.css">
 <link rel="stylesheet" href="css/hub.css">
