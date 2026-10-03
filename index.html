@@ -2233,6 +2233,8 @@ function mapResidentialProject(row){
     developer: row.developer ? row.developer.name : "",
     city: row.city ? row.city.name : "",
     state: row.city ? row.city.state : "",
+    /* Photo for the city card (cities.city_image), if one is set. */
+    city_image: row.city && /^https?:\/\//i.test(row.city.city_image || "") ? row.city.city_image : "",
     locality: row.locality ? row.locality.name : "",
     address: row.address,
     pincode: row.pincode,
@@ -3304,19 +3306,29 @@ const CITY_MONUMENTS = {
   "jaipur": ["jaipur", "Hawa Mahal"]
 };
 
-function cityImage(city){
+/* A photo set in Supabase (cities.city_image) wins: the card shows the
+   build's 640px copy, falling back to the photo itself and then to
+   the illustration if a file is missing. */
+function cityImage(city, photo){
   const name = titleCaseName(city);
   const found = CITY_MONUMENTS[slugify(city)];
-  return found
+  const drawing = found
     ? { src: `assets/cities/${found[0]}.svg`, alt: `${found[1]}, ${name}` }
     : { src: "assets/cities/city.svg", alt: `${name} skyline` };
+  if(/^https?:\/\//i.test(photo || "")){
+    return { src: THUMB_DIR + thumbName(photo), full: photo, fallback: drawing.src, alt: `${name} city` };
+  }
+  return drawing;
 }
 
 function cityCardHtml(item){
-  const image = cityImage(item.city);
+  const image = cityImage(item.city, item.image);
+  const fallback = image.full
+    ? ` data-full="${escapeHtml(image.full)}" data-fallback="${escapeHtml(image.fallback)}" onerror="if(this.dataset.full){this.src=this.dataset.full;this.dataset.full=''}else if(this.dataset.fallback){this.src=this.dataset.fallback;this.dataset.fallback=''}"`
+    : "";
   return `
     <a class="city-card" href="${escapeHtml(cityUrl(item.city))}">
-      <span class="city-img"><img src="${escapeHtml(image.src)}" alt="${escapeHtml(image.alt)}" loading="lazy" width="400" height="250"></span>
+      <span class="city-img"><img src="${escapeHtml(image.src)}"${fallback} alt="${escapeHtml(image.alt)}" loading="lazy" width="400" height="250"></span>
       <span class="city-body">
         <strong>${escapeHtml(titleCaseName(item.city))}</strong>
         <span>${item.count} ${item.count === 1 ? "Project" : "Projects"}</span>
@@ -3378,6 +3390,7 @@ function renderSiteStats(properties){
 function computeTopCities(properties, limit){
 
   const counts = {};
+  const images = {};
 
   properties.forEach(property => {
     const city = String(property.city || "").trim();
@@ -3385,12 +3398,13 @@ function computeTopCities(properties, limit){
       return;
     }
     counts[city] = (counts[city] || 0) + 1;
+    if(property.city_image && !images[city]) images[city] = property.city_image;
   });
 
   return Object.entries(counts)
     .sort((a,b) => b[1] - a[1])
     .slice(0, limit)
-    .map(([city, count]) => ({ city, count }));
+    .map(([city, count]) => ({ city, count, image: images[city] || "" }));
 
 }
 

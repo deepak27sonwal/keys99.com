@@ -36,7 +36,7 @@
     view_count, published_at, created_at, updated_at,
     developer:developers!residential_projects_developer_id_fkey ( name, description, logo_url, website ),
     agent:agents!residential_projects_agent_id_fkey ( full_name, phone, whatsapp ),
-    city:cities!residential_projects_city_id_fkey ( name, state ),
+    city:cities!residential_projects_city_id_fkey ( name, state, city_image ),
     locality:localities!residential_projects_locality_id_fkey ( name ),
     configurations:residential_configurations!residential_configurations_project_id_fkey (
       bhk_type, variant_name, carpet_area, area_unit, starting_price, maximum_price,

@@ -56,7 +56,7 @@ const PROJECT_SELECT = `
   published_at,
   created_at,
   developer:developers ( name ),
-  city:cities ( name, state ),
+  city:cities ( name, state, city_image ),
   locality:localities!residential_projects_locality_id_fkey ( name ),
   configurations:residential_configurations (
     bhk_type, carpet_area, area_unit, starting_price, maximum_price,
