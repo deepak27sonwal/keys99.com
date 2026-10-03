@@ -145,3 +145,7 @@
 @media (max-width:640px){
   .similar-list{padding:6px 6px 18px;margin:-6px -6px -8px}
 }
+
+/* Header "Saved" button: number of saved projects (js/compare-tray.js) */
+.saved-count{display:inline-grid;place-items:center;min-width:18px;height:18px;margin-left:4px;padding:0 5px;border-radius:999px;background:#e1a400;color:#082d38;font-size:10.5px;font-weight:800;line-height:1}
+.saved-count[hidden]{display:none}

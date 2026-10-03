@@ -575,6 +575,41 @@
     }).join("");
   }
 
+  /* ---------------- VIDEOS ----------------
+     What the Reels page needs to show a video: where it is hosted, a
+     player URL, a thumbnail, and whether it is a tall short. */
+  function videoInfo(url){
+    const info = { url, platform: "other", embed: "", thumb: "", tall: false };
+    let u;
+    try{ u = new URL(url); }catch(_){ return info; }
+    const host = u.hostname.replace(/^www\./, "");
+    const parts = u.pathname.split("/").filter(Boolean);
+    if(/(^|\.)youtube\.com$|^youtu\.be$/.test(host)){
+      let id = host === "youtu.be" ? parts[0] : u.searchParams.get("v");
+      const i = parts.findIndex(x => ["shorts", "embed", "live"].includes(x));
+      if(!id && i >= 0) id = parts[i + 1];
+      if(id && /^[\w-]{6,20}$/.test(id)){
+        info.platform = "youtube";
+        info.embed = `https://www.youtube.com/embed/${id}?rel=0&autoplay=1`;
+        info.thumb = `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+        info.tall = parts[0] === "shorts";
+      }
+    }else if(/(^|\.)instagram\.com$/.test(host)){
+      const i = parts.findIndex(x => ["p", "reel", "reels", "tv"].includes(x));
+      if(i >= 0 && parts[i + 1]){
+        info.platform = "instagram";
+        info.embed = `https://www.instagram.com/${parts[i] === "reels" ? "reel" : parts[i]}/${encodeURIComponent(parts[i + 1])}/embed/`;
+        info.tall = true;
+      }
+    }else if(/(^|\.)facebook\.com$|^fb\.watch$/.test(host)){
+      info.platform = "facebook";
+      info.embed = `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&show_text=false&autoplay=1`;
+    }else if(/\.(mp4|webm|ogg|mov)(\?|#|$)/i.test(url) || /supabase\.co\/storage\//i.test(url)){
+      info.platform = "file";
+    }
+    return info;
+  }
+
   /* ---------------- STRUCTURED DATA ---------------- */
 
   function structuredData(p, pageUrl, siteUrl){
@@ -649,6 +684,7 @@
     renderThumbs,
     pickSimilar,
     renderSimilar,
+    videoInfo,
     escapeHtml,
     formatPrice,
     slugify

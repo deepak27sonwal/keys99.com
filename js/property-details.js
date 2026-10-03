@@ -72,7 +72,7 @@ function initBottomNav(){
     if(target === "home") window.location.href = SITE_ROOT + "index.html";
     else if(target === "search") window.location.href = SITE_ROOT + "projects/search.html";
     else if(target === "reels") window.location.href = SITE_ROOT + "reels.html";
-    else if(target === "profile") window.location.href = SITE_ROOT + "profile.html";
+    else if(target === "saved" || target === "profile") window.location.href = SITE_ROOT + "saved.html";
   });
 }
 
@@ -134,6 +134,7 @@ function setCrumb(id, text, path){
 }
 
 function renderProject(p){
+  rememberViewed(p.id);
   /* Compare button (js/compare-tray.js), also on the fallback page. */
   if(p.slug){
     $("compareBtn").dataset.compareSlug = p.slug;
@@ -852,9 +853,21 @@ function initMobileMenu(){
   }));
 }
 
+/* Recently viewed projects (newest first), shown on the homepage
+   and the Saved page. Kept in this browser only. */
+function rememberViewed(id){
+  if(!id) return;
+  try{
+    const key = "keys99_recently_viewed";
+    const ids = JSON.parse(localStorage.getItem(key) || "[]").filter(x => x !== id);
+    ids.unshift(id);
+    localStorage.setItem(key, JSON.stringify(ids.slice(0, 12)));
+  }catch(_){}
+}
+
 function initLoginButton(){
   const loginBtn = $("loginBtn");
-  if(loginBtn) loginBtn.addEventListener("click", () => { window.location.href = SITE_ROOT + "profile.html"; });
+  if(loginBtn) loginBtn.addEventListener("click", () => { window.location.href = SITE_ROOT + "saved.html"; });
 }
 
 

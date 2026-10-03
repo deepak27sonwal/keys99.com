@@ -1,0 +1,59 @@
+/* =========================================================
+   KEYS99 - SAVED + REELS PAGES
+   Layered on css/index.css + css/hub.css.
+========================================================= */
+
+.saved-heading-count{ color:var(--muted); font-weight:600; }
+
+.saved-page .search-empty,
+.reels-page .search-empty{
+  padding:36px 20px; border:1px dashed #c7d8d3; border-radius:16px; text-align:center; color:var(--muted);
+}
+.saved-page .search-empty[hidden]{ display:none; }
+.saved-page .search-empty strong,
+.reels-page .search-empty strong{ display:block; margin-bottom:6px; font-size:16px; color:var(--ink, #092c3d); }
+.saved-page .search-empty p,
+.reels-page .search-empty p{ margin:0 0 16px; }
+
+/* Reels */
+.reel-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));
+  gap:18px;
+  align-items:start;
+}
+
+.reel-card{
+  overflow:hidden;
+  border:1px solid #cad9d4;
+  border-radius:16px;
+  background:#fff;
+  box-shadow:0 1px 2px rgba(8,45,56,.06), 0 6px 18px rgba(8,45,56,.08);
+}
+
+.reel-media{ position:relative; aspect-ratio:16/9; background:#0b1f26; }
+.reel-card.is-tall .reel-media{ aspect-ratio:9/14; }
+.reel-media iframe,
+.reel-media video,
+.reel-play{ position:absolute; inset:0; width:100%; height:100%; border:0; }
+.reel-media video{ object-fit:cover; background:#000; }
+
+.reel-play{ padding:0; cursor:pointer; background:#0b1f26; }
+.reel-play img{ width:100%; height:100%; object-fit:cover; display:block; opacity:.92; transition:opacity .2s; }
+.reel-play:hover img{ opacity:1; }
+.reel-play-icon{
+  position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+  width:58px; height:58px; border-radius:50%; display:grid; place-items:center;
+  background:rgba(255,255,255,.94); color:#006b5b; font-size:22px; padding-left:4px;
+  box-shadow:0 8px 24px rgba(0,0,0,.25);
+}
+
+.reel-body{ display:grid; gap:4px; padding:12px 14px 14px; }
+.reel-tag{ font-size:10.5px; font-weight:700; letter-spacing:.4px; text-transform:uppercase; color:var(--muted); }
+.reel-body strong{ font-size:14.5px; color:var(--ink, #092c3d); overflow-wrap:anywhere; }
+.reel-project{ font-size:12.5px; font-weight:700; color:var(--green); text-decoration:none; }
+.reel-project:hover{ text-decoration:underline; }
+
+@media (max-width:560px){
+  .reel-grid{ grid-template-columns:1fr; }
+}

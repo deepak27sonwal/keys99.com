@@ -162,6 +162,23 @@
     pending = setTimeout(render, 50);
   }).observe(document.body, { childList: true, subtree: true });
 
+  /* Number of saved (hearted) projects on the header's Saved button. */
+  function savedCount(){
+    var n = 0;
+    try{ n = (JSON.parse(localStorage.getItem("keys99_favorites") || "[]") || []).length; }catch(_){}
+    document.querySelectorAll("[data-saved-count]").forEach(function(el){
+      el.textContent = n;
+      el.hidden = !n;
+    });
+  }
+  window.addEventListener("storage", function(e){ if(e.key === "keys99_favorites") savedCount(); });
+  /* Capture phase: the heart buttons stop their click from bubbling.
+     The count is read just after their own handler has saved. */
+  document.addEventListener("click", function(e){
+    if(e.target.closest && e.target.closest(".fav, #favoriteBtn, [data-fav]")) setTimeout(savedCount, 0);
+  }, true);
+  savedCount();
+
   document.body.appendChild(tray);
   window.Keys99Compare = { list: read, toggle: toggle, refresh: render };
   render();

@@ -29,6 +29,7 @@ const { buildHubs } = require("./hubs.js");
 const { buildSearchPage } = require("./search.js");
 const { buildLegalPages } = require("./legal.js");
 const { buildComparePage } = require("./compare.js");
+const { buildSavedPage, buildReelsPage } = require("./extra-pages.js");
 const { stampAssetVersions, htmlFiles } = require("./asset-versions.js");
 
 /* City/locality hubs with a single project are thin; they are built
@@ -391,6 +392,18 @@ async function main(){
   }));
   console.log("  wrote    /projects/compare.html");
 
+  fs.writeFileSync(path.join(ROOT, "saved.html"), buildSavedPage({
+    H, indexHtml: fs.readFileSync(indexPath, "utf8"), props: allProps, siteOrigin: SITE_ORIGIN
+  }));
+  console.log("  wrote    /saved.html");
+
+  const reels = buildReelsPage({
+    H, P, indexHtml: fs.readFileSync(indexPath, "utf8"), rows: goodRows,
+    supabaseUrl: config.url, siteOrigin: SITE_ORIGIN, robots: ROBOTS
+  });
+  fs.writeFileSync(path.join(ROOT, "reels.html"), reels.html);
+  console.log(`  wrote    /reels.html  (${reels.count} videos)`);
+
   buildLegalPages({ root: ROOT, indexHtml: fs.readFileSync(indexPath, "utf8"), siteOrigin: SITE_ORIGIN, robots: ROBOTS })
     .forEach(page => {
       fs.writeFileSync(path.join(ROOT, page.file), page.html);
@@ -413,6 +426,8 @@ async function main(){
     indexPath,
     path.join(ROOT, "privacy-policy.html"),
     path.join(ROOT, "terms.html"),
+    path.join(ROOT, "saved.html"),
+    path.join(ROOT, "reels.html"),
     ...htmlFiles(ROOT, ["projects", "developers", "admin"])
   ]);
   console.log(`  versioned CSS/JS links in ${stamped} page(s)`);
