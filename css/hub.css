@@ -149,3 +149,28 @@
 .hub-website{ margin:0 0 16px; font-size:13px; }
 .hub-website a{ color:var(--green); font-weight:700; text-decoration:none; }
 .hub-website a:hover{ text-decoration:underline; }
+
+/* Locality guides: hand-written text from content/localities/. */
+.hub-guide{
+  max-width:860px;
+  font-size:14px;
+  line-height:1.7;
+  color:#3d5560;
+}
+
+.hub-guide h3{
+  margin:20px 0 6px;
+  font-size:16px;
+  color:var(--ink);
+}
+
+.hub-guide p{ margin:0 0 12px; }
+
+.hub-guide ul{
+  margin:0 0 12px;
+  padding-left:20px;
+}
+
+.hub-guide li{ margin-bottom:6px; }
+
+.hub-guide a{ color:var(--green); font-weight:600; }

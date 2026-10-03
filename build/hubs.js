@@ -15,6 +15,8 @@
    bottom navigation are copied from index.html at build time.
 ========================================================= */
 
+const fs = require("fs");
+const path = require("path");
 const cheerio = require("cheerio");
 
 const SKIP_URL = /^(?:[a-z][a-z0-9+.-]*:|\/\/|#|data:)/i;
@@ -123,6 +125,25 @@ function bhkLabelsOf(H, p){
   return [...new Set(H.getBhkOptions(p).map(o => H.normaliseBhkType(o.type)).filter(b => BHK_LABEL.test(b)))];
 }
 
+/* Carpet-area price per sq ft of a set of flats, as on the project
+   page (js/project-core.js): "₹ 6,200 – 7,450 / Sq.Ft", or "". */
+const SQFT_PER_SQM = 10.7639;
+function rateRange(H, options){
+  const rates = options.map(o => {
+    if(o.unitPrice) return o.unit === " / Sq.M" ? o.unitPrice / SQFT_PER_SQM : o.unitPrice;
+    const price = H.getNumericPrice(o);
+    if(price === null) return null;
+    const area = parseFloat(o.sqft);
+    if(!(area > 0)) return null;
+    return price / (o.areaUnit === "Sq.M" ? area * SQFT_PER_SQM : area);
+  }).filter(r => r).map(r => Math.round(r / 10) * 10);
+  if(!rates.length) return "";
+  const lo = Math.min(...rates), hi = Math.max(...rates);
+  return hi > lo
+    ? `₹ ${lo.toLocaleString("en-IN")} – ${hi.toLocaleString("en-IN")} / Sq.Ft`
+    : `₹ ${lo.toLocaleString("en-IN")} / Sq.Ft`;
+}
+
 function bhkCopy(H, hub){
   const label = hub.bhk;
   const city = hub.cityName;
@@ -150,21 +171,7 @@ function bhkCopy(H, hub){
     oneArea = hi === lo;
   }
 
-  /* Price per sq ft, as on the project page (js/project-core.js). */
-  const SQFT_PER_SQM = 10.7639;
-  const rates = options.map(o => {
-    if(o.unitPrice) return o.unit === " / Sq.M" ? o.unitPrice / SQFT_PER_SQM : o.unitPrice;
-    const price = H.getNumericPrice(o);
-    if(price === null) return null;
-    const area = parseFloat(o.sqft);
-    if(!(area > 0)) return null;
-    return price / (o.areaUnit === "Sq.M" ? area * SQFT_PER_SQM : area);
-  }).filter(r => r).map(r => Math.round(r / 10) * 10);
-  const inr = v => "₹ " + Number(v).toLocaleString("en-IN");
-  const rateText = !rates.length ? ""
-    : Math.max(...rates) > Math.min(...rates)
-      ? `${inr(Math.min(...rates))} – ${Number(Math.max(...rates)).toLocaleString("en-IN")} / Sq.Ft`
-      : `${inr(rates[0])} / Sq.Ft`;
+  const rateText = rateRange(H, options);
 
   const localities = [...new Set(hub.props.map(p => H.titleCaseName(p.locality)).filter(Boolean))];
   const developers = [...new Set(hub.props.map(p => H.titleCaseName(p.developer)).filter(Boolean))];
@@ -451,6 +458,40 @@ function cityFilterPages(H, citySlug, props, takenSlugs){
   };
 }
 
+/* ---------- Locality guides: content/localities/<city>/<locality>.html ----------
+   Hand-written text about living in a locality (connectivity,
+   landmarks, who it suits), shown on that locality's page under the
+   projects. <details><summary>Question</summary><p>Answer</p></details>
+   blocks become FAQs (and FAQPage JSON-LD). A file whose comment says
+   "status: draft" is shown but does not make the page indexable; once
+   the facts are checked, delete that line. */
+function loadLocalityGuides(dir){
+  const guides = new Map();
+  if(!fs.existsSync(dir)) return guides;
+  fs.readdirSync(dir).forEach(city => {
+    const cityDir = path.join(dir, city);
+    if(!fs.statSync(cityDir).isDirectory()) return;
+    fs.readdirSync(cityDir).filter(f => f.endsWith(".html")).forEach(file => {
+      const raw = fs.readFileSync(path.join(cityDir, file), "utf8");
+      const $ = cheerio.load(raw, null, false);
+      const text = el => $(el).text().replace(/\s+/g, " ").trim();
+      const faqs = $("details").map((_, d) => {
+        const q = text($(d).find("summary"));
+        $(d).find("summary").remove();
+        return { q, a: text(d) };
+      }).get().filter(f => f.q && f.a);
+      $("details").remove();
+      $.root().contents().filter((_, n) => n.type === "comment").remove();
+      guides.set(`${city}/${file.replace(/\.html$/, "")}`, {
+        html: $.html().trim(),
+        faqs,
+        reviewed: !/<!--[\s\S]*?status:\s*draft[\s\S]*?-->/i.test(raw)
+      });
+    });
+  });
+  return guides;
+}
+
 function pageTitle(H, s, place){
   const bhk = s.bhks.length ? `${listText(s.bhks.map(b => b.replace(/ BHK$/, "")), 4)} BHK Flats` : "Flats";
   return `New Projects in ${place} | ${bhk} for Sale | Keys99`;
@@ -547,7 +588,7 @@ function hubPage(ctx, hub){
   const title = copy ? copy.title : pageTitle(H, s, hub.place);
   const intro = copy ? copy.intro : introText(H, s, hub.place, hub.introExtra);
   const description = metaDescription(intro);
-  const questions = copy ? copy.questions : faqs(H, s, hub.place);
+  const questions = [...(copy ? copy.questions : faqs(H, s, hub.place)), ...(hub.guide ? hub.guide.faqs : [])];
   const e = H.escapeHtml;
 
   const crumbs = [{ name:"Home", path:"" }, ...hub.crumbs];
@@ -591,7 +632,8 @@ function hubPage(ctx, hub){
     ["Projects", String(s.count)],
     s.minPrice !== null ? ["Starting from", H.formatPrice(s.minPrice)] : null,
     s.bhks.length ? ["Configurations", s.bhks.join(", ")] : null,
-    s.developers.length ? ["Developers", String(s.developers.length)] : null
+    s.developers.length ? ["Developers", String(s.developers.length)] : null,
+    hub.rateText ? ["Price / Sq.Ft", hub.rateText] : null
   ].filter(Boolean);
 
   const html = `<!doctype html>
@@ -603,7 +645,7 @@ function hubPage(ctx, hub){
 <title>${e(title)}</title>
 <meta name="description" content="${e(description)}">
 <link rel="canonical" href="${e(url)}">
-<meta name="robots" content="${robots(hub.indexCount || hub.props.length)}">
+<meta name="robots" content="${robots(hub.indexCount || hub.props.length, !!hub.indexable)}">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Keys99">
 <meta property="og:title" content="${e(title)}">
@@ -658,6 +700,12 @@ ${chrome.mobileMenu}
         ${hub.props.map(p => H.createPropertyCard(p)).join("")}
       </div>
     </section>`}
+
+    ${hub.guide ? `
+    <section class="hub-section hub-guide" aria-labelledby="hubGuide">
+      <h2 class="section-title" id="hubGuide">${e(hub.guideHeading)}</h2>
+      ${hub.guide.html}
+    </section>` : ""}
 
     ${hub.devLinks && hub.devLinks.length && !hub.devLinksFirst ? devLinksSection(hub, e) : ""}
 
@@ -736,11 +784,11 @@ ${chrome.bottomNav}
 
   const $ = cheerio.load(html);
   rebase($, prefix);
-  return { base, path: hub.path, dir: dirPath, html: $.html(), lastmod: hub.lastmod, count: hub.indexCount || hub.props.length };
+  return { base, path: hub.path, dir: dirPath, html: $.html(), lastmod: hub.lastmod, count: hub.indexCount || hub.props.length, indexable: !!hub.indexable };
 }
 
 /* Group mapped projects into city and locality hubs. */
-function collectHubs(H, props, reservedSlugs){
+function collectHubs(H, props, reservedSlugs, guides){
   const cities = new Map();
 
   props.forEach(p => {
@@ -870,7 +918,14 @@ function collectHubs(H, props, reservedSlugs){
     });
 
     localities.forEach(l => {
+      const guide = guides && guides.get(l.path);
       hubs.push({
+        guide,
+        guideHeading: `Living in ${l.name}, ${city.name}`,
+        /* A checked guide is real content, so the page is worth
+           indexing even with a single project. */
+        indexable: !!(guide && guide.reviewed),
+        rateText: rateRange(H, l.props.flatMap(p => H.getBhkOptions(p))),
         path: l.path,
         place: `${l.name}, ${city.name}`,
         cityName: city.name,
@@ -1029,11 +1084,16 @@ function collectDeveloperHubs(H, props, rows){
   return pages;
 }
 
-function buildHubs({ H, indexHtml, props, rows, reservedSlugs, siteOrigin, robots, shareImageFor, defaultShareImage }){
+function buildHubs({ H, indexHtml, props, rows, reservedSlugs, siteOrigin, robots, shareImageFor, defaultShareImage, guides }){
   const chrome = homepageChrome(indexHtml);
   const ctx = { H, chrome, siteOrigin, robots, shareImageFor, defaultShareImage };
-  return [...collectHubs(H, props, reservedSlugs), ...collectDeveloperHubs(H, props, rows)]
+  const hubs = collectHubs(H, props, reservedSlugs, guides);
+  (guides || new Map()).forEach((guide, key) => {
+    if(!hubs.some(h => h.path === key)) console.warn(`  unused   content/localities/${key}.html: no published project in that locality`);
+    else if(!guide.reviewed) console.log(`  draft    content/localities/${key}.html: shown, but the page stays out of the index until checked`);
+  });
+  return [...hubs, ...collectDeveloperHubs(H, props, rows)]
     .map(hub => hubPage(ctx, hub));
 }
 
-module.exports = { buildHubs, cityFilterPages, homepageChrome, rebase, joinPath, summarise, introText, faqs, listText, bhkSlug, bhkLabelsOf };
+module.exports = { buildHubs, loadLocalityGuides, cityFilterPages, homepageChrome, rebase, joinPath, summarise, introText, faqs, listText, bhkSlug, bhkLabelsOf };

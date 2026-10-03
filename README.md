@@ -82,3 +82,16 @@ site as needing a build whenever a published project or anything on its page
 changes, and a `pg_cron` job that calls the Cloudflare deploy hook once edits
 have settled for 2 minutes, plus a daily rebuild. The hook URL is stored in
 Supabase Vault as `cloudflare_deploy_hook`; until it is added, nothing is sent.
+
+## Locality guides
+
+`content/localities/<city>/<locality>.html` holds hand-written text about a
+locality (connectivity, living there, who it suits). The build shows it on
+`/projects/<city>/<locality>/` under the projects, and turns each
+`<details><summary>Question</summary><p>Answer</p></details>` into an FAQ
+(with FAQPage JSON-LD). Links are written from the site root, e.g.
+`projects/pune/moshi/`. The file name must match the locality's URL slug.
+
+A guide whose top comment contains `status: draft` is shown but does not make
+the page indexable. Check the facts, then delete that line: a locality with a
+checked guide is indexed and listed in the sitemap even with a single project.

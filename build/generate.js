@@ -25,7 +25,7 @@ const cheerio = require("cheerio");
 const P = require("../js/project-core.js");
 const { buildHomepage, loadHomepageFunctions } = require("./homepage.js");
 const { buildThumbs } = require("./thumbs.js");
-const { buildHubs, joinPath } = require("./hubs.js");
+const { buildHubs, loadLocalityGuides, joinPath } = require("./hubs.js");
 const { buildSearchPage } = require("./search.js");
 const { buildLegalPages } = require("./legal.js");
 const { buildComparePage } = require("./compare.js");
@@ -34,7 +34,8 @@ const { stampAssetVersions, htmlFiles } = require("./asset-versions.js");
 
 /* City/locality hubs with a single project are thin; they are built
    (the homepage links to them) but kept out of the index and the
-   sitemap until they list at least this many projects. */
+   sitemap until they list at least this many projects - or, for a
+   locality, until it has a checked guide (content/localities/). */
 const HUB_MIN_INDEXED = 2;
 
 const ROOT = path.resolve(__dirname, "..");
@@ -302,7 +303,7 @@ function writeSitemap(pages, hubs){
     { loc: SITE_ORIGIN + "/about", lastmod: "" },
     { loc: SITE_ORIGIN + "/contact", lastmod: "" },
     { loc: SITE_ORIGIN + "/home-loans", lastmod: "" },
-    ...(hubs || []).filter(h => h.count >= HUB_MIN_INDEXED)
+    ...(hubs || []).filter(h => h.indexable || h.count >= HUB_MIN_INDEXED)
       .map(h => ({ loc: `${SITE_ORIGIN}/${h.dir}/`, lastmod: day(h.lastmod) })),
     ...pages.map(p => ({ loc: `${SITE_ORIGIN}/projects/${p.slug}/`, lastmod: day(p.lastmod) }))
   ];
@@ -375,8 +376,9 @@ async function main(){
     siteOrigin: SITE_ORIGIN,
     shareImageFor: prop => shareById.get(prop.id) || null,
     defaultShareImage: DEFAULT_SHARE_IMAGE,
-    robots: count => !INDEXABLE ? "noindex,nofollow"
-      : count >= HUB_MIN_INDEXED ? "index,follow,max-image-preview:large" : "noindex,follow"
+    guides: loadLocalityGuides(path.join(ROOT, "content", "localities")),
+    robots: (count, indexable) => !INDEXABLE ? "noindex,nofollow"
+      : indexable || count >= HUB_MIN_INDEXED ? "index,follow,max-image-preview:large" : "noindex,follow"
   });
   hubs.forEach(hub => {
     const dir = path.join(ROOT, ...hub.dir.split("/"));
