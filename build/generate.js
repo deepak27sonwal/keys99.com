@@ -25,7 +25,7 @@ const cheerio = require("cheerio");
 const P = require("../js/project-core.js");
 const { buildHomepage, loadHomepageFunctions } = require("./homepage.js");
 const { buildThumbs } = require("./thumbs.js");
-const { buildHubs } = require("./hubs.js");
+const { buildHubs, joinPath } = require("./hubs.js");
 const { buildSearchPage } = require("./search.js");
 const { buildLegalPages } = require("./legal.js");
 const { buildComparePage } = require("./compare.js");
@@ -119,7 +119,7 @@ function rebaseLinks($){
   $("[href], [src]").each((_, el) => {
     ["href", "src"].forEach(attr => {
       const v = $(el).attr(attr);
-      if(v && !SKIP_URL.test(v)) $(el).attr(attr, "../" + v);
+      if(v && !SKIP_URL.test(v)) $(el).attr(attr, joinPath("../", v));
     });
   });
 }

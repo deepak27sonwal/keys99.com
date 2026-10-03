@@ -68,7 +68,7 @@ ${chrome.mobileMenu}
 <main class="hub legal">
   <div class="container">
     <nav class="hub-breadcrumb" aria-label="Breadcrumb">
-      <a href="index.html">Home</a><span>›</span>
+      <a href="./">Home</a><span>›</span>
       <span aria-current="page">${esc(page.h1)}</span>
     </nav>
     <article class="legal-body">

@@ -103,7 +103,7 @@
   /* ---- bottom navigation ---- */
   const bottomNav = document.getElementById("bottomNav");
   if(bottomNav){
-    const targets = { home:"index.html", search:"projects/search.html", reels:"reels.html", saved:"saved.html", profile:"saved.html" };
+    const targets = { home:"./", search:"projects/search.html", reels:"reels.html", saved:"saved.html", profile:"saved.html" };
     bottomNav.addEventListener("click", e => {
       const btn = e.target.closest("button");
       if(btn && targets[btn.dataset.target]) window.location.href = ROOT + targets[btn.dataset.target];

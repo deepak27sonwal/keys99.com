@@ -238,13 +238,22 @@ function homepageChrome(indexHtml){
   };
 }
 
+/* Home is linked as "./" (or "./#why"), never "index.html", so
+   search engines see one homepage URL. Prefixing "../../" onto "./"
+   would give "../.././", so the "./" is dropped first - and put back
+   when there is no prefix, since an empty href means "this page". */
+function joinPath(prefix, v){
+  const joined = prefix + v.replace(/^\.\//, "");
+  return joined === "" || joined.startsWith("#") ? "./" + joined : joined;
+}
+
 /* Links in the page are written relative to the site root, then
    re-pointed for the page's depth (works on a sub-path too). */
 function rebase($, prefix){
   $("[href], [src]").each((_, el) => {
     ["href", "src"].forEach(attr => {
       const v = $(el).attr(attr);
-      if(v && !SKIP_URL.test(v) && !v.startsWith("/")) $(el).attr(attr, prefix + v);
+      if(v && !SKIP_URL.test(v) && !v.startsWith("/")) $(el).attr(attr, joinPath(prefix, v));
     });
   });
   $("[onerror]").each((_, el) => {
@@ -374,7 +383,7 @@ ${chrome.mobileMenu}
 
     <nav class="hub-breadcrumb" aria-label="Breadcrumb">
       ${crumbs.map((c, i) => i < crumbs.length - 1
-        ? `<a href="${crumbPath(c) || "index.html"}">${e(c.name)}</a><span>›</span>`
+        ? `<a href="${crumbPath(c) || "./"}">${e(c.name)}</a><span>›</span>`
         : `<span aria-current="page">${e(c.name)}</span>`).join("\n      ")}
     </nav>
 
@@ -713,4 +722,4 @@ function buildHubs({ H, indexHtml, props, rows, reservedSlugs, siteOrigin, robot
     .map(hub => hubPage(ctx, hub));
 }
 
-module.exports = { buildHubs, homepageChrome, rebase, summarise, introText, faqs, listText, bhkSlug, bhkLabelsOf };
+module.exports = { buildHubs, homepageChrome, rebase, joinPath, summarise, introText, faqs, listText, bhkSlug, bhkLabelsOf };

@@ -69,7 +69,7 @@ function initBottomNav(){
     const button = event.target.closest("button");
     if(!button) return;
     const target = button.dataset.target;
-    if(target === "home") window.location.href = SITE_ROOT + "index.html";
+    if(target === "home") window.location.href = SITE_ROOT;
     else if(target === "search") window.location.href = SITE_ROOT + "projects/search.html";
     else if(target === "reels") window.location.href = SITE_ROOT + "reels.html";
     else if(target === "saved" || target === "profile") window.location.href = SITE_ROOT + "saved.html";
@@ -829,7 +829,7 @@ $("favoriteBtn").addEventListener("click", toggleFavorite);
 
 $("backBtn").addEventListener("click", () => {
   if(document.referrer && new URL(document.referrer).origin === window.location.origin) history.back();
-  else window.location.href = SITE_ROOT + "index.html";
+  else window.location.href = SITE_ROOT;
 });
 
 $("enquireTopBtn").addEventListener("click", () => {
