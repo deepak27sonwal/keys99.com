@@ -29,6 +29,7 @@ const { buildHubs } = require("./hubs.js");
 const { buildSearchPage } = require("./search.js");
 const { buildLegalPages } = require("./legal.js");
 const { buildComparePage } = require("./compare.js");
+const { stampAssetVersions, htmlFiles } = require("./asset-versions.js");
 
 /* City/locality hubs with a single project are thin; they are built
    (the homepage links to them) but kept out of the index and the
@@ -168,7 +169,10 @@ function buildPage(template, row, config, allProjects, shareImage){
      refreshes it from Supabase. */
   const boot = `window.__KEYS99_ROOT__="../../";window.__KEYS99_SLUG__=${JSON.stringify(p.slug)};`
     + `window.__KEYS99_PROJECT__=${JSON.stringify(row).replace(/</g, "\\u003c")};`;
-  $('script[src="../js/config.js"]').before(`<script>${boot}</script>\n  `);
+  /* Prefix match: the link may carry a ?v= version (asset-versions.js). */
+  const configScript = $('script[src^="../js/config.js"]');
+  if(!configScript.length) throw new Error("projects/property-details.html no longer loads ../js/config.js");
+  configScript.first().before(`<script>${boot}</script>\n  `);
 
   /* ---- body: same fields renderProject() fills in the browser ---- */
   $("#loading").addClass("hidden");
@@ -402,6 +406,16 @@ async function main(){
   fs.writeFileSync(indexPath, fs.readFileSync(indexPath, "utf8")
     .replace(/(<meta (?:property="og:image"|name="twitter:image") content=")[^"]*(")/g, `$1${DEFAULT_SHARE_IMAGE}$2`));
   console.log(`  wrote    / (homepage sections: ${home.projects} projects, ${home.stats.cities} cities)`);
+
+  /* Last: version every CSS/JS link so browsers never pair new pages
+     with old cached styles or scripts. */
+  const stamped = stampAssetVersions(ROOT, [
+    indexPath,
+    path.join(ROOT, "privacy-policy.html"),
+    path.join(ROOT, "terms.html"),
+    ...htmlFiles(ROOT, ["projects", "developers"])
+  ]);
+  console.log(`  versioned CSS/JS links in ${stamped} page(s)`);
 
   console.log(`\n  ${pages.length} project page(s), ${hubs.length} city/locality page(s), sitemap.xml updated` +
     (INDEXABLE ? "" : "\n  pages are noindex (set SITE_INDEXABLE=true at launch)"));
