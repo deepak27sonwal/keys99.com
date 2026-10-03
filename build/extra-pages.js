@@ -26,8 +26,6 @@ function shell({ chrome, title, description, canonical, robots, css, main, scrip
 <link rel="canonical" href="${canonical}">
 <meta name="robots" content="${robots}">
 <link rel="icon" href="favicon.ico">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 ${chrome.fonts}
 <link rel="stylesheet" href="css/index.css">
 <link rel="stylesheet" href="css/hub.css">

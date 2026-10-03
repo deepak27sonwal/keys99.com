@@ -8,13 +8,14 @@
 
    The card markup is not duplicated here: the homepage's own
    top-level functions (mapResidentialProject, createPropertyCard,
-   cityCardHtml, ...) are read out of index.html with acorn and run
+   cityCardHtml, ...) are read out of js/home.js with acorn and run
    in a sandbox, so the built HTML is exactly what the page renders
    live. Only function declarations and constants with plain
    literal values are taken - nothing that touches the DOM runs.
 ========================================================= */
 
 const fs = require("fs");
+const path = require("path");
 const vm = require("vm");
 const acorn = require("acorn");
 const cheerio = require("cheerio");
@@ -46,14 +47,24 @@ function isPlainValue(node){
   }
 }
 
+/* The homepage's own script, js/home.js (a page-relative link,
+   possibly with a ?v= version). Inline scripts are read too. */
+const HOME_SCRIPT = /^js\/home\.js(?:\?|$)/;
+
 function loadHomepageFunctions(html, supabaseUrl){
   const $ = cheerio.load(html);
   const pieces = [];
+  const sources = [];
 
-  $("script:not([src])").each((_, el) => {
+  $("script").each((_, el) => {
     const type = $(el).attr("type");
     if(type && type !== "text/javascript" && type !== "module") return;
-    const code = $(el).html();
+    const src = $(el).attr("src");
+    if(!src) sources.push($(el).html());
+    else if(HOME_SCRIPT.test(src)) sources.push(fs.readFileSync(path.join(__dirname, "..", "js", "home.js"), "utf8"));
+  });
+
+  sources.forEach(code => {
     const ast = acorn.parse(code, { ecmaVersion: "latest", sourceType: "script" });
     ast.body.forEach(node => {
       if(node.type === "FunctionDeclaration"){
@@ -69,7 +80,7 @@ function loadHomepageFunctions(html, supabaseUrl){
   const api = vm.runInContext(pieces.join("\n\n") + `\n;({ ${exportList} })`, context);
 
   const missing = EXPORTS.filter(name => api[name] === undefined);
-  if(missing.length) throw new Error("index.html no longer defines: " + missing.join(", "));
+  if(missing.length) throw new Error("index.html / js/home.js no longer define: " + missing.join(", "));
   return api;
 }
 
