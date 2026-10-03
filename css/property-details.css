@@ -125,11 +125,11 @@ img{display:block;max-width:100%}
 .toast{position:fixed;left:50%;bottom:25px;transform:translate(-50%,20px);max-width:calc(100% - 30px);background:#143d38;color:#fff;padding:11px 17px;border-radius:25px;font-size:12px;opacity:0;pointer-events:none;transition:.25s;z-index:300;text-align:center}.toast.show{opacity:1;transform:translate(-50%,0)}
 footer{border-top:1px solid var(--line);margin-top:20px;background:#fff;padding:38px 0 18px}
 .footer-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:30px}
-.footer-col h4{font-size:12px;margin-bottom:12px}
-.footer-col a,.footer-col p{display:block;color:var(--muted);font-size:10px;margin:6px 0}
+.footer-col h4{font-size:15px;margin-bottom:10px}
+.footer-col a,.footer-col p{display:block;color:#5b6c75;font-size:14px;line-height:1.5;margin:6px 0}.footer-col a{margin:0;padding:5px 0}
 .socials{display:flex;gap:8px}
-.socials a{width:30px;height:30px;border:1px solid var(--line);border-radius:50%;display:grid;place-items:center;color:var(--green);text-decoration:none}
-.copyright{border-top:1px solid var(--line);margin-top:25px;padding-top:14px;color:#87959b;font-size:9px;display:flex;justify-content:space-between}
+.socials a{width:36px;height:36px;font-size:16px;border:1px solid var(--line);border-radius:50%;display:grid;place-items:center;color:var(--green);text-decoration:none}
+.copyright{border-top:1px solid var(--line);margin-top:25px;padding-top:14px;color:#5b6c75;font-size:13px;display:flex;justify-content:space-between}
 
 /* STICKY MOBILE CONTACT BAR */
 .sticky-contact-bar{display:none}
@@ -152,7 +152,7 @@ footer{border-top:1px solid var(--line);margin-top:20px;background:#fff;padding:
 
   .footer-grid{grid-template-columns:1fr 1fr;gap:25px}
   .footer-grid .footer-brand{grid-column:1/-1}
-  .copyright{display:block;line-height:1.8}
+  .copyright{display:block;line-height:1.8}.copyright span{display:block}
 
   body{padding-bottom:124px}
 
