@@ -232,6 +232,11 @@ function buildHomepage(indexPath, rows, supabaseUrl){
     (_, open, key, close) => open + H.formatStatCount(stats[key]) + close);
   html = html.replace(/(<p data-type-count="(\w+)">)[^<]*(<\/p>)/g,
     (_, open, key, close) => open + H.typeCountText(stats.types[key]) + close);
+  /* Type cards link to their search results only when there is
+     something to show - same rule as setTypeCardState() in the page. */
+  html = html.replace(/<a class="type-card" data-type="(\w+)"(?: href="[^"]*"| aria-disabled="true")>/g,
+    (_, key) => `<a class="type-card" data-type="${key}" ` +
+      (stats.types[key] ? `href="projects/search.html?type=${key}">` : `aria-disabled="true">`));
 
   html = applyHomepageSeo(H, html, props);
 

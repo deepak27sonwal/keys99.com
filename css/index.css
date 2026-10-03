@@ -662,6 +662,7 @@ section{
 .view-all{
   border:0;
   background:none;
+  text-decoration:none;
 
   font-size:13px;
   font-weight:700;
@@ -706,6 +707,10 @@ section{
 }
 
 .type-card{
+  display:block;
+  color:inherit;
+  text-decoration:none;
+
   border:1px solid var(--line);
 
   border-radius:17px;
@@ -724,6 +729,25 @@ section{
 .type-card:hover{
   transform:translateY(-5px);
   box-shadow:var(--shadow);
+}
+
+/* "Coming soon" types have no link (no href), so they should not
+   look clickable either. */
+.type-card[aria-disabled="true"]{
+  cursor:default;
+}
+
+.type-card[aria-disabled="true"]:hover{
+  transform:none;
+  box-shadow:0 5px 20px rgba(0,0,0,.03);
+}
+
+.type-card[aria-disabled="true"]:hover img{
+  transform:none;
+}
+
+.type-card[aria-disabled="true"] .arrow{
+  visibility:hidden;
 }
 
 .type-img{
@@ -1472,6 +1496,9 @@ section{
 }
 
 .cta-btn{
+  display:inline-block;
+  text-decoration:none;
+
   background:var(--green);
 
   color:#fff;

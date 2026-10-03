@@ -299,6 +299,8 @@ function writeSitemap(pages, hubs){
   };
   const urls = [
     { loc: SITE_ORIGIN + "/", lastmod: "" },
+    { loc: SITE_ORIGIN + "/about.html", lastmod: "" },
+    { loc: SITE_ORIGIN + "/contact.html", lastmod: "" },
     ...(hubs || []).filter(h => h.count >= HUB_MIN_INDEXED)
       .map(h => ({ loc: `${SITE_ORIGIN}/${h.dir}/`, lastmod: day(h.lastmod) })),
     ...pages.map(p => ({ loc: `${SITE_ORIGIN}/projects/${p.slug}/`, lastmod: day(p.lastmod) }))
@@ -424,6 +426,8 @@ async function main(){
      with old cached styles or scripts. */
   const stamped = stampAssetVersions(ROOT, [
     indexPath,
+    path.join(ROOT, "about.html"),
+    path.join(ROOT, "contact.html"),
     path.join(ROOT, "privacy-policy.html"),
     path.join(ROOT, "terms.html"),
     path.join(ROOT, "saved.html"),

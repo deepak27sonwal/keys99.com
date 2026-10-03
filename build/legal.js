@@ -1,5 +1,6 @@
 /* =========================================================
-   KEYS99 - LEGAL PAGES (/privacy-policy.html, /terms.html)
+   KEYS99 - TEXT PAGES (/about.html, /contact.html,
+   /privacy-policy.html, /terms.html)
 
    The text lives in content/*.html. This wraps it in the same
    header, mobile menu, footer and bottom navigation as the
@@ -13,6 +14,20 @@ const cheerio = require("cheerio");
 const { homepageChrome } = require("./hubs.js");
 
 const PAGES = [
+  {
+    file: "about.html",
+    title: "About Keys99 | New Residential Projects in Pune",
+    h1: "About Keys99",
+    kicker: "About",
+    description: "Keys99 helps home buyers find new residential projects in Pune, with prices, floor plans, amenities and RERA details for every project."
+  },
+  {
+    file: "contact.html",
+    title: "Contact Keys99",
+    h1: "Contact Us",
+    kicker: "Contact",
+    description: "Get in touch with Keys99 about a new residential project in Pune, a site visit, or listing your project."
+  },
   {
     file: "privacy-policy.html",
     title: "Privacy Policy | Keys99",
@@ -72,7 +87,7 @@ ${chrome.mobileMenu}
       <span aria-current="page">${esc(page.h1)}</span>
     </nav>
     <article class="legal-body">
-      <div class="section-kicker">Legal</div>
+      <div class="section-kicker">${esc(page.kicker || "Legal")}</div>
       <h1>${esc(page.h1)}</h1>
       ${body.replace(/<!--[\s\S]*?-->/, "").trim()}
     </article>

@@ -277,6 +277,23 @@ function devLinksSection(hub, e){
     </section>`;
 }
 
+/* Google cuts descriptions off at roughly 155-160 characters, so
+   take whole sentences of the intro up to that length. Only when the
+   first sentence alone is too long is it cut mid-sentence. */
+const META_DESCRIPTION_MAX = 160;
+function metaDescription(intro){
+  if(intro.length <= META_DESCRIPTION_MAX) return intro;
+  let out = "";
+  /* A sentence ends at . ! or ? followed by a space and a capital or
+     ₹ - so "2.5 BHK", "₹ 4.47 Cr" and "Sq.Ft" are not split. */
+  for(const sentence of intro.split(/(?<=[.!?])\s+(?=[A-Z₹])/)){
+    const next = out ? out + " " + sentence : sentence;
+    if(next.length > META_DESCRIPTION_MAX) break;
+    out = next;
+  }
+  return out || intro.slice(0, META_DESCRIPTION_MAX - 1).replace(/\s+\S*$/, "") + "…";
+}
+
 function crumbPath(c){
   if(!c.path && !c.base) return "";
   return `${c.base || "projects"}/${c.path ? c.path + "/" : ""}`;
@@ -295,7 +312,7 @@ function hubPage(ctx, hub){
   const copy = hub.bhk ? bhkCopy(H, hub) : hub.copy ? hub.copy(H, s) : null;
   const title = copy ? copy.title : pageTitle(H, s, hub.place);
   const intro = copy ? copy.intro : introText(H, s, hub.place, hub.introExtra);
-  const description = intro.length > 300 ? intro.slice(0, 297).replace(/\s+\S*$/, "") + "…" : intro;
+  const description = metaDescription(intro);
   const questions = copy ? copy.questions : faqs(H, s, hub.place);
   const e = H.escapeHtml;
 
