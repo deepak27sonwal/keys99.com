@@ -18,7 +18,7 @@ const fs = require("fs");
 const vm = require("vm");
 const acorn = require("acorn");
 const cheerio = require("cheerio");
-const { summarise, introText, faqs, listText, bhkSlug, bhkLabelsOf } = require("./hubs");
+const { summarise, introText, faqs, listText, bhkSlug, bhkLabelsOf, cityFilterPages } = require("./hubs");
 
 const EXPORTS = [
   "mapResidentialProject", "createPropertyCard", "cityCardHtml", "localityChipHtml",
@@ -176,6 +176,18 @@ function buildGuide(H, props){
     ? ` Flats by size in ${e(H.titleCaseName(mainCity))}: ${listText(sizes.map(b => link(`${H.cityUrl(mainCity)}${bhkSlug(b)}/`, b)))}.`
     : "";
 
+  /* Budget and status pages of the main city (build/hubs.js). */
+  const cityProps = props.filter(p => H.slugify(p.city) === H.slugify(mainCity));
+  const cityLocalities = new Set(cityProps.map(p => H.slugify(p.locality)).filter(Boolean));
+  const filters = cityFilterPages(H, H.slugify(mainCity), cityProps, cityLocalities);
+  const filterLink = page => link(`projects/${page.path}/`, page.label.replace(/^Under /, "under "));
+  const budgetLinks = filters.budgets.length
+    ? ` Flats by budget in ${e(H.titleCaseName(mainCity))}: ${listText(filters.budgets.map(filterLink))}.`
+    : "";
+  const statusLinks = filters.statuses.length
+    ? ` By status: ${listText(filters.statuses.map(st => link(`projects/${st.path}/`, st.label)))}.`
+    : "";
+
   /* Developer pages (build/hubs.js). */
   const devs = [];
   props.forEach(p => {
@@ -196,7 +208,7 @@ function buildGuide(H, props){
       </div>
     </div>
     <p class="home-guide-intro">${e(introText(H, s, place))}</p>
-    <p class="home-guide-links">${browse}${sizeLinks}${devLinks}</p>
+    <p class="home-guide-links">${browse}${sizeLinks}${budgetLinks}${statusLinks}${devLinks}</p>
     <h3>Frequently Asked Questions</h3>
     <div class="hub-faqs">${questions.map(f => `
       <details class="hub-faq">
