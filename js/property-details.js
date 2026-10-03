@@ -520,6 +520,12 @@ function saveContact(name, phone){
   try{ localStorage.setItem(SAVED_CONTACT, JSON.stringify({ name, phone })); }catch(_){}
 }
 
+/* Every enquiry must name a configuration (BHK), when the project lists
+   any: the field is hidden for projects with none. */
+function needsConfiguration(value){
+  return !!(project && project.bhkLabels.length && !value);
+}
+
 function openGate(mode){
   if(!project) return;
   gateMode = mode;
@@ -606,7 +612,7 @@ async function requestVisit(name, phone, bhk){
       preferred_visit_date: date,
       message: [
         `Site visit requested for ${visitDateText(date)} at ${time}.`,
-        bhk ? `Preferred BHK: ${bhk}` : ""
+        bhk ? `Configuration: ${bhk}` : ""
       ].filter(Boolean).join("\n"),
       source: "website"
     }, { preferred_visit_time: timeKey });
@@ -647,6 +653,7 @@ function closeGate(){
 
 document.querySelectorAll("[data-close-gate]").forEach(el => el.addEventListener("click", closeGate));
 $("gateSlots").addEventListener("change", () => { $("gateError").hidden = true; });
+$("gateBhk").addEventListener("change", () => { $("gateError").hidden = true; });
 document.addEventListener("keydown", e => {
   if(e.key === "Escape" && gateMode) closeGate();
 });
@@ -662,6 +669,12 @@ $("contactGateForm").addEventListener("submit", async event => {
   if(!name || phone.replace(/\D/g, "").length < 10){
     $("gateError").textContent = "Please enter your name and a valid 10-digit mobile number.";
     $("gateError").hidden = false;
+    return;
+  }
+  if(needsConfiguration(bhk)){
+    $("gateError").textContent = "Please select a configuration.";
+    $("gateError").hidden = false;
+    $("gateBhk").focus();
     return;
   }
 
@@ -693,7 +706,7 @@ $("contactGateForm").addEventListener("submit", async event => {
       preferred_contact_method: mode === "whatsapp" ? "whatsapp" : "phone",
       message: [
         mode === "whatsapp" ? `Opened WhatsApp chat about ${project.name}.` : `Called about ${project.name}.`,
-        bhk ? `Preferred BHK: ${bhk}` : ""
+        bhk ? `Configuration: ${bhk}` : ""
       ].filter(Boolean).join("\n"),
       source: "website"
     });
@@ -738,7 +751,7 @@ function populateEnquiry(p){
 
   const select = $("enquiryBhk");
   const previous = select.value;
-  select.innerHTML = `<option value="">Preferred BHK (optional)</option>` +
+  select.innerHTML = `<option value="">Select Configuration *</option>` +
     p.bhkLabels.map(l => `<option value="${P.escapeHtml(l)}">${P.escapeHtml(l)}</option>`).join("");
   select.value = p.bhkLabels.includes(previous) ? previous : (p.bhkLabels.length === 1 ? p.bhkLabels[0] : "");
   select.closest("label").classList.toggle("hidden", !p.bhkLabels.length);
@@ -760,6 +773,11 @@ $("enquiryForm").addEventListener("submit", async event => {
     showToast("Please enter your name and a valid WhatsApp number.");
     return;
   }
+  if(needsConfiguration(bhk)){
+    showToast("Please select a configuration.");
+    $("enquiryBhk").focus();
+    return;
+  }
 
   const button = $("sendBtn");
   button.disabled = true;
@@ -774,7 +792,7 @@ $("enquiryForm").addEventListener("submit", async event => {
       email: email || null,
       enquiry_type: "enquire_now",
       preferred_contact_method: "whatsapp",
-      message: [message || `Interested in ${project.name}.`, bhk ? `Preferred BHK: ${bhk}` : ""].filter(Boolean).join("\n"),
+      message: [message || `Interested in ${project.name}.`, bhk ? `Configuration: ${bhk}` : ""].filter(Boolean).join("\n"),
       source: "website"
     });
     saveContact(name, phone);
