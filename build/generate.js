@@ -301,6 +301,7 @@ function writeSitemap(pages, hubs){
     { loc: SITE_ORIGIN + "/", lastmod: "" },
     { loc: SITE_ORIGIN + "/about", lastmod: "" },
     { loc: SITE_ORIGIN + "/contact", lastmod: "" },
+    { loc: SITE_ORIGIN + "/home-loans", lastmod: "" },
     ...(hubs || []).filter(h => h.count >= HUB_MIN_INDEXED)
       .map(h => ({ loc: `${SITE_ORIGIN}/${h.dir}/`, lastmod: day(h.lastmod) })),
     ...pages.map(p => ({ loc: `${SITE_ORIGIN}/projects/${p.slug}/`, lastmod: day(p.lastmod) }))
@@ -428,6 +429,7 @@ async function main(){
     indexPath,
     path.join(ROOT, "about.html"),
     path.join(ROOT, "contact.html"),
+    path.join(ROOT, "home-loans.html"),
     path.join(ROOT, "privacy-policy.html"),
     path.join(ROOT, "terms.html"),
     path.join(ROOT, "saved.html"),

@@ -123,3 +123,185 @@
 @media (max-width:560px){
   .legal-toc ol{ columns:1; }
 }
+
+
+/* =========================================================
+   HOME LOANS PAGE (/home-loans)
+   The partner logos reuse .loan-partner-grid from index.css.
+========================================================= */
+
+.home-loans-lead{
+  font-size:15px;
+  color:var(--ink);
+}
+
+/* .legal-body ul/li spacing does not suit the logo cards. */
+.legal-body .loan-partner-grid{
+  margin:6px 0 8px;
+  padding-left:0;
+}
+
+.legal-body .loan-partner{
+  margin-bottom:0;
+}
+
+.emi-calc{
+  display:grid;
+  grid-template-columns:repeat(3, 1fr);
+  gap:12px;
+
+  margin:6px 0 8px;
+  padding:18px;
+
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:16px;
+}
+
+.emi-field{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+
+  font-size:12px;
+  font-weight:600;
+  color:var(--muted);
+}
+
+.emi-field input{
+  width:100%;
+  padding:11px 12px;
+
+  font:inherit;
+  font-size:15px;
+  font-weight:700;
+  color:var(--ink);
+
+  border:1px solid var(--line);
+  border-radius:10px;
+  background:#fbfcfc;
+}
+
+.emi-field input:focus{
+  outline:2px solid var(--green);
+  outline-offset:1px;
+}
+
+.emi-result{
+  grid-column:1 / -1;
+
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+
+  padding:14px 16px;
+
+  background:var(--green-soft);
+  border-radius:12px;
+}
+
+.emi-result span{
+  display:block;
+  font-size:12px;
+  color:var(--muted);
+}
+
+.emi-main strong{
+  font-size:26px;
+  color:var(--green);
+}
+
+.emi-split{
+  display:flex;
+  gap:22px;
+}
+
+.emi-split strong{
+  font-size:15px;
+  color:var(--ink);
+}
+
+.emi-note{
+  font-size:12px;
+  color:var(--muted);
+}
+
+.loan-steps{
+  margin:0 0 12px;
+  padding-left:22px;
+}
+
+.loan-steps li{
+  margin-bottom:10px;
+  padding-left:4px;
+}
+
+.loan-steps strong{
+  color:var(--ink);
+}
+
+.loan-docs{
+  display:grid;
+  grid-template-columns:repeat(2, 1fr);
+  gap:12px;
+  margin:6px 0 8px;
+}
+
+.loan-docs > div{
+  padding:14px 16px 4px;
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:14px;
+}
+
+.loan-docs h3{
+  margin-top:0;
+}
+
+.home-loans-cta{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+
+  margin:30px 0 10px;
+  padding:20px;
+
+  background:var(--cream);
+  border-radius:16px;
+}
+
+.home-loans-cta strong{
+  display:block;
+  font-size:17px;
+  color:var(--ink);
+}
+
+.home-loans-cta span{
+  font-size:13px;
+  color:var(--muted);
+}
+
+.legal-body .home-loans-cta .btn-primary{
+  flex:none;
+  display:inline-block;
+  color:#fff;
+  text-decoration:none;
+}
+
+@media (max-width:700px){
+  .emi-calc{
+    grid-template-columns:1fr;
+  }
+
+  .loan-docs{
+    grid-template-columns:1fr;
+  }
+
+  .home-loans-cta{
+    flex-direction:column;
+    align-items:flex-start;
+  }
+}
