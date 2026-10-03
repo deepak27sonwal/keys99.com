@@ -1,0 +1,154 @@
+<!--
+  Body of /home-loans.html. build/legal.js wraps it in the site's header
+  and footer. Logos are the small WebP copies in assets/banks/web/, the
+  same ones as the homepage's Home Loan Partners section.
+-->
+<p class="home-loans-lead">
+  Buy your new home with a loan from India's leading banks. Keys99 lists new residential
+  projects with their RERA registration, configurations and prices, so you can compare
+  projects and plan your loan before you visit.
+</p>
+
+<h2 id="partners">Our home loan partners</h2>
+<ul class="loan-partner-grid">
+  <li class="loan-partner"><img src="assets/banks/web/sbi.webp" alt="SBI" width="185" height="112" loading="lazy" decoding="async"></li>
+  <li class="loan-partner"><img src="assets/banks/web/hdfc-home-loans.webp" alt="HDFC Home Loans" width="199" height="112" loading="lazy" decoding="async"></li>
+  <li class="loan-partner"><img src="assets/banks/web/icici-bank.webp" alt="ICICI Bank" width="561" height="112" loading="lazy" decoding="async"></li>
+  <li class="loan-partner"><img src="assets/banks/web/axis-bank.webp" alt="Axis Bank" width="469" height="112" loading="lazy" decoding="async"></li>
+  <li class="loan-partner"><img src="assets/banks/web/kotak-mahindra-bank.webp" alt="Kotak Mahindra Bank" width="372" height="112" loading="lazy" decoding="async"></li>
+  <li class="loan-partner"><img src="assets/banks/web/bank-of-baroda.webp" alt="Bank of Baroda" width="407" height="112" loading="lazy" decoding="async"></li>
+  <li class="loan-partner"><img src="assets/banks/web/bank-of-india.webp" alt="Bank of India" width="245" height="112" loading="lazy" decoding="async"></li>
+  <li class="loan-partner"><img src="assets/banks/web/central-bank-of-india.webp" alt="Central Bank of India" width="439" height="112" loading="lazy" decoding="async"></li>
+  <li class="loan-partner"><img src="assets/banks/web/citibank.webp" alt="Citibank" width="427" height="112" loading="lazy" decoding="async"></li>
+</ul>
+
+<h2 id="emi">Home loan EMI calculator</h2>
+<p>See your monthly EMI before you choose a project. Change any value and the result updates instantly.</p>
+
+<form class="emi-calc" id="emiCalc" onsubmit="return false">
+  <label class="emi-field">
+    <span>Loan amount (₹)</span>
+    <input type="number" id="emiAmount" min="100000" max="100000000" step="50000" value="5000000" inputmode="numeric">
+  </label>
+  <label class="emi-field">
+    <span>Interest rate (% per year)</span>
+    <input type="number" id="emiRate" min="1" max="20" step="0.05" value="8.5" inputmode="decimal">
+  </label>
+  <label class="emi-field">
+    <span>Tenure (years)</span>
+    <input type="number" id="emiYears" min="1" max="30" step="1" value="20" inputmode="numeric">
+  </label>
+
+  <div class="emi-result" aria-live="polite">
+    <div class="emi-main">
+      <span>Monthly EMI</span>
+      <strong id="emiMonthly">—</strong>
+    </div>
+    <div class="emi-split">
+      <div><span>Total interest</span><strong id="emiInterest">—</strong></div>
+      <div><span>Total payment</span><strong id="emiTotal">—</strong></div>
+    </div>
+  </div>
+</form>
+<p class="emi-note">An estimate only. Your bank sets the actual rate, which depends on your income, credit score and the loan amount.</p>
+
+<h2 id="how-it-works">How buying with a home loan works</h2>
+<ol class="loan-steps">
+  <li><strong>Choose a project.</strong> Compare new projects on Keys99 by location, configuration, price and possession date, and check each project's RERA registration.</li>
+  <li><strong>Check your eligibility.</strong> Banks look at your income, existing EMIs, age and credit score. Most keep your total EMIs within about half of your monthly income.</li>
+  <li><strong>Get the loan sanctioned.</strong> Submit your documents to the bank. Once it approves you and the project, it issues a sanction letter with the loan amount, rate and tenure.</li>
+  <li><strong>Book and sign.</strong> Pay the booking amount from your own funds and sign the agreement for sale with the developer.</li>
+  <li><strong>Disbursement.</strong> For an under-construction project, the bank pays the developer in stages as construction progresses. For a ready home, it pays in one go.</li>
+</ol>
+
+<h2 id="documents">Documents banks usually ask for</h2>
+<div class="loan-docs">
+  <div>
+    <h3>Identity and address</h3>
+    <ul>
+      <li>PAN card</li>
+      <li>Aadhaar card, passport or voter ID</li>
+      <li>Passport-size photographs</li>
+    </ul>
+  </div>
+  <div>
+    <h3>Income: salaried</h3>
+    <ul>
+      <li>Salary slips for the last 3 months</li>
+      <li>Form 16 or ITR for the last 2 years</li>
+      <li>Bank statements for the last 6 months</li>
+    </ul>
+  </div>
+  <div>
+    <h3>Income: self-employed</h3>
+    <ul>
+      <li>ITR with computation for the last 2–3 years</li>
+      <li>Audited profit and loss and balance sheet</li>
+      <li>Business proof and bank statements for 12 months</li>
+    </ul>
+  </div>
+  <div>
+    <h3>Property</h3>
+    <ul>
+      <li>Agreement for sale or allotment letter</li>
+      <li>Project's RERA registration details</li>
+      <li>Approved building plan and title documents (often provided by the developer)</li>
+    </ul>
+  </div>
+</div>
+<p class="emi-note">Each bank has its own list. Your bank will tell you exactly what it needs.</p>
+
+<h2 id="faq">Home loan questions</h2>
+<details class="hub-faq">
+  <summary>How much of the property price can I borrow?</summary>
+  <p>Under RBI rules, banks can lend up to 90% of the property value for loans up to ₹30 lakh, up to 80% for loans between ₹30 lakh and ₹75 lakh, and up to 75% above ₹75 lakh. The rest, plus stamp duty and registration, is your down payment.</p>
+</details>
+<details class="hub-faq">
+  <summary>Can I get a home loan for an under-construction project?</summary>
+  <p>Yes. Banks lend for under-construction projects and release the money to the developer in stages as construction progresses. Many banks pre-approve RERA-registered projects, which makes the process faster.</p>
+</details>
+<details class="hub-faq">
+  <summary>Is stamp duty and registration included in the loan?</summary>
+  <p>Usually not. Banks lend against the property's agreement value, so plan to pay stamp duty and registration charges from your own funds.</p>
+</details>
+<details class="hub-faq">
+  <summary>Do I get tax benefits on a home loan?</summary>
+  <p>Under the old income tax regime, you can claim a deduction on principal repayment under Section 80C and on interest under Section 24(b), within the limits set each year. Check with a tax adviser for your situation.</p>
+</details>
+
+<div class="home-loans-cta">
+  <div>
+    <strong>Found the right home?</strong>
+    <span>Browse new projects and ask the project team about loan options when you enquire.</span>
+  </div>
+  <a class="btn-primary" href="projects/search">Browse projects →</a>
+</div>
+
+<script>
+(function(){
+  var amount = document.getElementById("emiAmount");
+  var rate = document.getElementById("emiRate");
+  var years = document.getElementById("emiYears");
+  if(!amount || !rate || !years) return;
+
+  function rupees(n){
+    return "₹ " + Math.round(n).toLocaleString("en-IN");
+  }
+
+  /* EMI = P × r × (1 + r)^n / ((1 + r)^n - 1), r monthly, n months. */
+  function update(){
+    var P = parseFloat(amount.value);
+    var r = parseFloat(rate.value) / 12 / 100;
+    var n = Math.round(parseFloat(years.value) * 12);
+    var ok = P > 0 && r >= 0 && n > 0;
+    var emi = !ok ? NaN : r === 0 ? P / n : P * r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1);
+    var good = isFinite(emi);
+    document.getElementById("emiMonthly").textContent = good ? rupees(emi) : "—";
+    document.getElementById("emiInterest").textContent = good ? rupees(emi * n - P) : "—";
+    document.getElementById("emiTotal").textContent = good ? rupees(emi * n) : "—";
+  }
+
+  [amount, rate, years].forEach(function(el){ el.addEventListener("input", update); });
+  update();
+})();
+</script>

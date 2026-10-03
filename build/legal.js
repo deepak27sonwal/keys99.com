@@ -29,6 +29,13 @@ const PAGES = [
     description: "Get in touch with Keys99 about a new residential project in Pune, a site visit, or listing your project."
   },
   {
+    file: "home-loans.html",
+    title: "Home Loans from SBI, HDFC, ICICI & More | EMI Calculator | Keys99",
+    h1: "Home Loans",
+    kicker: "Easy Financing",
+    description: "Home loan partners for new projects on Keys99: SBI, HDFC, ICICI, Axis, Kotak and more. Calculate your EMI and see the documents banks ask for."
+  },
+  {
     file: "privacy-policy.html",
     title: "Privacy Policy | Keys99",
     h1: "Privacy Policy",
