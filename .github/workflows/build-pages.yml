@@ -12,13 +12,22 @@ on:
     - cron: "17 * * * *"   # hourly; new projects open via 404.html until then
   push:
     branches: [main]
+    # Anything the built pages include or link to. Stylesheets and
+    # scripts matter too: the build stamps each link with the file's
+    # version (?v=...), so changing one must rebuild the pages or
+    # browsers keep the old cached copy. (The build's own pushes use
+    # GITHUB_TOKEN, which never triggers this workflow again.)
     paths:
       - "projects/property-details.html"
       - "index.html"
+      - "admin/**"
       - "content/**"
-      - "js/project-core.js"
+      - "css/**"
+      - "js/**"
+      - "assets/**"
       - "build/**"
       - "package.json"
+      - ".github/workflows/build-pages.yml"
 
 permissions:
   contents: write
