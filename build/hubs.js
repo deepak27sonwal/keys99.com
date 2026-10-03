@@ -220,6 +220,237 @@ function bhkCopy(H, hub){
   };
 }
 
+/* ---------- Budget pages: /projects/<city>/flats-under-<n>-<lakh|crore>/ ----------
+   "Flats under 50 lakh in Pune" is how buyers with a fixed budget
+   search. A project qualifies when at least one of its flats has a
+   total price within the budget; price-on-request and per-sq-ft
+   rates do not count. The copy quotes the in-budget flats only. */
+
+const BUDGETS = [3000000, 5000000, 7500000, 10000000, 15000000, 20000000, 30000000, 50000000];
+
+function budgetLabel(limit){
+  return limit >= 10000000
+    ? `₹ ${limit / 10000000} Crore`
+    : `₹ ${limit / 100000} Lakh`;
+}
+
+function budgetSlug(limit){
+  const amount = limit >= 10000000 ? `${limit / 10000000}-crore` : `${limit / 100000}-lakh`;
+  return "flats-under-" + amount.replace(".", "-");
+}
+
+function optionsWithin(H, p, limit){
+  return H.getBhkOptions(p).filter(o => {
+    const price = H.getNumericPrice(o);
+    return price !== null && price <= limit;
+  });
+}
+
+/* Each budget that has projects, smallest first. A budget whose
+   projects are exactly those of the budget below it would be a copy
+   of that page, so it is left out. */
+function budgetGroups(H, props){
+  const groups = [];
+  let previous = "";
+  BUDGETS.forEach(limit => {
+    const matches = props
+      .map(p => ({ p, options: optionsWithin(H, p, limit) }))
+      .filter(m => m.options.length)
+      .sort((a, b) => Math.min(...a.options.map(H.getNumericPrice)) - Math.min(...b.options.map(H.getNumericPrice)));
+    const key = matches.map(m => m.p.id).sort().join(",");
+    if(!matches.length || key === previous) return;
+    previous = key;
+    groups.push({ limit, label: `Under ${budgetLabel(limit)}`, slug: budgetSlug(limit), props: matches.map(m => m.p), options: matches.flatMap(m => m.options) });
+  });
+  return groups;
+}
+
+/* RBI caps a home loan at 90% of the property's value for loans up
+   to ₹ 30 Lakh, 80% up to ₹ 75 Lakh and 75% above that. */
+function minDownPayment(price){
+  if(price * 0.9 <= 3000000) return 0.10;
+  if(price * 0.8 <= 7500000) return 0.20;
+  return 0.25;
+}
+
+function budgetCopy(H, hub){
+  const city = hub.cityName;
+  const budget = budgetLabel(hub.budget);
+  const n = hub.props.length;
+  const options = hub.budgetOptions;
+  const prices = options.map(o => H.getNumericPrice(o));
+  const minPrice = Math.min(...prices), maxPrice = Math.max(...prices);
+  const bhks = [...new Set(options.map(o => H.normaliseBhkType(o.type)).filter(b => BHK_LABEL.test(b)))]
+    .sort((a, b) => bhkSortKey(a) - bhkSortKey(b));
+  const localities = [...new Set(hub.props.map(p => H.titleCaseName(p.locality)).filter(Boolean))];
+  const developers = [...new Set(hub.props.map(p => H.titleCaseName(p.developer)).filter(Boolean))];
+  const names = hub.props.map(p => p.project_name).filter(Boolean);
+  const projects = plural(n, "new project", "new projects");
+  const priceRange = maxPrice > minPrice ? `from ${H.formatPrice(minPrice)} to ${H.formatPrice(maxPrice)}` : `at ${H.formatPrice(minPrice)}`;
+  const down = minDownPayment(hub.budget);
+
+  const intro = [
+    `Explore ${projects} in ${city} with flats priced under ${budget} on Keys99.`,
+    `Flats within this budget are priced ${priceRange}.`,
+    bhks.length ? `Sizes available: ${listText(bhks)}.` : "",
+    localities.length ? `Available in ${listText(localities, 5)}.` : "",
+    developers.length ? `Developers include ${listText(developers, 4)}.` : ""
+  ].filter(Boolean).join(" ");
+
+  const questions = [{
+    q: `Which new projects in ${city} have flats under ${budget}?`,
+    a: `Keys99 lists ${projects} in ${city} with flats under ${budget}: ${listText(names, 8)}.`
+  }];
+  if(bhks.length){
+    questions.push({
+      q: `Which BHK flats can I buy under ${budget} in ${city}?`,
+      a: `Within ${budget} you can choose from ${listText(bhks)} flats in new projects in ${city}.`
+    });
+  }
+  if(localities.length){
+    questions.push({
+      q: `Which localities in ${city} have flats under ${budget}?`,
+      a: `Flats under ${budget} are available in ${listText(localities)}.`
+    });
+  }
+  questions.push({
+    q: `How much down payment do I need for a ${budget} flat?`,
+    a: `RBI rules let banks lend up to 90% of a home's value for loans up to ₹ 30 Lakh, 80% for loans up to ₹ 75 Lakh and 75% above that. For a ${budget} flat, plan for a down payment of at least ${Math.round(down * 100)}% (${H.formatPrice(hub.budget * down)}), plus stamp duty and registration charges, which banks do not fund.`
+  });
+
+  return {
+    title: `Flats under ${budget} in ${city} | ${bhks.length ? listText(bhks.map(b => b.replace(/ BHK$/, "")), 4) + " BHK" : "New Projects"} | Keys99`,
+    intro,
+    questions,
+    facts: [
+      ["Projects", String(n)],
+      ["Starting from", H.formatPrice(minPrice)],
+      bhks.length ? ["Configurations", bhks.join(", ")] : null,
+      localities.length ? ["Localities", String(localities.length)] : null
+    ].filter(Boolean)
+  };
+}
+
+/* ---------- Status pages: /projects/<city>/<status>/ ----------
+   "Ready to move flats in Pune", "new launch projects in Pune" and
+   the like. One page per status the city has projects in. */
+
+const STATUS_PAGES = [
+  {
+    slug: "new-launch-projects",
+    noun: "a new launch flat",
+    label: "New Launch Projects",
+    match: p => p.is_new_launch,
+    about: "A new launch has just opened for booking. Buyers usually get the widest choice of floors and units at launch-phase prices, with possession several years away."
+  },
+  {
+    slug: "upcoming-projects",
+    noun: "a flat in an upcoming project",
+    label: "Upcoming Projects",
+    match: p => p.status_key === "upcoming",
+    about: "Upcoming projects are announced but not yet open for booking. Enquire early to hear about launch prices and the first units released."
+  },
+  {
+    slug: "under-construction-projects",
+    noun: "an under-construction flat",
+    label: "Under Construction Projects",
+    match: p => p.status_key === "under_construction",
+    about: "Under-construction homes are usually priced below ready homes, with payments spread over construction milestones. Check the RERA possession date and the building's progress before you book."
+  },
+  {
+    slug: "ready-to-move-flats",
+    noun: "a ready-to-move flat",
+    label: "Ready to Move Flats",
+    match: p => p.status_key === "ready_to_move" || p.status_key === "completed",
+    about: "Ready-to-move homes are complete, so you can inspect the actual flat and move in soon after registration. No GST is charged on a flat bought after the occupancy certificate is issued."
+  },
+  {
+    slug: "resale-flats",
+    noun: "a resale flat",
+    label: "Resale Flats",
+    match: p => p.is_resale,
+    about: "Resale flats are bought from an existing owner, so you can see the finished home and the society. Check the title, the society's NOC and any pending dues before paying a token amount."
+  }
+];
+
+function statusGroups(props){
+  return STATUS_PAGES
+    .map(s => ({ ...s, props: props.filter(s.match) }))
+    .filter(s => s.props.length);
+}
+
+function statusCopy(H, hub){
+  const city = hub.cityName;
+  const label = hub.statusLabel;
+  const lower = label.toLowerCase();
+  const sentence = lower.charAt(0).toUpperCase() + lower.slice(1);
+  const n = hub.props.length;
+  const s = summarise(H, hub.props);
+  const localities = [...new Set(hub.props.map(p => H.titleCaseName(p.locality)).filter(Boolean))];
+  const names = hub.props.map(p => p.project_name).filter(Boolean);
+  const possession = [...new Set(hub.props.map(p => p.possession).filter(Boolean))]
+    .sort((a, b) => new Date("1 " + a) - new Date("1 " + b));
+  const priceRange = s.minPrice === null ? ""
+    : s.maxPrice > s.minPrice ? `from ${H.formatPrice(s.minPrice)} to ${H.formatPrice(s.maxPrice)}` : `from ${H.formatPrice(s.minPrice)}`;
+
+  const intro = [
+    `Explore ${plural(n, lower.replace(/s$/, ""), lower)} in ${city} on Keys99.`,
+    s.bhks.length ? `Configurations available: ${listText(s.bhks)}.` : "",
+    priceRange ? `Prices ${s.maxPrice > s.minPrice ? "range" : "start"} ${priceRange}.` : "",
+    localities.length ? `Available in ${listText(localities, 5)}.` : "",
+    s.developers.length ? `Developers include ${listText(s.developers, 4)}.` : "",
+    /* Only when every project has a date, or one date would read
+       as the possession of them all. */
+    possession.length && hub.props.every(p => p.possession) && hub.statusSlug !== "ready-to-move-flats" && hub.statusSlug !== "resale-flats"
+      ? `Possession ${possession.length > 1 ? `from ${possession[0]} to ${possession[possession.length - 1]}` : possession[0]}.` : ""
+  ].filter(Boolean).join(" ");
+
+  const questions = [{
+    q: `Which ${lower} are there in ${city}?`,
+    a: `Keys99 lists ${plural(n, lower.replace(/s$/, ""), lower)} in ${city}: ${listText(names, 8)}.`
+  }];
+  if(priceRange){
+    questions.push({
+      q: `What is the price of ${lower} in ${city}?`,
+      a: `${sentence} in ${city} are priced ${priceRange}, depending on the project and configuration.`
+    });
+  }
+  if(localities.length){
+    questions.push({
+      q: `Which localities in ${city} have ${lower}?`,
+      a: `${sentence} are available in ${listText(localities)}.`
+    });
+  }
+  questions.push({ q: `What should I know before buying ${hub.statusNoun}?`, a: hub.about });
+
+  return {
+    title: `${label} in ${city} | Prices & Floor Plans | Keys99`,
+    intro,
+    questions,
+    facts: [
+      ["Projects", String(n)],
+      s.minPrice !== null ? ["Starting from", H.formatPrice(s.minPrice)] : null,
+      s.bhks.length ? ["Configurations", s.bhks.join(", ")] : null,
+      localities.length ? ["Localities", String(localities.length)] : null
+    ].filter(Boolean)
+  };
+}
+
+/* Budget and status pages of one city, with paths, skipping any
+   slug a locality already uses. Shared with the homepage guide. */
+function cityFilterPages(H, citySlug, props, takenSlugs){
+  const keep = page => {
+    if(!takenSlugs || !takenSlugs.has(page.slug)) return true;
+    console.warn(`  skipped  /projects/${citySlug}/${page.slug}/: a locality already uses that slug`);
+    return false;
+  };
+  const withPath = page => ({ ...page, path: `${citySlug}/${page.slug}`, count: page.props.length });
+  return {
+    budgets: budgetGroups(H, props).filter(keep).map(withPath),
+    statuses: statusGroups(props).filter(keep).map(withPath)
+  };
+}
+
 function pageTitle(H, s, place){
   const bhk = s.bhks.length ? `${listText(s.bhks.map(b => b.replace(/ BHK$/, "")), 4)} BHK Flats` : "Flats";
   return `New Projects in ${place} | ${bhk} for Sale | Keys99`;
@@ -309,7 +540,10 @@ function hubPage(ctx, hub){
   const prefix = "../".repeat(depth);
   const url = `${siteOrigin}/${dirPath}/`;
   const s = summarise(H, hub.props);
-  const copy = hub.bhk ? bhkCopy(H, hub) : hub.copy ? hub.copy(H, s) : null;
+  const copy = hub.bhk ? bhkCopy(H, hub)
+    : hub.budget ? budgetCopy(H, hub)
+    : hub.statusSlug ? statusCopy(H, hub)
+    : hub.copy ? hub.copy(H, s) : null;
   const title = copy ? copy.title : pageTitle(H, s, hub.place);
   const intro = copy ? copy.intro : introText(H, s, hub.place, hub.introExtra);
   const description = metaDescription(intro);
@@ -408,7 +642,7 @@ ${chrome.mobileMenu}
       <div class="section-kicker">${e(hub.kicker)}</div>
       <h1>${e(hub.h1)}</h1>
       <p class="hub-intro">${e(intro)}</p>
-      ${hub.about ? `<p class="hub-about">${e(hub.about)}</p>` : ""}
+      ${hub.about ? `<p class="hub-about">${e(hub.about)}${hub.aboutLink ? ` <a href="${e(hub.aboutLink.href)}">${e(hub.aboutLink.text)}</a>` : ""}</p>` : ""}
       ${hub.website ? `<p class="hub-website"><a href="${e(hub.website)}" target="_blank" rel="noopener nofollow">Visit the ${e(hub.websiteLabel || "official")} website ↗</a></p>` : ""}
       <dl class="hub-facts">
         ${facts.map(([k, v]) => `<div><dt>${e(k)}</dt><dd>${e(v)}</dd></div>`).join("\n        ")}
@@ -438,6 +672,18 @@ ${chrome.mobileMenu}
         </a>`).join("")}
       </div>
     </section>` : ""}
+
+    ${(hub.linkGroups || []).filter(g => g.links.length).map((g, i) => `
+    <section class="hub-section" aria-labelledby="hubLinks${i}">
+      <h2 class="section-title" id="hubLinks${i}">${e(g.heading)}</h2>
+      <div class="hub-localities">
+        ${g.links.map(l => `
+        <a class="locality-chip" href="projects/${e(l.path)}/">
+          <strong>${e(l.label)}</strong>
+          <span class="count">${plural(l.count, "Project", "Projects")}</span>
+        </a>`).join("")}
+      </div>
+    </section>`).join("")}
 
     ${hub.localities && hub.localities.length ? `
     <section class="hub-section" aria-labelledby="hubLocalities">
@@ -540,6 +786,14 @@ function collectHubs(H, props, reservedSlugs){
         return false;
       });
 
+    const filters = cityFilterPages(H, city.slug, city.props, new Set(city.localities.keys()));
+    const budgetLinks = filters.budgets.map(b => ({ path: b.path, label: b.label, count: b.count }));
+    const statusLinks = filters.statuses.map(st => ({ path: st.path, label: st.label, count: st.count }));
+    const linkGroups = (current, budgetHeading, statusHeading) => [
+      { heading: budgetHeading, links: budgetLinks.filter(l => l.path !== current) },
+      { heading: statusHeading, links: statusLinks.filter(l => l.path !== current) }
+    ];
+
     hubs.push({
       path: city.slug,
       place: city.name,
@@ -552,7 +806,49 @@ function collectHubs(H, props, reservedSlugs){
       props: city.props,
       localities,
       bhkLinks: bhkPages,
+      linkGroups: linkGroups("", `Flats by Budget in ${city.name}`, `Projects by Status in ${city.name}`),
       lastmod: latest(city.props)
+    });
+
+    filters.budgets.forEach(b => {
+      hubs.push({
+        path: b.path,
+        place: city.name,
+        cityName: city.name,
+        budget: b.limit,
+        budgetOptions: b.options,
+        h1: `Flats under ${budgetLabel(b.limit)} in ${city.name}`,
+        kicker: `${b.label} · ${city.name}`,
+        listHeading: `New Projects with Flats ${b.label} in ${city.name}`,
+        crumbs: [{ name: city.name, path: city.slug }, { name: `Flats ${b.label}`, path: b.path }],
+        props: b.props,
+        about: `Prices shown are the starting prices of each flat; the final price depends on the floor, view and car parking.`,
+        aboutLink: { href: "home-loans", text: `Work out the EMI on a ${budgetLabel(b.limit)} home →` },
+        linkGroups: linkGroups(b.path, `Other Budgets in ${city.name}`, `Projects by Status in ${city.name}`),
+        bhkLinks: bhkPages,
+        lastmod: latest(b.props)
+      });
+    });
+
+    filters.statuses.forEach(st => {
+      hubs.push({
+        path: st.path,
+        place: city.name,
+        cityName: city.name,
+        statusSlug: st.slug,
+        statusLabel: st.label,
+        statusNoun: st.noun,
+        h1: `${st.label} in ${city.name}`,
+        kicker: `${st.label} · ${city.name}`,
+        listHeading: `${st.label} in ${city.name}`,
+        crumbs: [{ name: city.name, path: city.slug }, { name: st.label, path: st.path }],
+        props: st.props,
+        about: st.about,
+        linkGroups: linkGroups(st.path, `Flats by Budget in ${city.name}`, `Other Project Types in ${city.name}`),
+        bhkLinks: bhkPages,
+        localities,
+        lastmod: latest(st.props)
+      });
     });
 
     bhkPages.forEach(b => {
@@ -567,6 +863,7 @@ function collectHubs(H, props, reservedSlugs){
         crumbs: [{ name: city.name, path: city.slug }, { name: `${b.label} Flats`, path: b.path }],
         props: b.props,
         bhkLinks: bhkPages.filter(o => o.path !== b.path),
+        linkGroups: linkGroups(b.path, `Flats by Budget in ${city.name}`, `Projects by Status in ${city.name}`),
         localities,
         lastmod: latest(b.props)
       });
@@ -739,4 +1036,4 @@ function buildHubs({ H, indexHtml, props, rows, reservedSlugs, siteOrigin, robot
     .map(hub => hubPage(ctx, hub));
 }
 
-module.exports = { buildHubs, homepageChrome, rebase, joinPath, summarise, introText, faqs, listText, bhkSlug, bhkLabelsOf };
+module.exports = { buildHubs, cityFilterPages, homepageChrome, rebase, joinPath, summarise, introText, faqs, listText, bhkSlug, bhkLabelsOf };
