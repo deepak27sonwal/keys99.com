@@ -1395,15 +1395,21 @@ section{
   align-items:center;
 }
 
+/* Text sizes in this section and the CTA below match the rest of the
+   homepage (14-15px body text, ~28px headings). Grey and gold text
+   use darker shades than --muted / --gold-dark, which fall below the
+   4.5:1 contrast minimum on these tinted backgrounds. */
 .trust-intro h2{
-  font-size:23px;
-  margin-bottom:5px;
+  font-size:28px;
+  line-height:1.25;
+  margin-bottom:8px;
 }
 
 .trust-intro p{
-  font-size:11px;
-  color:var(--muted);
-  max-width:280px;
+  font-size:15px;
+  line-height:1.6;
+  color:#5b6c75;
+  max-width:320px;
 }
 
 .trust-item{
@@ -1411,12 +1417,12 @@ section{
 
   border-left:1px solid #d8e7e3;
 
-  padding:5px;
+  padding:8px 6px;
 }
 
 .trust-icon{
-  width:42px;
-  height:42px;
+  width:48px;
+  height:48px;
 
   border:1px solid #d4e5e0;
 
@@ -1427,21 +1433,24 @@ section{
   display:grid;
   place-items:center;
 
-  margin:0 auto 7px;
+  margin:0 auto 10px;
 
   color:var(--green);
 
-  font-size:19px;
+  font-size:22px;
 }
 
 .trust-item strong{
   display:block;
-  font-size:11px;
+  font-size:15px;
+  margin-bottom:3px;
 }
 
 .trust-item span{
-  font-size:8px;
-  color:var(--muted);
+  display:block;
+  font-size:13px;
+  line-height:1.4;
+  color:#5b6c75;
 }
 
 
@@ -1479,22 +1488,23 @@ section{
 }
 
 .cta small{
-  font-size:9px;
+  font-size:12px;
 
-  color:var(--gold-dark);
+  color:#8a5f00;
 
   font-weight:700;
 
-  letter-spacing:2px;
+  letter-spacing:1.5px;
 }
 
 .cta h2{
-  font-size:22px;
+  font-size:26px;
+  margin:4px 0;
 }
 
 .cta p{
-  font-size:10px;
-  color:var(--muted);
+  font-size:15px;
+  color:#5b6c75;
 }
 
 .cta-btn{
@@ -1920,6 +1930,14 @@ footer{
 
   .trust-intro{
     grid-column:1/-1;
+  }
+
+  .trust-intro h2{
+    font-size:25px;
+  }
+
+  .cta h2{
+    font-size:23px;
   }
 
   .trust-item:nth-child(3){
