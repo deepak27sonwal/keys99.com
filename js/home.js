@@ -1872,3 +1872,29 @@ document.addEventListener("DOMContentLoaded", () => {
   initLoginButton();
   loadHomepage();
 });
+
+
+/* =========================================================
+   LAZY BACKGROUND IMAGES
+   CSS background photos cannot use loading="lazy". Elements marked
+   data-lazy-bg get the class .bg-ready (which adds the photo in CSS)
+   when they come within 400px of the screen; without
+   IntersectionObserver they get it straight away.
+========================================================= */
+
+(function lazyBackgrounds(){
+  const targets = document.querySelectorAll("[data-lazy-bg]");
+  if(!targets.length) return;
+  if(!("IntersectionObserver" in window)){
+    targets.forEach(el => el.classList.add("bg-ready"));
+    return;
+  }
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if(!entry.isIntersecting) return;
+      entry.target.classList.add("bg-ready");
+      observer.unobserve(entry.target);
+    });
+  }, { rootMargin: "400px 0px" });
+  targets.forEach(el => observer.observe(el));
+})();
