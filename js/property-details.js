@@ -478,6 +478,11 @@ function setupContactButtons(p){
   $("stickyWhatsappBtn").onclick = openWhatsapp;
   $("whatsappBtn").onclick = openWhatsapp;
 
+  /* Site visits need no agent number: the request is saved and the
+     expert calls back. */
+  $("visitBtn").onclick = () => openGate("visit");
+  $("visitTopBtn").onclick = () => openGate("visit");
+
   $("stickyEnquireBtn").onclick = () => {
     $("enquiryWrap").scrollIntoView({ behavior:"smooth", block:"start" });
     setTimeout(() => $("enquiryName").focus(), 400);
@@ -505,13 +510,29 @@ function openGate(mode){
   gateMode = mode;
   gateReturnFocus = document.activeElement;
   const whatsappMode = mode === "whatsapp";
+  const visitMode = mode === "visit";
   const saved = savedContact();
 
-  $("contactGateTitle").textContent = whatsappMode ? "Chat on WhatsApp" : "Call the project expert";
-  $("contactGateNote").textContent = `Share your details so the expert for ${project.name} knows who is getting in touch.`;
-  $("gateSubmit").textContent = whatsappMode ? "Continue to WhatsApp" : "Continue to call";
+  $("contactGateTitle").textContent = visitMode ? "Schedule a Site Visit"
+    : whatsappMode ? "Chat on WhatsApp" : "Call the project expert";
+  $("contactGateNote").textContent = visitMode
+    ? `Pick a day to see ${project.name}. The project expert will call to confirm the time.`
+    : `Share your details so the expert for ${project.name} knows who is getting in touch.`;
+  $("gateSubmit").textContent = visitMode ? "Request Site Visit"
+    : whatsappMode ? "Continue to WhatsApp" : "Continue to call";
   $("gateSubmit").classList.toggle("whatsapp", whatsappMode);
   $("gateError").hidden = true;
+
+  /* Visits: tomorrow up to 60 days ahead, in the visitor's own time zone. */
+  $("gateVisitFields").hidden = !visitMode;
+  if(visitMode){
+    const day = offset => { const d = new Date(); d.setDate(d.getDate() + offset); return localDate(d); };
+    $("gateDate").min = day(1);
+    $("gateDate").max = day(60);
+    if(!$("gateDate").value || $("gateDate").value < $("gateDate").min) $("gateDate").value = day(1);
+  }
+  $("contactGateForm").hidden = false;
+  $("gateDone").hidden = true;
 
   /* Prefer what is typed in the enquiry card, then the saved details. */
   $("gateName").value = $("enquiryName").value.trim() || $("gateName").value || saved.name || "";
@@ -526,6 +547,71 @@ function openGate(mode){
   $("contactGate").setAttribute("aria-hidden", "false");
   document.body.style.overflow = "hidden";
   setTimeout(() => ($("gateName").value ? $("gateSubmit") : $("gateName")).focus(), 50);
+}
+
+function localDate(d){
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function visitDateText(value){
+  const [y, m, d] = value.split("-").map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString("en-IN", { weekday:"long", day:"numeric", month:"long" });
+}
+
+/* Site visit: saved as a schedule_site_visit enquiry with the date;
+   the visitor stays on the page and sees a confirmation. */
+async function requestVisit(name, phone, bhk){
+  const date = $("gateDate").value;
+  const time = $("gateTime").value;
+  if(!date || date < $("gateDate").min || date > $("gateDate").max){
+    $("gateError").textContent = "Please pick a date between tomorrow and the next 60 days.";
+    $("gateError").hidden = false;
+    return;
+  }
+
+  const button = $("gateSubmit");
+  button.disabled = true;
+  button.textContent = "Sending...";
+  try{
+    await sendEnquiry({
+      project_id: project.id,
+      contact_person: name,
+      phone,
+      whatsapp: phone,
+      enquiry_type: "schedule_site_visit",
+      preferred_contact_method: "phone",
+      preferred_visit_date: date,
+      message: [
+        `Site visit requested for ${visitDateText(date)}, ${time}.`,
+        bhk ? `Preferred BHK: ${bhk}` : ""
+      ].filter(Boolean).join("\n"),
+      source: "website"
+    });
+  }catch(error){
+    console.error("Site visit request failed:", error);
+    $("gateError").textContent = "Could not send the request. Please try again, or use Call or WhatsApp.";
+    $("gateError").hidden = false;
+    button.disabled = false;
+    button.textContent = "Request Site Visit";
+    return;
+  }
+
+  saveContact(name, phone);
+  button.disabled = false;
+
+  const { whatsapp } = contactNumbers(project);
+  $("gateDoneText").textContent =
+    `Your visit to ${project.name} is requested for ${visitDateText(date)}, ${time.toLowerCase()}. ` +
+    `The project expert will call ${phone} to confirm.`;
+  $("gateDoneWhatsapp").hidden = !whatsapp;
+  $("gateDoneWhatsapp").onclick = () => {
+    const text = `Hi Keys99, I am ${name}. I have requested a site visit to ${project.name} on ${visitDateText(date)}, ${time}.\n${window.location.href}`;
+    window.open(`https://wa.me/${whatsapp}?text=${encodeURIComponent(text)}`, "_blank", "noopener");
+    closeGate();
+  };
+  $("contactGateForm").hidden = true;
+  $("gateDone").hidden = false;
+  setTimeout(() => $("gateDone").querySelector(".contact-gate-secondary").focus(), 50);
 }
 
 function closeGate(){
@@ -552,6 +638,11 @@ $("contactGateForm").addEventListener("submit", async event => {
   if(!name || phone.replace(/\D/g, "").length < 10){
     $("gateError").textContent = "Please enter your name and a valid 10-digit mobile number.";
     $("gateError").hidden = false;
+    return;
+  }
+
+  if(mode === "visit"){
+    await requestVisit(name, phone, bhk);
     return;
   }
 
