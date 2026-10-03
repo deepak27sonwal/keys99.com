@@ -149,3 +149,6 @@
 /* Header "Saved" button: number of saved projects (js/compare-tray.js) */
 .saved-count{display:inline-grid;place-items:center;min-width:18px;height:18px;margin-left:4px;padding:0 5px;border-radius:999px;background:#e1a400;color:#082d38;font-size:var(--fs-label);font-weight:800;line-height:1}
 .saved-count[hidden]{display:none}
+
+/* Phone headings: same scale as the rest of the site. */
+@media(max-width:620px){.contact-gate-card h2{font-size:18px}}

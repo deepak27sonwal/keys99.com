@@ -2498,3 +2498,52 @@ footer{
     max-height:38px;
   }
 }
+
+
+/* =========================================================
+   PHONE HEADINGS (600px and below)
+   One heading scale for phones, so titles fit the screen
+   without crowding: hero 30px, page titles 24px, section
+   titles 21px, subheadings 19/17px. Kickers keep 12px but with
+   tighter spacing, and "View All" stays on one line. Article
+   pages (css/legal.css) follow the same sizes.
+========================================================= */
+
+@media (max-width:600px){
+
+  .hero h1{
+    font-size:30px;
+    letter-spacing:-.8px;
+  }
+
+  .hub-head h1{
+    font-size:24px;
+  }
+
+  .section-title,
+  .trust-intro h2,
+  .cta h2{
+    font-size:21px;
+    line-height:1.25;
+  }
+
+  .hub-guide h3,
+  .home-guide h3{
+    font-size:17px;
+  }
+
+  .eyebrow,
+  .section-kicker{
+    letter-spacing:1.5px;
+  }
+
+  .section-head{
+    gap:12px;
+    margin-bottom:16px;
+  }
+
+  .view-all{
+    flex:none;
+    white-space:nowrap;
+  }
+}

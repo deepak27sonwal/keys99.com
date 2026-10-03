@@ -305,3 +305,10 @@
     align-items:flex-start;
   }
 }
+
+/* Phone headings: same scale as css/index.css. */
+@media (max-width:600px){
+  .legal-body h1{ font-size:24px; }
+  .legal-body h2{ font-size:19px; }
+  .legal-body h3{ font-size:17px; }
+}
