@@ -67,7 +67,7 @@ function buildSavedPage({ H, indexHtml, props, siteOrigin }){
 <main class="hub saved-page">
   <div class="container">
     <nav class="hub-breadcrumb" aria-label="Breadcrumb">
-      <a href="index.html">Home</a><span>›</span><span aria-current="page">Saved</span>
+      <a href="./">Home</a><span>›</span><span aria-current="page">Saved</span>
     </nav>
 
     <header class="hub-head">
@@ -150,7 +150,7 @@ function buildReelsPage({ H, P, indexHtml, rows, supabaseUrl, siteOrigin, robots
 <main class="hub reels-page">
   <div class="container">
     <nav class="hub-breadcrumb" aria-label="Breadcrumb">
-      <a href="index.html">Home</a><span>›</span><span aria-current="page">Reels</span>
+      <a href="./">Home</a><span>›</span><span aria-current="page">Reels</span>
     </nav>
 
     <header class="hub-head">

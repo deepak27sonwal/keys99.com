@@ -42,7 +42,7 @@ ${chrome.mobileMenu}
   <div class="container">
 
     <nav class="hub-breadcrumb" aria-label="Breadcrumb">
-      <a href="index.html">Home</a><span>›</span>
+      <a href="./">Home</a><span>›</span>
       <a href="projects/search.html">Projects</a><span>›</span>
       <span aria-current="page">Compare</span>
     </nav>

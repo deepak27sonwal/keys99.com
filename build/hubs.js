@@ -238,13 +238,22 @@ function homepageChrome(indexHtml){
   };
 }
 
+/* Home is linked as "./" (or "./#why"), never "index.html", so
+   search engines see one homepage URL. Prefixing "../../" onto "./"
+   would give "../.././", so the "./" is dropped first - and put back
+   when there is no prefix, since an empty href means "this page". */
+function joinPath(prefix, v){
+  const joined = prefix + v.replace(/^\.\//, "");
+  return joined === "" || joined.startsWith("#") ? "./" + joined : joined;
+}
+
 /* Links in the page are written relative to the site root, then
    re-pointed for the page's depth (works on a sub-path too). */
 function rebase($, prefix){
   $("[href], [src]").each((_, el) => {
     ["href", "src"].forEach(attr => {
       const v = $(el).attr(attr);
-      if(v && !SKIP_URL.test(v) && !v.startsWith("/")) $(el).attr(attr, prefix + v);
+      if(v && !SKIP_URL.test(v) && !v.startsWith("/")) $(el).attr(attr, joinPath(prefix, v));
     });
   });
   $("[onerror]").each((_, el) => {
@@ -268,6 +277,23 @@ function devLinksSection(hub, e){
     </section>`;
 }
 
+/* Google cuts descriptions off at roughly 155-160 characters, so
+   take whole sentences of the intro up to that length. Only when the
+   first sentence alone is too long is it cut mid-sentence. */
+const META_DESCRIPTION_MAX = 160;
+function metaDescription(intro){
+  if(intro.length <= META_DESCRIPTION_MAX) return intro;
+  let out = "";
+  /* A sentence ends at . ! or ? followed by a space and a capital or
+     ₹ - so "2.5 BHK", "₹ 4.47 Cr" and "Sq.Ft" are not split. */
+  for(const sentence of intro.split(/(?<=[.!?])\s+(?=[A-Z₹])/)){
+    const next = out ? out + " " + sentence : sentence;
+    if(next.length > META_DESCRIPTION_MAX) break;
+    out = next;
+  }
+  return out || intro.slice(0, META_DESCRIPTION_MAX - 1).replace(/\s+\S*$/, "") + "…";
+}
+
 function crumbPath(c){
   if(!c.path && !c.base) return "";
   return `${c.base || "projects"}/${c.path ? c.path + "/" : ""}`;
@@ -286,7 +312,7 @@ function hubPage(ctx, hub){
   const copy = hub.bhk ? bhkCopy(H, hub) : hub.copy ? hub.copy(H, s) : null;
   const title = copy ? copy.title : pageTitle(H, s, hub.place);
   const intro = copy ? copy.intro : introText(H, s, hub.place, hub.introExtra);
-  const description = intro.length > 300 ? intro.slice(0, 297).replace(/\s+\S*$/, "") + "…" : intro;
+  const description = metaDescription(intro);
   const questions = copy ? copy.questions : faqs(H, s, hub.place);
   const e = H.escapeHtml;
 
@@ -374,7 +400,7 @@ ${chrome.mobileMenu}
 
     <nav class="hub-breadcrumb" aria-label="Breadcrumb">
       ${crumbs.map((c, i) => i < crumbs.length - 1
-        ? `<a href="${crumbPath(c) || "index.html"}">${e(c.name)}</a><span>›</span>`
+        ? `<a href="${crumbPath(c) || "./"}">${e(c.name)}</a><span>›</span>`
         : `<span aria-current="page">${e(c.name)}</span>`).join("\n      ")}
     </nav>
 
@@ -713,4 +739,4 @@ function buildHubs({ H, indexHtml, props, rows, reservedSlugs, siteOrigin, robot
     .map(hub => hubPage(ctx, hub));
 }
 
-module.exports = { buildHubs, homepageChrome, rebase, summarise, introText, faqs, listText, bhkSlug, bhkLabelsOf };
+module.exports = { buildHubs, homepageChrome, rebase, joinPath, summarise, introText, faqs, listText, bhkSlug, bhkLabelsOf };

@@ -48,7 +48,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/index.css?v=8fb9f094">
+<link rel="stylesheet" href="css/index.css?v=d390da5a">
 <link rel="stylesheet" href="css/chat-widget.css?v=51966348">
 <link rel="stylesheet" href="css/custom-select.css?v=ec82a993">
 
@@ -75,7 +75,7 @@
 
     <!-- LOGO -->
 
-    <a class="logo logo-link" href="index.html">
+    <a class="logo logo-link" href="./">
 
       <!-- width/height are the image's intrinsic size, not its
            display size - the CSS still sizes it. They let the
@@ -96,12 +96,12 @@
 
     <nav class="nav-links">
 
-      <a class="active" href="index.html">Home</a>
+      <a class="active" href="./">Home</a>
       <a href="projects/search.html?status=sale">Buy</a>
       <a href="projects/search.html?status=rent">Rent</a>
-      <a href="index.html#types">Projects</a>
-      <a href="index.html#why">About</a>
-      <a href="index.html#footer">Contact</a>
+      <a href="./#types">Projects</a>
+      <a href="about.html">About</a>
+      <a href="contact.html">Contact</a>
 
     </nav>
 
@@ -138,12 +138,12 @@
 
 <div class="mobile-menu" id="mobileMenu">
 
-  <a href="index.html">Home</a>
+  <a href="./">Home</a>
   <a href="projects/search.html?status=sale">Buy Property</a>
   <a href="projects/search.html?status=rent">Rent Property</a>
-  <a href="index.html#types">Projects</a>
-  <a href="index.html#why">Why Keys99</a>
-  <a href="index.html#footer">Contact</a>
+  <a href="./#types">Projects</a>
+  <a href="./#why">Why Keys99</a>
+  <a href="contact.html">Contact</a>
 
 </div>
 
@@ -376,20 +376,16 @@
         <h2 class="section-title">Property Types for Sale &amp; Rent</h2>
       </div>
 
-      <button
-        class="view-all"
-        type="button"
-        onclick="window.location.href='projects/search.html'"
-      >
+      <a class="view-all" href="projects/search.html">
         View All →
-      </button>
+      </a>
 
     </div>
 
 
     <div class="type-grid" id="typeGrid">
 
-      <article class="type-card" data-type="residential" tabindex="0" role="button">
+      <a class="type-card" data-type="residential" href="projects/search.html?type=residential">
         <div class="type-img">
           <img src="assets/type-residential.svg" alt="Residential apartments and flats" loading="lazy" width="700" height="420">
         </div>
@@ -402,9 +398,9 @@
             <span class="arrow">→</span>
           </div>
         </div>
-      </article>
+      </a>
 
-      <article class="type-card" data-type="commercial" tabindex="0" role="button">
+      <a class="type-card" data-type="commercial" aria-disabled="true">
         <div class="type-img">
           <img src="assets/type-commercial.svg" alt="Commercial offices and shops" loading="lazy" width="700" height="420">
         </div>
@@ -417,9 +413,9 @@
             <span class="arrow">→</span>
           </div>
         </div>
-      </article>
+      </a>
 
-      <article class="type-card" data-type="rent" tabindex="0" role="button">
+      <a class="type-card" data-type="rent" aria-disabled="true">
         <div class="type-img">
           <img src="assets/type-rent.svg" alt="Flats and homes for rent" loading="lazy" width="700" height="420">
         </div>
@@ -432,9 +428,9 @@
             <span class="arrow">→</span>
           </div>
         </div>
-      </article>
+      </a>
 
-      <article class="type-card" data-type="resale" tabindex="0" role="button">
+      <a class="type-card" data-type="resale" href="projects/search.html?type=resale">
         <div class="type-img">
           <img src="assets/type-resale.svg" alt="Resale flats and homes" loading="lazy" width="700" height="420">
         </div>
@@ -447,9 +443,9 @@
             <span class="arrow">→</span>
           </div>
         </div>
-      </article>
+      </a>
 
-      <article class="type-card" data-type="luxury" tabindex="0" role="button">
+      <a class="type-card" data-type="luxury" href="projects/search.html?type=luxury">
         <div class="type-img">
           <img src="assets/type-luxury.svg" alt="Luxury villas and premium homes" loading="lazy" width="700" height="420">
         </div>
@@ -462,9 +458,9 @@
             <span class="arrow">→</span>
           </div>
         </div>
-      </article>
+      </a>
 
-      <article class="type-card" data-type="plots" tabindex="0" role="button">
+      <a class="type-card" data-type="plots" aria-disabled="true">
         <div class="type-img">
           <img src="assets/type-plots.svg" alt="Residential plots and land" loading="lazy" width="700" height="420">
         </div>
@@ -477,7 +473,7 @@
             <span class="arrow">→</span>
           </div>
         </div>
-      </article>
+      </a>
 
     </div>
 
@@ -504,9 +500,9 @@
         <h2 class="section-title">New Launch Projects</h2>
       </div>
 
-      <button class="view-all" id="newLaunchesViewAllBtn" type="button" style="display:none">
+      <a class="view-all" id="newLaunchesViewAllBtn" href="projects/search.html" style="display:none">
         View All →
-      </button>
+      </a>
 
     </div>
 
@@ -991,12 +987,12 @@ ndndmmfmfm dfghhjuuujh"
 
       <div>
         <div class="section-kicker">Featured Properties</div>
-        <h2 class="section-title">Popular Properties in India</h2>
+        <h2 class="section-title">Popular New Projects in Pune</h2>
       </div>
 
-      <button class="view-all" id="viewAllBtn" type="button">
+      <a class="view-all" id="viewAllBtn" href="projects/search.html">
         View All →
-      </button>
+      </a>
 
     </div>
 
@@ -1933,9 +1929,9 @@ ndndmmfmfm dfghhjuuujh"
         <p>Your dream home is just a click away.</p>
       </div>
 
-      <button class="cta-btn" onclick="window.location.href='projects/search.html'">
+      <a class="cta-btn" href="projects/search.html">
         Explore Properties &nbsp; →
-      </button>
+      </a>
 
     </div>
 
@@ -1960,7 +1956,7 @@ ndndmmfmfm dfghhjuuujh"
 
       <div class="footer-col footer-brand">
 
-        <a class="logo logo-link" href="index.html">
+        <a class="logo logo-link" href="./">
           <img src="assets/logo.png" alt="Keys99.com" class="header-logo" width="866" height="288" loading="lazy">
         </a>
 
@@ -1972,16 +1968,16 @@ ndndmmfmfm dfghhjuuujh"
 
       <div class="footer-col">
         <h4>Quick Links</h4>
-        <a href="index.html">Home</a>
+        <a href="./">Home</a>
         <a href="projects/search.html?status=sale">Buy</a>
         <a href="projects/search.html?status=rent">Rent</a>
-        <a href="index.html#types">Projects</a>
+        <a href="./#types">Projects</a>
       </div>
 
       <div class="footer-col">
         <h4>Company</h4>
-        <a href="index.html#why">About Us</a>
-        <a href="index.html#footer">Contact Us</a>
+        <a href="about.html">About Us</a>
+        <a href="contact.html">Contact Us</a>
         <a href="privacy-policy.html">Privacy Policy</a>
         <a href="terms.html">Terms &amp; Conditions</a>
       </div>
@@ -1996,7 +1992,6 @@ ndndmmfmfm dfghhjuuujh"
         </div>
 
         <p style="margin-top:12px">support@keys99.com</p>
-        <p>+91 98765 43210</p>
         <p>India</p>
       </div>
 
@@ -3012,7 +3007,7 @@ function initBottomNav(activeTarget){
       if(location.pathname.endsWith("index.html") || location.pathname === "/" || location.pathname.endsWith("/")){
         window.scrollTo({ top:0, behavior:"smooth" });
       }else{
-        window.location.href = "index.html";
+        window.location.href = "./";
       }
 
     }else if(target === "search"){
@@ -3165,11 +3160,6 @@ function renderPopularProperties(){
 
 }
 
-if(viewAllBtn){
-  viewAllBtn.addEventListener("click", () => {
-    window.location.href = "projects/search.html";
-  });
-}
 
 
 /* =========================================================
@@ -3219,11 +3209,6 @@ function showNewLaunchesError(){
   newLaunchesViewAllBtn.style.display = "none";
 }
 
-if(newLaunchesViewAllBtn){
-  newLaunchesViewAllBtn.addEventListener("click", () => {
-    window.location.href = "projects/search.html";
-  });
-}
 
 
 /* =========================================================
@@ -3375,6 +3360,19 @@ function typeCountText(n){
   return n ? `${formatStatCount(n)} ${n === 1 ? "Project" : "Projects"}` : "Coming soon";
 }
 
+/* A type with projects links to its search results; one without is
+   left as a "Coming soon" card with no link. build/homepage.js makes
+   the same change in the pre-rendered HTML. */
+function setTypeCardState(card, count){
+  if(count){
+    card.setAttribute("href", "projects/search.html?type=" + encodeURIComponent(card.dataset.type));
+    card.removeAttribute("aria-disabled");
+  }else{
+    card.removeAttribute("href");
+    card.setAttribute("aria-disabled", "true");
+  }
+}
+
 function renderSiteStats(properties){
   const stats = computeSiteStats(properties);
   document.querySelectorAll("[data-stat]").forEach(el => {
@@ -3382,6 +3380,9 @@ function renderSiteStats(properties){
   });
   document.querySelectorAll("[data-type-count]").forEach(el => {
     el.textContent = typeCountText(stats.types[el.dataset.typeCount]);
+  });
+  document.querySelectorAll(".type-card[data-type]").forEach(card => {
+    setTypeCardState(card, stats.types[card.dataset.type]);
   });
 }
 
@@ -3497,24 +3498,12 @@ function showTopLocalitiesError(){
 
 
 /* =========================================================
-   PROPERTY TYPE CARDS -> click redirects to
-   projects/search.html?type=residential (etc.)
+   PROPERTY TYPE CARDS
+   Plain links to projects/search.html?type=residential (etc.),
+   so search engines can follow them. A type with no projects
+   yet has its href removed (see setTypeCardState) rather than
+   linking to an empty results page.
 ========================================================= */
-
-document.getElementById("typeGrid").querySelectorAll(".type-card").forEach(card => {
-
-  const activate = () => goToSearch({ type: card.dataset.type });
-
-  card.addEventListener("click", activate);
-
-  card.addEventListener("keypress", event => {
-    if(event.key === "Enter" || event.key === " "){
-      event.preventDefault();
-      activate();
-    }
-  });
-
-});
 
 
 /* =========================================================
