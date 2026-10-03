@@ -55,12 +55,15 @@
 <link rel="stylesheet" href="css/chat-widget.css?v=51966348">
 <link rel="stylesheet" href="css/custom-select.css?v=ec82a993">
 
-<!-- defer: without it the browser stops and fetches ~100KB from a
-     third-party CDN before painting anything, so first paint waits on
-     a domain we do not control. Deferred scripts still run in document
-     order, and all run before DOMContentLoaded - which is where
-     loadHomepage() is called from, so supabaseClient exists by then. -->
-<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
+<!-- The Supabase client (supabase-js 2.117.2, the package's own
+     dist/umd/supabase.js, MIT licence in js/supabase.LICENSE.txt),
+     served from this site rather than a CDN so the page needs no
+     extra connection. To upgrade, replace the file with the new
+     version's dist/umd/supabase.js. defer: deferred scripts still run
+     in document order, and all run before DOMContentLoaded - which is
+     where loadHomepage() is called from, so supabaseClient exists by
+     then. -->
+<script defer src="js/supabase.js"></script>
 
 </head>
 

@@ -70,7 +70,7 @@ ${chrome.footer}
 
 ${chrome.bottomNav}
 
-<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
+<script defer src="js/supabase.js"></script>
 <script defer src="js/config.js"></script>
 <script defer src="js/project-core.js"></script>
 <script defer src="js/hub.js"></script>
