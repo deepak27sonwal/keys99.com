@@ -26,6 +26,10 @@ const PUBLIC = [
   "assets", "css", "js", "projects", "developers", "admin"
 ];
 
+/* Published when they exist: /blog/ is only built once there is an
+   article in content/blog/. */
+const OPTIONAL = ["blog"];
+
 const CLOUDFLARE_FILES = ["_headers", "_redirects"];
 
 fs.rmSync(DIST, { recursive: true, force: true });
@@ -36,6 +40,10 @@ PUBLIC.forEach(name => {
   const from = path.join(ROOT, name);
   if(!fs.existsSync(from)){ missing.push(name); return; }
   fs.cpSync(from, path.join(DIST, name), { recursive: true });
+});
+OPTIONAL.forEach(name => {
+  const from = path.join(ROOT, name);
+  if(fs.existsSync(from)) fs.cpSync(from, path.join(DIST, name), { recursive: true });
 });
 CLOUDFLARE_FILES.forEach(name => {
   fs.copyFileSync(path.join(ROOT, "cloudflare", name), path.join(DIST, name));

@@ -95,3 +95,15 @@ locality (connectivity, living there, who it suits). The build shows it on
 A guide whose top comment contains `status: draft` is shown but does not make
 the page indexable. Check the facts, then delete that line: a locality with a
 checked guide is indexed and listed in the sitemap even with a single project.
+
+## Blog
+
+Articles live in `content/blog/<slug>.html` and are built to `/blog/<slug>/`,
+with a list at `/blog/` (`build/blog.js`). Each file starts with a comment
+giving its `title`, `description` and `date` (plus optional `updated`,
+`author` and `category`); see the top of `build/blog.js` for the format. As in
+the locality guides, links are written from the site root and `<details>`
+blocks become FAQs.
+
+An article with `status: draft` in that comment is published but kept out of
+the index and the sitemap. Check it, then delete the line.

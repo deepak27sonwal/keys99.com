@@ -28,6 +28,7 @@ const { buildThumbs } = require("./thumbs.js");
 const { buildHubs, loadLocalityGuides, joinPath } = require("./hubs.js");
 const { buildSearchPage } = require("./search.js");
 const { buildLegalPages } = require("./legal.js");
+const { buildBlog } = require("./blog.js");
 const { buildComparePage } = require("./compare.js");
 const { buildSavedPage, buildReelsPage } = require("./extra-pages.js");
 const { stampAssetVersions, htmlFiles } = require("./asset-versions.js");
@@ -293,7 +294,7 @@ function removeStalePages(base, current){
   fs.writeFileSync(manifestFor(base), JSON.stringify(current.sort(), null, 2) + "\n");
 }
 
-function writeSitemap(pages, hubs){
+function writeSitemap(pages, hubs, articles){
   const day = v => {
     const d = new Date(v);
     return Number.isFinite(d.getTime()) ? d.toISOString().slice(0, 10) : "";
@@ -305,7 +306,8 @@ function writeSitemap(pages, hubs){
     { loc: SITE_ORIGIN + "/home-loans", lastmod: "" },
     ...(hubs || []).filter(h => h.indexable || h.count >= HUB_MIN_INDEXED)
       .map(h => ({ loc: `${SITE_ORIGIN}/${h.dir}/`, lastmod: day(h.lastmod) })),
-    ...pages.map(p => ({ loc: `${SITE_ORIGIN}/projects/${p.slug}/`, lastmod: day(p.lastmod) }))
+    ...pages.map(p => ({ loc: `${SITE_ORIGIN}/projects/${p.slug}/`, lastmod: day(p.lastmod) })),
+    ...(articles || []).map(a => ({ loc: `${SITE_ORIGIN}/${a.dir}/`, lastmod: day(a.lastmod) }))
   ];
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -415,9 +417,23 @@ async function main(){
       console.log(`  wrote    /${page.file}`);
     });
 
+  const blog = buildBlog({
+    root: ROOT, indexHtml: fs.readFileSync(indexPath, "utf8"), siteOrigin: SITE_ORIGIN,
+    robots: ROBOTS, indexable: INDEXABLE, defaultShareImage: DEFAULT_SHARE_IMAGE
+  });
+  blog.pages.forEach(page => {
+    const dir = path.join(ROOT, ...page.dir.split("/"));
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, "index.html"), page.html);
+    console.log(`  wrote    /${page.dir}/${page.draft ? "  (draft: kept out of the index)" : ""}`);
+  });
+  /* No articles left: the list page goes too. */
+  if(!blog.pages.length) fs.rmSync(path.join(ROOT, "blog", "index.html"), { force: true });
+
   removeStalePages("projects", [...pages.map(p => p.slug), ...hubs.filter(h => h.base === "projects").map(h => h.path)]);
   removeStalePages("developers", hubs.filter(h => h.base === "developers").map(h => h.path));
-  writeSitemap(pages, hubs);
+  removeStalePages("blog", blog.pages.map(p => p.slug));
+  writeSitemap(pages, hubs, blog.pages.filter(p => !p.draft));
 
   const home = buildHomepage(indexPath, goodRows, config.url);
   /* Homepage link preview: the brand image, from where the site is served. */
@@ -436,7 +452,7 @@ async function main(){
     path.join(ROOT, "terms.html"),
     path.join(ROOT, "saved.html"),
     path.join(ROOT, "reels.html"),
-    ...htmlFiles(ROOT, ["projects", "developers", "admin"])
+    ...htmlFiles(ROOT, ["projects", "developers", "blog", "admin"])
   ]);
   console.log(`  versioned CSS/JS links in ${stamped} page(s)`);
 
