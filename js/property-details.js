@@ -562,7 +562,8 @@ function visitDateText(value){
    the visitor stays on the page and sees a confirmation. */
 async function requestVisit(name, phone, bhk){
   const date = $("gateDate").value;
-  const time = $("gateTime").value;
+  const timeKey = $("gateTime").value;                 // morning / afternoon / evening
+  const time = $("gateTime").selectedOptions[0].textContent.trim();
   if(!date || date < $("gateDate").min || date > $("gateDate").max){
     $("gateError").textContent = "Please pick a date between tomorrow and the next 60 days.";
     $("gateError").hidden = false;
@@ -586,7 +587,7 @@ async function requestVisit(name, phone, bhk){
         bhk ? `Preferred BHK: ${bhk}` : ""
       ].filter(Boolean).join("\n"),
       source: "website"
-    });
+    }, { preferred_visit_time: timeKey });
   }catch(error){
     console.error("Site visit request failed:", error);
     $("gateError").textContent = "Could not send the request. Please try again, or use Call or WhatsApp.";
@@ -696,10 +697,13 @@ $("contactGateForm").addEventListener("submit", async event => {
 /* Saves an enquiry with where the visitor came from (js/attribution.js).
    If the database does not have those columns yet
    (supabase/04-enquiry-source.sql not run), it is sent without them. */
-async function sendEnquiry(enquiry){
+async function sendEnquiry(enquiry, optional){
+  /* optional: newer columns (e.g. preferred_visit_time) that are left
+     out on the retry, with the tracking, if the database lacks them. */
   const tracking = window.Keys99Attribution ? window.Keys99Attribution.get() : {};
-  let { error } = await supabaseClient.from("residential_enquiries").insert({ ...enquiry, ...tracking });
-  if(error && Object.keys(tracking).length && (error.code === "PGRST204" || /column/i.test(error.message || ""))){
+  const extra = { ...(optional || {}), ...tracking };
+  let { error } = await supabaseClient.from("residential_enquiries").insert({ ...enquiry, ...extra });
+  if(error && Object.keys(extra).length && (error.code === "PGRST204" || /column/i.test(error.message || ""))){
     ({ error } = await supabaseClient.from("residential_enquiries").insert(enquiry));
   }
   if(error) throw error;

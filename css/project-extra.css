@@ -122,3 +122,6 @@
 .contact-gate-tick{width:54px;height:54px;border-radius:50%;background:#e4f5ef;color:var(--green);display:grid;place-items:center;font-size:26px;font-weight:800}
 .contact-gate-done .contact-gate-submit{width:100%}
 .contact-gate-secondary{width:100%;padding:11px;border:1px solid #d3e0dc;border-radius:10px;background:#fff;color:var(--text);font:inherit;font-size:13.5px;font-weight:700;cursor:pointer}
+@media (max-width:480px){
+  .contact-gate-row{grid-template-columns:1fr}
+}
