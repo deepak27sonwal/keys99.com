@@ -306,6 +306,12 @@
         priceValue: !onRequest && from > 0 && !perUnit ? from : null,
         area: area > 0 ? formatNumber(area) + " " + (c.area_unit === "sq_m" ? "Sq.M" : "Sq.Ft") : "",
         availability: AVAILABILITY_LABELS[c.availability] || "Available",
+        soldOut: c.availability === "sold_out",
+        /* For structured data: the top of the price range, and the
+           carpet area as a number with its UN/CEFACT unit code. */
+        priceMaxValue: !onRequest && from > 0 && !perUnit ? (to > from ? to : from) : null,
+        areaValue: area > 0 ? area : null,
+        areaUnitCode: c.area_unit === "sq_m" ? "MTK" : "FTK",
         rate: rate ? Math.round(rate / 10) * 10 : null,
         rateText: rate ? formatRate(rate) : ""
       };
@@ -383,6 +389,7 @@
       slug: row.slug,
       name,
       typeLabel,
+      statusKey: statusKey || "",
       status: STATUS_LABELS[statusKey] || "",
       statusClass: statusKey ? "st-" + String(statusKey).replace(/_/g, "-") : "",
       city, locality, state,
@@ -632,8 +639,63 @@
     };
     if(p.images.length) place.image = p.images.slice(0, 6).map(i => i.url);
     if(p.amenities.length) place.amenityFeature = p.amenities.map(a => ({ "@type":"LocationFeatureSpecification", name:a.name, value:true }));
-    if(Number(p.latitude) && Number(p.longitude)) place.geo = { "@type":"GeoCoordinates", latitude:Number(p.latitude), longitude:Number(p.longitude) };
+    if(Number(p.latitude) && Number(p.longitude)){
+      place.geo = { "@type":"GeoCoordinates", latitude:Number(p.latitude), longitude:Number(p.longitude) };
+      place.hasMap = `https://www.google.com/maps?q=${Number(p.latitude)},${Number(p.longitude)}`;
+    }
+    if(p.rera) place.identifier = { "@type":"PropertyValue", name:"RERA registration number", value:p.rera };
     graph.push(place);
+
+    /* The page itself is a listing of that project. Its offers give
+       the price range (lowest starting price to highest maximum) and
+       one Offer per priced configuration. Price-on-request and
+       per-sq-ft rates are not prices, so they are left out. */
+    const listing = {
+      "@type": "RealEstateListing",
+      "@id": pageUrl + "#listing",
+      name: p.name,
+      url: pageUrl,
+      mainEntity: { "@id": pageUrl + "#project" },
+      provider: { "@type":"RealEstateAgent", "@id": siteUrl + "/#organisation", name:"Keys99", url: siteUrl }
+    };
+    const day = v => { const d = new Date(v); return Number.isFinite(d.getTime()) ? d.toISOString().slice(0, 10) : undefined; };
+    listing.datePosted = day(p.publishedAt);
+    listing.dateModified = day(p.updatedAt);
+
+    const priced = p.configurations.filter(c => c.priceValue);
+    if(priced.length){
+      const ready = ["ready_to_move", "completed", "possession_started", "resale"].includes(p.statusKey);
+      const schemaAvailability = soldOut => "https://schema.org/" + (soldOut ? "SoldOut" : ready ? "InStock" : "PreSale");
+      listing.offers = {
+        "@type": "AggregateOffer",
+        priceCurrency: "INR",
+        lowPrice: Math.min(...priced.map(c => c.priceValue)),
+        highPrice: Math.max(...priced.map(c => c.priceMaxValue)),
+        offerCount: priced.length,
+        availability: schemaAvailability(priced.every(c => c.soldOut)),
+        offers: priced.map(c => {
+          const label = [c.bhk, c.variant].filter(Boolean).join(" ") || "Apartment";
+          const flat = { "@type":"Apartment", name: `${label} in ${p.name}` };
+          const rooms = parseFloat(c.bhk);
+          if(rooms > 0) flat.numberOfBedrooms = Math.floor(rooms);
+          if(c.areaValue) flat.floorSize = { "@type":"QuantitativeValue", value:c.areaValue, unitCode:c.areaUnitCode };
+          const offer = {
+            "@type": "Offer",
+            name: label,
+            priceCurrency: "INR",
+            availability: schemaAvailability(c.soldOut),
+            itemOffered: flat
+          };
+          if(c.priceMaxValue > c.priceValue){
+            offer.priceSpecification = { "@type":"PriceSpecification", priceCurrency:"INR", minPrice:c.priceValue, maxPrice:c.priceMaxValue };
+          }else{
+            offer.price = c.priceValue;
+          }
+          return offer;
+        })
+      };
+    }
+    graph.push(listing);
 
     /* Home > City > Locality > Project; build/hubs.js writes the
        city and locality pages these point to. */
