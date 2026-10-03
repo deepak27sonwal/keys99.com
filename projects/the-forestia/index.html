@@ -606,19 +606,25 @@ Premchand bdnsjajsk</div>
       <span>Mobile Number</span>
       <input id="gatePhone" type="tel" inputmode="tel" autocomplete="tel" maxlength="16" placeholder="10-digit number" required="">
     </label>
-    <div class="contact-gate-row" id="gateVisitFields" hidden="">
+    <div class="contact-gate-visit" id="gateVisitFields" hidden="">
       <label class="contact-gate-field">
         <span>Preferred Date</span>
         <input id="gateDate" type="date">
       </label>
-      <label class="contact-gate-field">
-        <span>Time</span>
-        <select id="gateTime">
-          <option value="morning">Morning (10 am – 1 pm)</option>
-          <option value="afternoon">Afternoon (1 pm – 4 pm)</option>
-          <option value="evening">Evening (4 pm – 7 pm)</option>
-        </select>
-      </label>
+      <fieldset class="slot-picker">
+        <legend>Time Slot</legend>
+        <div class="slot-grid" id="gateSlots">
+          <label class="slot"><input type="radio" name="gateSlot" value="10:00"><span>10:00 AM</span></label>
+          <label class="slot"><input type="radio" name="gateSlot" value="11:00"><span>11:00 AM</span></label>
+          <label class="slot"><input type="radio" name="gateSlot" value="12:00"><span>12:00 PM</span></label>
+          <label class="slot"><input type="radio" name="gateSlot" value="13:00"><span>1:00 PM</span></label>
+          <label class="slot"><input type="radio" name="gateSlot" value="14:00"><span>2:00 PM</span></label>
+          <label class="slot"><input type="radio" name="gateSlot" value="15:00"><span>3:00 PM</span></label>
+          <label class="slot"><input type="radio" name="gateSlot" value="16:00"><span>4:00 PM</span></label>
+          <label class="slot"><input type="radio" name="gateSlot" value="17:00"><span>5:00 PM</span></label>
+          <label class="slot"><input type="radio" name="gateSlot" value="18:00"><span>6:00 PM</span></label>
+        </div>
+      </fieldset>
     </div>
     <label class="contact-gate-field" id="gateBhkField">
       <span>Preferred BHK (optional)</span>
