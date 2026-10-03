@@ -3287,12 +3287,38 @@ function renderRecentlyViewed(){
    below produces identical markup.
 ========================================================= */
 
+/* City cards show the city's best-known monument (illustrations in
+   assets/cities/). Cities without one get a generic skyline. */
+const CITY_MONUMENTS = {
+  "pune": ["pune", "Shaniwar Wada"],
+  "mumbai": ["mumbai", "Gateway of India"],
+  "delhi": ["delhi", "India Gate"],
+  "new-delhi": ["delhi", "India Gate"],
+  "bengaluru": ["bengaluru", "Vidhana Soudha"],
+  "bangalore": ["bengaluru", "Vidhana Soudha"],
+  "hyderabad": ["hyderabad", "Charminar"],
+  "chennai": ["chennai", "Kapaleeshwarar Temple"],
+  "kolkata": ["kolkata", "Victoria Memorial"],
+  "jaipur": ["jaipur", "Hawa Mahal"]
+};
+
+function cityImage(city){
+  const name = titleCaseName(city);
+  const found = CITY_MONUMENTS[slugify(city)];
+  return found
+    ? { src: `assets/cities/${found[0]}.svg`, alt: `${found[1]}, ${name}` }
+    : { src: "assets/cities/city.svg", alt: `${name} skyline` };
+}
+
 function cityCardHtml(item){
+  const image = cityImage(item.city);
   return `
     <a class="city-card" href="${escapeHtml(cityUrl(item.city))}">
-      <div class="city-icon">⌖</div>
-      <strong>${escapeHtml(titleCaseName(item.city))}</strong>
-      <span>${item.count} ${item.count === 1 ? "Project" : "Projects"}</span>
+      <span class="city-img"><img src="${escapeHtml(image.src)}" alt="${escapeHtml(image.alt)}" loading="lazy" width="400" height="250"></span>
+      <span class="city-body">
+        <strong>${escapeHtml(titleCaseName(item.city))}</strong>
+        <span>${item.count} ${item.count === 1 ? "Project" : "Projects"}</span>
+      </span>
     </a>
   `;
 }

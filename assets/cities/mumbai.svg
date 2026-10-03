@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 250" width="400" height="250" role="img" aria-label="Gateway of India, Mumbai">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#eaf7f3"/>
+      <stop offset="1" stop-color="#ffffff"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="250" fill="url(#sky)"/>
+  <circle cx="330" cy="58" r="24" fill="#e1a400" opacity=".22"/>
+
+  <rect x="0" y="206" width="400" height="44" fill="#d5ece6"/>
+  <g fill="#006b5b">
+    <rect x="96" y="96" width="208" height="112" rx="3"/>
+    <rect x="88" y="86" width="224" height="14" rx="3"/>
+  </g>
+  <g fill="#004f45">
+    <rect x="92" y="54" width="30" height="34" rx="3"/>
+    <rect x="278" y="54" width="30" height="34" rx="3"/>
+    <rect x="160" y="62" width="80" height="26" rx="3"/>
+    <path d="M92 54 q15 -22 30 0 z"/>
+    <path d="M278 54 q15 -22 30 0 z"/>
+    <path d="M168 62 q32 -34 64 0 z"/>
+  </g>
+  <g fill="#eaf7f3" opacity=".92">
+    <path d="M172 208 V140 a28 28 0 0 1 56 0 V208 Z"/>
+    <path d="M112 208 V160 a12 12 0 0 1 24 0 V208 Z"/>
+    <path d="M264 208 V160 a12 12 0 0 1 24 0 V208 Z"/>
+    <rect x="114" y="112" width="20" height="26" rx="10"/>
+    <rect x="266" y="112" width="20" height="26" rx="10"/>
+  </g>
+  <rect x="96" y="206" width="208" height="4" fill="#e1a400"/>
+  <g stroke="#9ccfc3" stroke-width="3" stroke-linecap="round" fill="none">
+    <path d="M40 228 q12 -6 24 0 t24 0"/><path d="M300 234 q12 -6 24 0 t24 0"/>
+  </g>
+  <rect x="30" y="214" width="340" height="4" rx="2" fill="#004f45" opacity=".25"/>
+</svg>

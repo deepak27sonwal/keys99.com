@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 250" width="400" height="250" role="img" aria-label="Victoria Memorial, Kolkata">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#eaf7f3"/>
+      <stop offset="1" stop-color="#ffffff"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="250" fill="url(#sky)"/>
+  <circle cx="330" cy="58" r="24" fill="#e1a400" opacity=".22"/>
+
+  <g fill="#006b5b">
+    <rect x="56" y="150" width="288" height="66" rx="3"/>
+    <rect x="150" y="122" width="100" height="94" rx="3"/>
+  </g>
+  <g fill="#004f45">
+    <rect x="50" y="142" width="300" height="10" rx="2"/>
+    <rect x="166" y="104" width="68" height="20" rx="3"/>
+    <path d="M166 106 a34 40 0 0 1 68 0 z"/>
+    <rect x="66" y="126" width="22" height="18" rx="2"/><path d="M64 128 a13 14 0 0 1 26 0 z"/>
+    <rect x="312" y="126" width="22" height="18" rx="2"/><path d="M310 128 a13 14 0 0 1 26 0 z"/>
+  </g>
+  <g fill="#e1a400"><rect x="197" y="50" width="6" height="18"/><path d="M190 52 l10 -14 l10 14 z"/></g>
+  <g fill="#eaf7f3" opacity=".9">
+    <path d="M186 216 V176 a14 14 0 0 1 28 0 V216 Z"/>
+    <rect x="74" y="166" width="12" height="22" rx="6"/><rect x="100" y="166" width="12" height="22" rx="6"/><rect x="126" y="166" width="12" height="22" rx="6"/><rect x="262" y="166" width="12" height="22" rx="6"/><rect x="288" y="166" width="12" height="22" rx="6"/><rect x="314" y="166" width="12" height="22" rx="6"/>
+  </g>
+  <rect x="30" y="214" width="340" height="4" rx="2" fill="#004f45" opacity=".25"/>
+</svg>

@@ -2247,3 +2247,46 @@ footer{
   background:#e1a400;
   color:#082d38;
 }
+
+
+/* ---------- City cards with a monument picture ---------- */
+
+.city-card{
+  display:flex;
+  flex-direction:column;
+  padding:0;
+  overflow:hidden;
+  background:#fff;
+}
+
+.city-img{
+  display:block;
+  aspect-ratio:8/5;
+  background:var(--green-soft);
+  overflow:hidden;
+}
+
+.city-img img{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  transition:transform .35s;
+}
+
+.city-card:hover .city-img img,
+.city-card:focus-visible .city-img img{
+  transform:scale(1.04);
+}
+
+/* .city-card span (the project count) is muted grey; the wrapper and
+   the picture frame are spans too, so they reset it. */
+.city-card .city-body{
+  display:block;
+  padding:12px 14px 14px;
+  font-size:inherit;
+  color:var(--ink, #092c3d);
+}
+
+.city-card .city-body strong{ color:var(--ink, #092c3d); }
+.city-card .city-body span{ font-size:11px; color:var(--muted); }

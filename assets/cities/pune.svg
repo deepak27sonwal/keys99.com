@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 250" width="400" height="250" role="img" aria-label="Shaniwar Wada, Pune">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#eaf7f3"/>
+      <stop offset="1" stop-color="#ffffff"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="250" fill="url(#sky)"/>
+  <circle cx="330" cy="58" r="24" fill="#e1a400" opacity=".22"/>
+
+  <g fill="#006b5b">
+    <rect x="40" y="132" width="320" height="84" rx="2"/>
+    <rect x="42" y="124" width="7" height="8" rx="1.5"/><rect x="54" y="124" width="7" height="8" rx="1.5"/><rect x="66" y="124" width="7" height="8" rx="1.5"/><rect x="78" y="124" width="7" height="8" rx="1.5"/><rect x="90" y="124" width="7" height="8" rx="1.5"/><rect x="102" y="124" width="7" height="8" rx="1.5"/><rect x="114" y="124" width="7" height="8" rx="1.5"/><rect x="126" y="124" width="7" height="8" rx="1.5"/><rect x="138" y="124" width="7" height="8" rx="1.5"/><rect x="150" y="124" width="7" height="8" rx="1.5"/><rect x="162" y="124" width="7" height="8" rx="1.5"/><rect x="174" y="124" width="7" height="8" rx="1.5"/><rect x="186" y="124" width="7" height="8" rx="1.5"/><rect x="198" y="124" width="7" height="8" rx="1.5"/><rect x="210" y="124" width="7" height="8" rx="1.5"/><rect x="222" y="124" width="7" height="8" rx="1.5"/><rect x="234" y="124" width="7" height="8" rx="1.5"/><rect x="246" y="124" width="7" height="8" rx="1.5"/><rect x="258" y="124" width="7" height="8" rx="1.5"/><rect x="270" y="124" width="7" height="8" rx="1.5"/><rect x="282" y="124" width="7" height="8" rx="1.5"/><rect x="294" y="124" width="7" height="8" rx="1.5"/><rect x="306" y="124" width="7" height="8" rx="1.5"/><rect x="318" y="124" width="7" height="8" rx="1.5"/><rect x="330" y="124" width="7" height="8" rx="1.5"/><rect x="342" y="124" width="7" height="8" rx="1.5"/><rect x="354" y="124" width="7" height="8" rx="1.5"/>
+  </g>
+  <g fill="#004f45">
+    <rect x="62" y="104" width="54" height="112" rx="3"/><rect x="62" y="96" width="8" height="8" rx="1.5"/><rect x="74" y="96" width="8" height="8" rx="1.5"/><rect x="86" y="96" width="8" height="8" rx="1.5"/><rect x="98" y="96" width="8" height="8" rx="1.5"/><rect x="110" y="96" width="8" height="8" rx="1.5"/>
+    <rect x="284" y="104" width="54" height="112" rx="3"/><rect x="284" y="96" width="8" height="8" rx="1.5"/><rect x="296" y="96" width="8" height="8" rx="1.5"/><rect x="308" y="96" width="8" height="8" rx="1.5"/><rect x="320" y="96" width="8" height="8" rx="1.5"/><rect x="332" y="96" width="8" height="8" rx="1.5"/>
+    <rect x="140" y="78" width="120" height="138" rx="3"/><rect x="140" y="70" width="8" height="8" rx="1.5"/><rect x="152" y="70" width="8" height="8" rx="1.5"/><rect x="164" y="70" width="8" height="8" rx="1.5"/><rect x="176" y="70" width="8" height="8" rx="1.5"/><rect x="188" y="70" width="8" height="8" rx="1.5"/><rect x="200" y="70" width="8" height="8" rx="1.5"/><rect x="212" y="70" width="8" height="8" rx="1.5"/><rect x="224" y="70" width="8" height="8" rx="1.5"/><rect x="236" y="70" width="8" height="8" rx="1.5"/><rect x="248" y="70" width="8" height="8" rx="1.5"/>
+  </g>
+  <g fill="#006b5b">
+    <rect x="172" y="42" width="56" height="30" rx="2"/>
+    <path d="M166 44 h68 l-8 -12 h-52 z"/>
+  </g>
+  <g fill="#eaf7f3" opacity=".9">
+    <rect x="180" y="50" width="10" height="16" rx="5"/><rect x="195" y="50" width="10" height="16" rx="5"/><rect x="210" y="50" width="10" height="16" rx="5"/>
+    <rect x="80" y="126" width="18" height="24" rx="9"/><rect x="302" y="126" width="18" height="24" rx="9"/>
+    <path d="M168 216 V146 Q168 112 200 98 Q232 112 232 146 V216 Z"/>
+  </g>
+  <g fill="#e1a400">
+    <path d="M178 216 V150 Q178 124 200 112 Q222 124 222 150 V216 Z"/>
+  </g>
+  <g fill="#004f45">
+    <circle cx="190" cy="148" r="2.6"/><circle cx="190" cy="168" r="2.6"/><circle cx="190" cy="188" r="2.6"/><circle cx="200" cy="148" r="2.6"/><circle cx="200" cy="168" r="2.6"/><circle cx="200" cy="188" r="2.6"/><circle cx="210" cy="148" r="2.6"/><circle cx="210" cy="168" r="2.6"/><circle cx="210" cy="188" r="2.6"/>
+    <rect x="199" y="124" width="2" height="92"/>
+  </g>
+  <rect x="30" y="214" width="340" height="4" rx="2" fill="#004f45" opacity=".25"/>
+</svg>

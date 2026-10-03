@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 250" width="400" height="250" role="img" aria-label="Vidhana Soudha, Bengaluru">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#eaf7f3"/>
+      <stop offset="1" stop-color="#ffffff"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="250" fill="url(#sky)"/>
+  <circle cx="330" cy="58" r="24" fill="#e1a400" opacity=".22"/>
+
+  <g fill="#006b5b">
+    <rect x="50" y="136" width="300" height="80" rx="3"/>
+    <rect x="132" y="112" width="136" height="104" rx="3"/>
+  </g>
+  <g fill="#004f45">
+    <rect x="44" y="128" width="312" height="10" rx="2"/>
+    <rect x="124" y="104" width="152" height="12" rx="2"/>
+    <rect x="178" y="70" width="44" height="36" rx="3"/>
+    <path d="M172 72 a28 30 0 0 1 56 0 z"/>
+    <rect x="62" y="110" width="20" height="20" rx="2"/><rect x="318" y="110" width="20" height="20" rx="2"/>
+    <path d="M60 112 a12 14 0 0 1 24 0 z"/><path d="M316 112 a12 14 0 0 1 24 0 z"/>
+  </g>
+  <path d="M196 42 h8 v4 h-8 z M200 30 l5 12 h-10 z" fill="#e1a400"/>
+  <g fill="#eaf7f3" opacity=".9"><rect x="150" y="132" width="8" height="66" rx="2"/><rect x="166" y="132" width="8" height="66" rx="2"/><rect x="182" y="132" width="8" height="66" rx="2"/><rect x="198" y="132" width="8" height="66" rx="2"/><rect x="214" y="132" width="8" height="66" rx="2"/><rect x="230" y="132" width="8" height="66" rx="2"/><rect x="246" y="132" width="8" height="66" rx="2"/>
+    <rect x="66" y="156" width="14" height="20" rx="2"/><rect x="92" y="156" width="14" height="20" rx="2"/><rect x="288" y="156" width="14" height="20" rx="2"/><rect x="314" y="156" width="14" height="20" rx="2"/>
+  </g>
+  <rect x="132" y="198" width="136" height="18" fill="#e1a400" opacity=".85"/>
+  <rect x="30" y="214" width="340" height="4" rx="2" fill="#004f45" opacity=".25"/>
+</svg>
