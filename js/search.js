@@ -62,11 +62,25 @@
     return v;
   }
 
+  /* Words of a typed search, as the cards' data-search text has them:
+     lower case, punctuation dropped ("Rau, Indore" -> rau indore;
+     "2.5" keeps its point), and filler words that describe every
+     listing ("flats", "apartment", "in") left out. */
+  const FILLER = new Set(["flat", "flats", "apartment", "apartments", "property", "properties",
+    "home", "homes", "house", "houses", "in", "at", "for", "near", "and", "the", "of"]);
+  function queryWords(q){
+    return String(q || "").toLowerCase()
+      .replace(/[^a-z0-9.\s]+/g, " ")
+      .split(/\s+/)
+      .map(w => w.replace(/^\.+|\.+$/g, ""))
+      .filter(w => w && !FILLER.has(w));
+  }
+
   function matches(card, v){
     const d = card.dataset;
     if(v.q){
       const text = d.search || "";
-      if(!v.q.toLowerCase().split(/\s+/).every(word => text.includes(word))) return false;
+      if(!queryWords(v.q).every(word => text.includes(word))) return false;
     }
     if(v.city && d.city !== v.city) return false;
     if(v.locality && d.locality !== v.locality) return false;

@@ -48,8 +48,21 @@
   padding:0;
 }
 
+/* Smooth scrolling for in-page links (#types, #why, ...). The
+   padding stops the target below the sticky header (78px; 68px on
+   phones) instead of underneath it. Visitors who ask their device to
+   reduce motion get an instant jump. */
 html{
   scroll-behavior:smooth;
+  scroll-padding-top:90px;
+}
+
+@media (max-width:900px){
+  html{ scroll-padding-top:80px; }
+}
+
+@media (prefers-reduced-motion:reduce){
+  html{ scroll-behavior:auto; }
 }
 
 body{
@@ -1490,13 +1503,14 @@ section{
 
   padding:16px 26px;
 
+  /* The photo is lazy-loaded: js/home.js adds .bg-ready when the
+     banner nears the screen, so the cream gradient shows until then. */
   background:
     linear-gradient(
       90deg,
       rgba(255,247,229,.96),
       rgba(255,247,229,.82)
-    ),
-    url("https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1200&q=80")
+    )
     center/cover;
 
   display:flex;
@@ -1507,6 +1521,18 @@ section{
 
   gap:20px;
 }
+
+.cta.bg-ready{
+  background:
+    linear-gradient(
+      90deg,
+      rgba(255,247,229,.96),
+      rgba(255,247,229,.82)
+    ),
+    url("https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1200&q=80")
+    center/cover;
+}
+
 
 .cta small{
   font-size:var(--fs-label);
@@ -1870,7 +1896,7 @@ footer{
 
     gap:13px;
 
-    padding:2px 2px 12px;
+    padding:2px 2px 10px;
 
     scroll-snap-type:x mandatory;
 
@@ -1901,7 +1927,7 @@ footer{
 
     gap:13px;
 
-    padding:2px 2px 12px;
+    padding:2px 2px 10px;
 
     scroll-snap-type:x mandatory;
 
@@ -2145,7 +2171,11 @@ footer{
 
     color:#91a0a4;
 
-    margin-top:-15px;
+    /* No margin of its own: every row ends exactly 10px below its
+       cards (padding on .type-grid and .city-grid; padding minus the
+       shadow margin on .property-scroll), so the hint sits the same
+       distance under the cards in every section. */
+    margin-top:0;
 
     margin-bottom:8px;
   }
@@ -2434,7 +2464,7 @@ footer{
 @media (max-width:900px){
   .property-scroll{
     padding:8px 8px 24px;
-    margin:-8px -8px -10px;
+    margin:-8px -8px -14px;
     scroll-padding-left:8px;
   }
 }

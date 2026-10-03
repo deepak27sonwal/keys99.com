@@ -544,7 +544,9 @@ function propertyUrl(property){
   if(slug){
     return "projects/" + slug + "/";
   }
-  return "projects/property-details?id=" + encodeURIComponent(property && property.id);
+  /* ".html" spelled out: hosts differ on whether an extensionless
+     address finds the file (Cloudflare redirects it away anyway). */
+  return "projects/property-details.html?id=" + encodeURIComponent(property && property.id);
 }
 
 function cityUrl(city){
@@ -873,6 +875,22 @@ function buildSearchUrl(params){
 
   return "projects/search" + (queryString ? "?" + queryString : "");
 
+}
+
+/* Everything the hero search bar and its filter panel hold. */
+function heroSearchParams(){
+  const value = id => { const el = document.getElementById(id); return el ? el.value : ""; };
+  return {
+    q: value("searchInput"),
+    type: value("propertyType"),
+    bhk: value("bhkType"),
+    city: value("heroCity"),
+    locality: value("heroLocality"),
+    status: value("heroStatus"),
+    minPrice: value("heroMinPrice"),
+    maxPrice: value("heroMaxPrice"),
+    sort: value("heroSort")
+  };
 }
 
 function goToSearch(params){
@@ -1456,19 +1474,7 @@ const heroLocality = document.getElementById("heroLocality");
 if(searchForm){
   searchForm.addEventListener("submit", event => {
     event.preventDefault();
-
-    goToSearch({
-      q: document.getElementById("searchInput").value,
-      type: document.getElementById("propertyType").value,
-      bhk: document.getElementById("bhkType").value,
-      city: heroCity ? heroCity.value : "",
-      locality: heroLocality ? heroLocality.value : "",
-      status: document.getElementById("heroStatus").value,
-      minPrice: document.getElementById("heroMinPrice").value,
-      maxPrice: document.getElementById("heroMaxPrice").value,
-      sort: document.getElementById("heroSort").value
-    });
-
+    goToSearch(heroSearchParams());
   });
 }
 
@@ -1700,7 +1706,7 @@ function buildSearchSuggestionPool(){
     const developer = String(property.developer || "").trim();
 
     if(city){
-      addSuggestion({ label: city, matchText: city, type: "City", icon: "⌖" });
+      addSuggestion({ label: city, matchText: city, type: "City", icon: "⌖", city });
     }
 
     if(locality){
@@ -1708,7 +1714,9 @@ function buildSearchSuggestionPool(){
         label: locality + (city ? ", " + city : ""),
         matchText: locality + " " + city,
         type: "Locality",
-        icon: "⌖"
+        icon: "⌖",
+        city,
+        locality
       });
     }
 
@@ -1724,7 +1732,8 @@ function buildSearchSuggestionPool(){
         label: bhk + " " + categoryLabel,
         matchText: bhk + " " + categoryLabel,
         type: "Property Type",
-        icon: "▣"
+        icon: "▣",
+        bhk: normaliseBhkType(bhk).toLowerCase()
       });
     });
 
@@ -1736,7 +1745,8 @@ function buildSearchSuggestionPool(){
       matchText: [title, property.overview, property.address, developer, city, locality].filter(Boolean).join(" "),
       type: "Property",
       icon: "⌂",
-      propertyId: property.id
+      propertyId: property.id,
+      url: propertyUrl(property)
     });
 
   });
@@ -1777,16 +1787,31 @@ function renderSuggestions(matches){
 
 }
 
+/* A project opens its own page (projects/<slug>/ - a folder, so it
+   works on any host). A city, locality or flat size searches with
+   that filter rather than its label as text: "Rau, Indore" or
+   "2 BHK Apartment" never appear word for word in a project. */
 function selectSuggestion(item){
 
-  if(item.type === "Property" && item.propertyId){
-    window.location.href = "projects/property-details?id=" + encodeURIComponent(item.propertyId);
+  if(item.type === "Property" && (item.url || item.propertyId)){
+    window.location.href = item.url || ("projects/property-details.html?id=" + encodeURIComponent(item.propertyId));
+    return;
+  }
+
+  searchSuggestionsEl.hidden = true;
+  searchSuggestionsEl.innerHTML = "";
+
+  const filters = item.type === "City" ? { city: item.city }
+    : item.type === "Locality" ? { city: item.city, locality: item.locality }
+    : item.type === "Property Type" ? { bhk: item.bhk }
+    : null;
+
+  if(filters){
+    goToSearch({ ...heroSearchParams(), q: "", ...filters });
     return;
   }
 
   searchInputEl.value = item.label;
-  searchSuggestionsEl.hidden = true;
-  searchSuggestionsEl.innerHTML = "";
   searchForm.requestSubmit();
 
 }
@@ -1872,3 +1897,29 @@ document.addEventListener("DOMContentLoaded", () => {
   initLoginButton();
   loadHomepage();
 });
+
+
+/* =========================================================
+   LAZY BACKGROUND IMAGES
+   CSS background photos cannot use loading="lazy". Elements marked
+   data-lazy-bg get the class .bg-ready (which adds the photo in CSS)
+   when they come within 400px of the screen; without
+   IntersectionObserver they get it straight away.
+========================================================= */
+
+(function lazyBackgrounds(){
+  const targets = document.querySelectorAll("[data-lazy-bg]");
+  if(!targets.length) return;
+  if(!("IntersectionObserver" in window)){
+    targets.forEach(el => el.classList.add("bg-ready"));
+    return;
+  }
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if(!entry.isIntersecting) return;
+      entry.target.classList.add("bg-ready");
+      observer.unobserve(entry.target);
+    });
+  }, { rootMargin: "400px 0px" });
+  targets.forEach(el => observer.observe(el));
+})();
