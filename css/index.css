@@ -946,6 +946,8 @@ section{
 
   min-width:175px;
 
+  text-align:center;
+
   border:1px solid var(--line);
 
   border-radius:14px;
@@ -975,6 +977,7 @@ section{
 }
 
 .locality-chip span{
+  display:block;
   font-size:var(--fs-label);
   color:var(--muted);
 }
@@ -1568,10 +1571,14 @@ footer{
     display:none;
   }
 
+  /* About two and a half cities per screen, with a tighter caption,
+     so the row is about two-thirds its former height. */
   .city-card{
-    flex:0 0 46%;
+    flex:0 0 38%;
 
     scroll-snap-align:start;
+
+    border-radius:14px;
   }
 
 
@@ -1735,7 +1742,7 @@ footer{
   }
 
   .city-card{
-    flex-basis:60%;
+    flex-basis:40%;
   }
 
   .header-logo{
@@ -2084,12 +2091,54 @@ footer{
 .city-card .city-body{
   display:block;
   padding:12px 14px 14px;
+  text-align:center;
   font-size:inherit;
   color:var(--ink, #092c3d);
 }
 
 .city-card .city-body strong{ color:var(--ink, #092c3d); }
-.city-card .city-body span{ font-size:var(--fs-small); color:var(--muted); }
+/* Project count: the same green badge as the locality chips' count. */
+.city-card .city-body span{
+  display:inline-block;
+  margin-top:6px;
+  padding:3px 9px;
+  border-radius:20px;
+  background:var(--green-soft);
+  color:var(--green);
+  font-size:var(--fs-label);
+  font-weight:700;
+}
+
+/* Phones: compact city cards and locality chips, about two and a half
+   per screen. (Their content is centred on every screen size.) */
+@media (max-width:900px){
+  .city-card .city-body{ padding:8px 10px 10px; }
+  .city-card .city-body strong{ font-size:15px; margin-bottom:1px; }
+  .city-card .city-body span{ font-size:var(--fs-label); }
+
+  .locality-scroll{
+    gap:10px;
+    scroll-snap-type:x mandatory;
+  }
+
+  .locality-chip{
+    flex:0 0 38%;
+    min-width:0;
+    padding:10px 8px 11px;
+    border-radius:14px;
+    scroll-snap-align:start;
+  }
+
+  .locality-chip strong{
+    font-size:var(--fs-ui);
+    line-height:1.3;
+  }
+
+  .locality-chip .count{
+    display:inline-block;
+    margin-top:6px;
+  }
+}
 
 /* Sideways-scrolling rows clip anything outside their box, which
    would cut the shadow off; give it room without moving the cards. */
