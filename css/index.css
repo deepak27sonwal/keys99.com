@@ -1302,13 +1302,6 @@ footer{
     border:1px solid var(--line);
     border-radius:999px;
     box-shadow:0 10px 30px rgba(8,45,56,.14);
-    /* The pill, not each round tab, clips the tap droplet, so the
-       Reels tab's "NEW" badge is not cut off. */
-    overflow:hidden;
-  }
-
-  #bottomNav button{
-    overflow:visible;
   }
 
   .bottom-nav button{
