@@ -677,8 +677,10 @@ a{
    GENERAL
 ========================================================= */
 
+/* Each section's top and bottom padding together make the gap
+   between sections: 80px on desktop, 56px on phones. */
 section{
-  padding:62px 0;
+  padding:40px 0;
 }
 
 .section-head{
@@ -1272,14 +1274,126 @@ footer{
 
 
 /* =========================================================
-   MOBILE BOTTOM NAVIGATION
-   Hidden on desktop; fixed to the viewport bottom on mobile.
+   BOTTOM NAVIGATION
+   Desktop: a small floating pill, centred at the bottom of the
+   screen. Mobile (below): a full-width bar fixed to the bottom.
 ========================================================= */
 
 .bottom-nav{
   display:none;
 }
 
+@media(min-width:901px){
+
+  body{ padding-bottom:84px; }
+
+  .bottom-nav{
+    display:flex;
+    position:fixed;
+    left:50%;
+    bottom:14px;
+    transform:translateX(-50%);
+    z-index:60;
+    gap:2px;
+    padding:5px;
+    background:rgba(255,255,255,.94);
+    backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);
+    border:1px solid var(--line);
+    border-radius:999px;
+    box-shadow:0 10px 30px rgba(8,45,56,.14);
+    /* The pill, not each round tab, clips the tap droplet, so the
+       Reels tab's "NEW" badge is not cut off. */
+    overflow:hidden;
+  }
+
+  #bottomNav button{
+    overflow:visible;
+  }
+
+  .bottom-nav button{
+    width:68px;
+    height:48px;
+    border:0;
+    border-radius:999px;
+    background:none;
+    cursor:pointer;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:1px;
+    color:#7ba89d;
+    font-size:11px;
+    font-weight:600;
+    transition:color .2s, background .2s;
+  }
+
+  .bottom-nav button:hover,
+  .bottom-nav button:focus-visible{
+    color:var(--green);
+    background:var(--green-soft);
+    outline:none;
+  }
+
+  .bottom-nav .bn-icon{
+    width:34px;
+    height:24px;
+    display:grid;
+    place-items:center;
+    border-radius:12px;
+    transition:background .25s, transform .25s;
+  }
+
+  .bottom-nav .bn-icon svg{
+    width:19px;
+    height:19px;
+    display:block;
+  }
+
+  .bottom-nav button.bn-active{
+    color:var(--green);
+  }
+
+  .bottom-nav button.bn-active .bn-icon{
+    background:var(--green-soft);
+  }
+}
+
+
+/* "NEW" badge on the Reels tab, to draw visitors to the reels.
+   Added with CSS so every page's copy of the navigation gets it. */
+.bottom-nav button[data-target="reels"] .bn-icon{
+  position:relative;
+}
+
+.bottom-nav button[data-target="reels"] .bn-icon::after{
+  content:"NEW";
+  position:absolute;
+  top:-3px;
+  left:calc(50% + 4px);
+  padding:2px 5px 1px;
+  border-radius:20px;
+  background:#d93b30;
+  color:#fff;
+  font-size:8.5px;
+  font-weight:800;
+  line-height:1.1;
+  letter-spacing:.4px;
+  box-shadow:0 0 0 2px #fff, 0 2px 6px rgba(217,59,48,.35);
+  animation:bnNewPulse 2.4s ease-in-out infinite;
+  pointer-events:none;
+}
+
+@keyframes bnNewPulse{
+  0%, 70%, 100%{ transform:scale(1); }
+  80%{ transform:scale(1.15); }
+  90%{ transform:scale(.95); }
+}
+
+@media (prefers-reduced-motion:reduce){
+  .bottom-nav button[data-target="reels"] .bn-icon::after{ animation:none; }
+}
 
 /* =========================================================
    MOBILE
@@ -1488,7 +1602,7 @@ footer{
   /* SECTIONS */
 
   section{
-    padding:43px 0;
+    padding:28px 0;
   }
 
   .section-title{
@@ -2138,10 +2252,6 @@ footer{
    Every logo sits in the same white card at the same height,
    so wide and narrow logos read as one even row.
 ========================================================= */
-
-.loan-partners{
-  padding-top:20px;
-}
 
 .loan-partners-intro{
   margin-top:8px;
