@@ -183,6 +183,10 @@ ${chrome.bottomNav}
 `;
 
   const $ = cheerio.load(html);
+  /* The Search tab is the current page, so it shows as active (with
+     the bottom navigation's highlight bubble). */
+  $("#bottomNav button").removeClass("bn-active");
+  $('#bottomNav button[data-target="search"]').addClass("bn-active");
   rebase($, prefix);
   return $.html();
 }
