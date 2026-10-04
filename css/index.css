@@ -940,7 +940,7 @@ section{
 
   overflow-x:auto;
 
-  gap:12px;
+  gap:10px;
 
   padding:2px 2px 12px;
 
@@ -954,7 +954,7 @@ section{
 .locality-chip{
   flex:0 0 auto;
 
-  min-width:175px;
+  min-width:150px;
 
   text-align:center;
 
@@ -962,7 +962,7 @@ section{
 
   border-radius:14px;
 
-  padding:15px 17px;
+  padding:10px 12px 11px;
 
   background:#fff;
 
@@ -995,7 +995,7 @@ section{
 .locality-chip .count{
   display:inline-block;
 
-  margin-top:8px;
+  margin-top:6px;
 
   font-size:var(--fs-label);
   font-weight:700;
