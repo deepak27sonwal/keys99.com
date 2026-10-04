@@ -1568,10 +1568,14 @@ footer{
     display:none;
   }
 
+  /* About two and a half cities per screen, with a tighter caption,
+     so the row is about two-thirds its former height. */
   .city-card{
-    flex:0 0 46%;
+    flex:0 0 38%;
 
     scroll-snap-align:start;
+
+    border-radius:14px;
   }
 
 
@@ -1735,7 +1739,7 @@ footer{
   }
 
   .city-card{
-    flex-basis:60%;
+    flex-basis:40%;
   }
 
   .header-logo{
@@ -2090,6 +2094,13 @@ footer{
 
 .city-card .city-body strong{ color:var(--ink, #092c3d); }
 .city-card .city-body span{ font-size:var(--fs-small); color:var(--muted); }
+
+/* Phones: tighter caption to match the narrower city cards. */
+@media (max-width:900px){
+  .city-card .city-body{ padding:8px 10px 10px; }
+  .city-card .city-body strong{ font-size:15px; margin-bottom:1px; }
+  .city-card .city-body span{ font-size:var(--fs-label); }
+}
 
 /* Sideways-scrolling rows clip anything outside their box, which
    would cut the shadow off; give it room without moving the cards. */
