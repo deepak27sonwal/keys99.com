@@ -2093,7 +2093,17 @@ footer{
 }
 
 .city-card .city-body strong{ color:var(--ink, #092c3d); }
-.city-card .city-body span{ font-size:var(--fs-small); color:var(--muted); }
+/* Project count: the same green badge as the locality chips' count. */
+.city-card .city-body span{
+  display:inline-block;
+  margin-top:6px;
+  padding:3px 9px;
+  border-radius:20px;
+  background:var(--green-soft);
+  color:var(--green);
+  font-size:var(--fs-label);
+  font-weight:700;
+}
 
 /* Phones: compact, centred city cards and locality chips, about two
    and a half per screen. */
