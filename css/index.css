@@ -678,9 +678,9 @@ a{
 ========================================================= */
 
 /* Each section's top and bottom padding together make the gap
-   between sections: 80px on desktop, 56px on phones. */
+   between sections: 56px on desktop, 40px on phones. */
 section{
-  padding:40px 0;
+  padding:28px 0;
 }
 
 .section-head{
@@ -1595,7 +1595,7 @@ footer{
   /* SECTIONS */
 
   section{
-    padding:28px 0;
+    padding:20px 0;
   }
 
   .section-title{
