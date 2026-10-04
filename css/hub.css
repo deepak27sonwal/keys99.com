@@ -33,7 +33,7 @@
 
 .hub-head h1{
   margin:6px 0 10px;
-  font-size:clamp(24px, 4vw, 34px);
+  font-size:clamp(21px, 4vw, 34px);
   line-height:1.2;
   color:var(--ink);
 }
