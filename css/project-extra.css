@@ -146,7 +146,7 @@
 .saved-count[hidden]{display:none}
 
 /* Phone headings: same scale as the rest of the site. */
-@media(max-width:620px){.contact-gate-card h2{font-size:17px}}
+@media(max-width:620px){.contact-gate-card h2{font-size:16px}}
 
 /* Similar Projects: the homepage project cards (css/cards.css) in a
    2-column grid beside the enquiry card; on phones the same sideways
