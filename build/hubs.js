@@ -661,6 +661,7 @@ function hubPage(ctx, hub){
 <link rel="icon" href="favicon.ico">
 ${chrome.fonts}
 <link rel="stylesheet" href="css/index.css">
+<link rel="stylesheet" href="css/cards.css">
 <link rel="stylesheet" href="css/hub.css">
 <script type="application/ld+json">${JSON.stringify(jsonLd).replace(/</g, "\\u003c")}</script>
 </head>
@@ -774,6 +775,7 @@ ${chrome.footer}
 
 ${chrome.bottomNav}
 
+<script defer src="js/cards.js"></script>
 <script defer src="js/hub.js"></script>
 <script defer src="js/attribution.js"></script>
 <script defer src="js/compare-tray.js"></script>

@@ -27,6 +27,7 @@ function buildComparePage({ indexHtml, siteOrigin }){
 <link rel="icon" href="favicon.ico">
 ${chrome.fonts}
 <link rel="stylesheet" href="css/index.css">
+<link rel="stylesheet" href="css/cards.css">
 <link rel="stylesheet" href="css/hub.css">
 <link rel="stylesheet" href="css/compare.css">
 </head>

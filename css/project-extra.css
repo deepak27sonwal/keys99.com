@@ -56,28 +56,25 @@
 }
 
 /* Similar projects (built into the page by build/generate.js) */
-.similar-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
-.similar-card{display:flex;flex-direction:column;border:1px solid #d3e0dc;border-radius:14px;overflow:hidden;background:#fff;color:inherit;text-decoration:none;transition:box-shadow .2s,transform .2s;min-width:0}
-.similar-card:hover{box-shadow:0 10px 26px rgba(8,45,56,.12);transform:translateY(-2px)}
-.similar-img{position:relative;display:block;aspect-ratio:16/9;overflow:hidden;background:#eef3f1}
-.similar-img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
-.similar-status{position:absolute;left:10px;top:10px;padding:4px 9px;border-radius:999px;background:var(--green);color:#fff;font-size:var(--fs-label);font-weight:700}
-.similar-status.st-upcoming{background:#6b4fd8}
-.similar-status.st-new-launch{background:#e1a400;color:#092c3d}
-.similar-status.st-under-construction{background:#1f6fd1}
-.similar-status.st-ready-to-move{background:#006b5b}
-.similar-status.st-completed{background:#3d5361}
-.similar-status.st-resale{background:#c2416b}
-.similar-body{display:flex;flex-direction:column;gap:4px;padding:12px 13px 14px;min-width:0}
-.similar-body strong{font:800 var(--fs-lead) Manrope,sans-serif;color:var(--text);overflow-wrap:anywhere}
-.similar-loc{font-size:var(--fs-small);color:#6b7f86}
-.similar-price{font-weight:800;color:var(--green);font-size:var(--fs-lead);margin-top:2px}
-.similar-price small{font-weight:600;color:#6b7f86;font-size:var(--fs-small)}
-.similar-bhk{font-size:var(--fs-label);font-weight:700;color:#3d5560}
-@media (max-width:640px){
-  .similar-list{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:12px;margin:0 -4px;padding:0 4px 6px}
-  .similar-card{flex:0 0 74%;scroll-snap-align:start}
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /* Link to the developer's page (build/generate.js) */
 .developer-more{display:inline-block;margin-top:14px;font-size:var(--fs-small);font-weight:700;color:var(--green);text-decoration:none}
@@ -140,11 +137,9 @@
 .photo-compare.is-compared{background:#e1a400}
 
 /* Similar-project cards match the main project cards */
-.similar-card{border-color:#cad9d4;box-shadow:0 1px 2px rgba(8,45,56,.06),0 6px 18px rgba(8,45,56,.08)}
-.similar-card:hover{border-color:#a9c8be;box-shadow:0 2px 4px rgba(8,45,56,.08),0 16px 34px rgba(8,45,56,.14)}
-@media (max-width:640px){
-  .similar-list{padding:6px 6px 18px;margin:-6px -6px -8px}
-}
+
+
+
 
 /* Header "Saved" button: number of saved projects (js/compare-tray.js) */
 .saved-count{display:inline-grid;place-items:center;min-width:18px;height:18px;margin-left:4px;padding:0 5px;border-radius:999px;background:#e1a400;color:#082d38;font-size:var(--fs-label);font-weight:800;line-height:1}
@@ -152,3 +147,10 @@
 
 /* Phone headings: same scale as the rest of the site. */
 @media(max-width:620px){.contact-gate-card h2{font-size:17px}}
+
+/* Similar Projects: the homepage project cards (css/cards.css) in a
+   2-column grid beside the enquiry card; on phones the same sideways
+   row as the homepage. */
+@media (min-width:901px){
+  #similarList.property-scroll{grid-template-columns:repeat(2,minmax(0,1fr))}
+}

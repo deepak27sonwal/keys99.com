@@ -135,7 +135,7 @@ function toggle($, selector, show){
   $(selector).toggleClass("hidden", !show);
 }
 
-function buildPage(template, row, config, allProjects, shareImage){
+function buildPage(template, row, config, allProjects, shareImage, similarCards){
   const p = P.normalizeProject(row, { supabaseUrl: config.url, root: "../" });   // template-relative; rebaseLinks() adds the extra ../
   const pageUrl = `${SITE_ORIGIN}/projects/${p.slug}/`;
   const title = P.pageTitle(p);
@@ -254,7 +254,7 @@ function buildPage(template, row, config, allProjects, shareImage){
   if(similar.length){
     const sameCity = p.city && similar.every(o => o.city === p.city);
     $("#similarTitle").html(`<i></i>Similar Projects${sameCity ? " in " + P.escapeHtml(p.city) : ""}`);
-    $("#similarList").html(P.renderSimilar(similar, "../"));   // template-relative; rebaseLinks() adds the extra ../
+    $("#similarList").html(similarCards(similar));
   }
   toggle($, "#similarSection", similar.length > 0);
 
@@ -350,6 +350,27 @@ async function main(){
   };
   const shareById = new Map(allProjects.map(p => [p.id, p.images[0] ? shareImage(p.images[0].url) : null]));
 
+  /* Similar Projects use the homepage's own card (createPropertyCard),
+     so they look and behave exactly like the cards everywhere else.
+     The card links from the site root; the template sits in projects/
+     and rebaseLinks() adds the page's extra ../ to href/src - but not
+     to the image fallback in onerror, so that gets the full ../../. */
+  const propById = new Map(allProps.map(prop => [prop.id, prop]));
+  const similarCards = list => {
+    const $c = cheerio.load(`<div>${list.map(o => propById.get(o.id)).filter(Boolean)
+      .map(prop => H.createPropertyCard(prop)).join("")}</div>`, null, false);
+    $c("[href], [src]").each((_, el) => {
+      ["href", "src"].forEach(attr => {
+        const v = $c(el).attr(attr);
+        if(v && !SKIP_URL.test(v)) $c(el).attr(attr, joinPath("../", v));
+      });
+    });
+    $c("[onerror]").each((_, el) => {
+      $c(el).attr("onerror", $c(el).attr("onerror").replace(/'assets\//g, "'../../assets/"));
+    });
+    return $c("div").first().html();
+  };
+
   const pages = [];
   for(const row of rows){
     if(!row || !SLUG_RE.test(String(row.slug || ""))){
@@ -360,7 +381,7 @@ async function main(){
       console.warn(`  skipped  project ${row.id}: slug "${row.slug}" is reserved`);
       continue;
     }
-    const page = buildPage(template, row, config, allProjects, shareImage);
+    const page = buildPage(template, row, config, allProjects, shareImage, similarCards);
     const dir = path.join(ROOT, "projects", page.slug);
     fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(path.join(dir, "index.html"), page.html);
