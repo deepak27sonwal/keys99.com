@@ -2344,34 +2344,210 @@ footer{
 
 /* ---------- Homepage guide ---------- */
 
+/* ---------- Buyer's guide (written by build/homepage.js) ----------
+   One soft panel: heading and intro, four headline numbers, "explore"
+   cards of link chips, and the FAQs in two columns. */
+
+.guide-panel{
+  position:relative;
+  overflow:hidden;
+  padding:44px 44px 40px;
+  border:1px solid #dcebe6;
+  border-radius:28px;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(225,164,0,.10), transparent 32%),
+    radial-gradient(circle at 0% 100%, rgba(0,107,91,.08), transparent 38%),
+    linear-gradient(180deg, #f3faf7 0%, #fbfdfc 100%);
+}
+
+.guide-head{
+  max-width:900px;
+}
+
+.guide-head .section-title{
+  margin:6px 0 14px;
+}
+
 .home-guide-intro{
-  max-width:860px;
-  margin:0 0 12px;
+  margin:0;
   font-size:var(--fs-body);
-  line-height:1.7;
+  line-height:1.75;
   color:#3d5560;
 }
 
-.home-guide-links{
-  max-width:860px;
-  margin:0 0 22px;
-  font-size:var(--fs-ui);
-  line-height:1.8;
-  color:#3d5560;
+/* Headline numbers */
+.guide-stats{
+  display:grid;
+  grid-template-columns:repeat(4, minmax(0, 1fr));
+  gap:14px;
+  margin:28px 0 30px;
 }
 
-.home-guide-links a{
-  color:var(--green);
+.guide-stat{
+  padding:18px 20px;
+  border:1px solid #dcebe6;
+  border-radius:18px;
+  background:#fff;
+  box-shadow:0 6px 18px rgba(8,45,56,.04);
+}
+
+.guide-stat dt{
+  font-size:var(--fs-label);
   font-weight:700;
-  text-decoration:none;
+  letter-spacing:.6px;
+  text-transform:uppercase;
+  color:#5b6c75;
 }
 
-.home-guide-links a:hover{ text-decoration:underline; }
+.guide-stat dd{
+  margin:6px 0 2px;
+  font-size:24px;
+  font-weight:700;
+  line-height:1.2;
+  color:var(--green-dark);
+}
 
-.home-guide h3{
-  margin:0 0 12px;
+.guide-stat small{
+  font-size:var(--fs-small);
+  color:#5b6c75;
+}
+
+/* Explore cards */
+.guide-browse{
+  display:grid;
+  grid-template-columns:repeat(3, minmax(0, 1fr));
+  gap:16px;
+}
+
+.guide-group{
+  padding:20px;
+  border:1px solid #e1eeea;
+  border-radius:18px;
+  background:rgba(255,255,255,.85);
+  transition:border-color .2s ease, box-shadow .2s ease;
+}
+
+.guide-group:hover{
+  border-color:#c6e0d8;
+  box-shadow:0 10px 26px rgba(8,45,56,.06);
+}
+
+.guide-group h3{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin:0 0 14px;
+  font-size:var(--fs-lead);
+  color:var(--ink);
+}
+
+.guide-icon{
+  flex:none;
+  display:grid;
+  place-items:center;
+  width:34px;
+  height:34px;
+  border-radius:10px;
+  background:var(--green-soft);
+  color:var(--green);
+  font-size:16px;
+  font-weight:700;
+}
+
+.guide-chips{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+
+.guide-chip{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  padding:7px 12px;
+  border:1px solid #d6e8e2;
+  border-radius:999px;
+  background:#fff;
+  color:var(--green-dark);
+  font-size:var(--fs-ui);
+  font-weight:600;
+  text-decoration:none;
+  transition:background .18s ease, color .18s ease, border-color .18s ease, transform .18s ease;
+}
+
+.guide-chip span{
+  min-width:20px;
+  padding:1px 6px;
+  border-radius:999px;
+  background:var(--green-soft);
+  color:var(--green);
+  font-size:var(--fs-label);
+  font-weight:700;
+  text-align:center;
+}
+
+.guide-chip:hover,
+.guide-chip:focus-visible{
+  background:var(--green);
+  border-color:var(--green);
+  color:#fff;
+  transform:translateY(-1px);
+}
+
+.guide-chip:hover span,
+.guide-chip:focus-visible span{
+  background:rgba(255,255,255,.2);
+  color:#fff;
+}
+
+.guide-chip-more{
+  border-style:dashed;
+  color:var(--green);
+}
+
+/* FAQs: two columns on wide screens */
+.guide-faq{
+  margin-top:34px;
+}
+
+.home-guide .guide-faq h3{
+  margin:0 0 14px;
   font-size:var(--fs-h4);
   color:var(--ink);
+}
+
+.guide-faq .hub-faqs{
+  max-width:none;
+  grid-template-columns:repeat(2, minmax(0, 1fr));
+  align-items:start;
+}
+
+@media (max-width:1024px){
+  .guide-browse{ grid-template-columns:repeat(2, minmax(0, 1fr)); }
+  .guide-stats{ grid-template-columns:repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width:760px){
+  .guide-panel{
+    padding:24px 16px 22px;
+    border-radius:22px;
+  }
+  .guide-stats{
+    gap:10px;
+    margin:20px 0 22px;
+  }
+  .guide-stat{
+    padding:14px;
+    border-radius:14px;
+  }
+  .guide-stat dd{ font-size:19px; }
+  .guide-browse{
+    grid-template-columns:minmax(0, 1fr);
+    gap:12px;
+  }
+  .guide-group{ padding:16px; }
+  .guide-faq{ margin-top:26px; }
+  .guide-faq .hub-faqs{ grid-template-columns:minmax(0, 1fr); }
 }
 
 
@@ -2503,6 +2679,16 @@ footer{
 .loan-partner{
   flex:0 0 calc((100% - 4 * 14px) / 5);
   height:96px;
+}
+
+/* Each logo links to the EMI calculator (home-loans#emi). On hover or
+   keyboard focus the card lifts, its border turns green, the logo
+   grows slightly and a "Calculate EMI" label slides up. */
+.loan-partner-link{
+  position:relative;
+  overflow:hidden;
+
+  height:100%;
   padding:18px 20px;
 
   display:flex;
@@ -2512,6 +2698,39 @@ footer{
   background:#fff;
   border:1px solid var(--line);
   border-radius:16px;
+
+  text-decoration:none;
+
+  transition:transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+}
+
+.loan-partner-link::after{
+  content:"Calculate EMI →";
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:0;
+  padding:5px 0;
+  background:var(--green);
+  color:#fff;
+  font-size:var(--fs-label);
+  font-weight:700;
+  text-align:center;
+  transform:translateY(100%);
+  transition:transform .25s ease;
+}
+
+.loan-partner-link:hover,
+.loan-partner-link:focus-visible{
+  transform:translateY(-5px);
+  border-color:var(--green);
+  box-shadow:0 14px 30px rgba(0,107,91,.16);
+  outline:none;
+}
+
+.loan-partner-link:hover::after,
+.loan-partner-link:focus-visible::after{
+  transform:translateY(0);
 }
 
 .loan-partner img{
@@ -2520,6 +2739,18 @@ footer{
   width:auto;
   height:auto;
   object-fit:contain;
+  transition:transform .25s ease;
+}
+
+.loan-partner-link:hover img,
+.loan-partner-link:focus-visible img{
+  transform:scale(1.06) translateY(-6px);
+}
+
+@media (prefers-reduced-motion:reduce){
+  .loan-partner-link,
+  .loan-partner-link::after,
+  .loan-partner img{ transition:none; }
 }
 
 @media(max-width:900px){
@@ -2530,6 +2761,9 @@ footer{
   .loan-partner{
     flex-basis:calc((100% - 2 * 10px) / 3);
     height:72px;
+  }
+
+  .loan-partner-link{
     padding:12px;
     border-radius:12px;
   }
@@ -2568,7 +2802,7 @@ footer{
   }
 
   .hub-guide h3,
-  .home-guide h3{
+  .home-guide .guide-faq h3{
     font-size:17px;
   }
 
