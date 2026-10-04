@@ -677,8 +677,10 @@ a{
    GENERAL
 ========================================================= */
 
+/* Each section's top and bottom padding together make the gap
+   between sections: 80px on desktop, 56px on phones. */
 section{
-  padding:62px 0;
+  padding:40px 0;
 }
 
 .section-head{
@@ -1488,7 +1490,7 @@ footer{
   /* SECTIONS */
 
   section{
-    padding:43px 0;
+    padding:28px 0;
   }
 
   .section-title{
@@ -2138,10 +2140,6 @@ footer{
    Every logo sits in the same white card at the same height,
    so wide and narrow logos read as one even row.
 ========================================================= */
-
-.loan-partners{
-  padding-top:20px;
-}
 
 .loan-partners-intro{
   margin-top:8px;
