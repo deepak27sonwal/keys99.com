@@ -168,64 +168,97 @@ function buildGuide(H, props){
   const questions = [...faqs(H, s, place), ...generalFaqs(place)];
   const localities = H.computeTopLocalities(props, 12);
   const e = H.escapeHtml;
-  const link = (href, text) => `<a href="${e(href)}">${e(text)}</a>`;
+  /* A link chip, with the number of projects behind it when known. */
+  const chip = (href, text, count) =>
+    `<a class="guide-chip" href="${e(href)}">${e(text)}${count ? `<span>${count}</span>` : ""}</a>`;
 
-  const browse = [
-    cities.length > 1 || !localities.length
-      ? `Browse by city: ${listText(cities.map(c => link(H.cityUrl(c.city), H.titleCaseName(c.city))))}.`
-      : `See ${link(H.cityUrl(cities[0].city), "all new projects in " + H.titleCaseName(cities[0].city))}.`,
-    localities.length
-      ? `Popular localities: ${listText(localities.map(l => link(H.localityUrl(l.city, l.locality), H.titleCaseName(l.locality))))}.`
-      : ""
-  ].filter(Boolean).join(" ");
+  const mainCity = cities[0].city;
+  const mainName = H.titleCaseName(mainCity);
+  const cityProps = props.filter(p => H.slugify(p.city) === H.slugify(mainCity));
 
   /* BHK pages of the main city (build/hubs.js makes one per size). */
-  const mainCity = cities[0].city;
-  const sizes = [...new Set(props.filter(p => H.slugify(p.city) === H.slugify(mainCity)).flatMap(p => bhkLabelsOf(H, p)))]
-    .sort((a, b) => parseFloat(a) - parseFloat(b));
-  const sizeLinks = sizes.length
-    ? ` Flats by size in ${e(H.titleCaseName(mainCity))}: ${listText(sizes.map(b => link(`${H.cityUrl(mainCity)}${bhkSlug(b)}/`, b)))}.`
-    : "";
+  const sizes = [...new Set(cityProps.flatMap(p => bhkLabelsOf(H, p)))]
+    .sort((a, b) => parseFloat(a) - parseFloat(b))
+    .map(b => ({ label: b, count: cityProps.filter(p => bhkLabelsOf(H, p).includes(b)).length }));
 
   /* Budget and status pages of the main city (build/hubs.js). */
-  const cityProps = props.filter(p => H.slugify(p.city) === H.slugify(mainCity));
   const cityLocalities = new Set(cityProps.map(p => H.slugify(p.locality)).filter(Boolean));
   const filters = cityFilterPages(H, H.slugify(mainCity), cityProps, cityLocalities);
-  const filterLink = page => link(`projects/${page.path}/`, page.label.replace(/^Under /, "under "));
-  const budgetLinks = filters.budgets.length
-    ? ` Flats by budget in ${e(H.titleCaseName(mainCity))}: ${listText(filters.budgets.map(filterLink))}.`
-    : "";
-  const statusLinks = filters.statuses.length
-    ? ` By status: ${listText(filters.statuses.map(st => link(`projects/${st.path}/`, st.label)))}.`
-    : "";
 
   /* Developer pages (build/hubs.js). */
   const devs = [];
   props.forEach(p => {
     const slug = H.slugify(p.developer);
-    if(slug && !devs.some(d => d.slug === slug)) devs.push({ slug, name: H.titleCaseName(p.developer) });
+    if(!slug) return;
+    const found = devs.find(d => d.slug === slug);
+    if(found) found.count++;
+    else devs.push({ slug, name: H.titleCaseName(p.developer), count: 1 });
   });
-  const devLinks = devs.length
-    ? ` Projects by developer: ${listText(devs.slice(0, 6).map(d => link(`developers/${d.slug}/`, d.name)))} (${link("developers/", "all developers")}).`
-    : "";
+
+  const groups = [
+    { icon: "⌖", title: "Browse by city",
+      chips: cities.map(c => chip(H.cityUrl(c.city), H.titleCaseName(c.city), c.count)) },
+    { icon: "◎", title: "Popular localities",
+      chips: localities.map(l => chip(H.localityUrl(l.city, l.locality), H.titleCaseName(l.locality), l.count)) },
+    { icon: "▣", title: `Flats by size in ${mainName}`,
+      chips: sizes.map(b => chip(`${H.cityUrl(mainCity)}${bhkSlug(b.label)}/`, b.label, b.count)) },
+    { icon: "₹", title: `Flats by budget in ${mainName}`,
+      chips: filters.budgets.map(b => chip(`projects/${b.path}/`, b.label, b.count)) },
+    { icon: "◷", title: `By status in ${mainName}`,
+      chips: filters.statuses.map(st => chip(`projects/${st.path}/`, st.label, st.count)) },
+    { icon: "▥", title: "Projects by developer",
+      chips: [...devs.slice(0, 6).map(d => chip(`developers/${d.slug}/`, d.name, d.count)),
+        `<a class="guide-chip guide-chip-more" href="developers/">All developers →</a>`] }
+  ].filter(g => g.chips.length);
+
+  /* Headline numbers. */
+  const bhkRange = s.bhks.length > 1
+    ? `${s.bhks[0].replace(/ BHK$/, "")} – ${s.bhks[s.bhks.length - 1]}`
+    : (s.bhks[0] || "");
+  const stats = [
+    ["Projects", String(s.count), `across ${cities.length} ${cities.length === 1 ? "city" : "cities"}`],
+    s.minPrice !== null ? ["Starting from", H.formatPrice(s.minPrice),
+      s.maxPrice > s.minPrice ? `up to ${H.formatPrice(s.maxPrice)}` : ""] : null,
+    bhkRange ? ["Configurations", bhkRange, s.bhks.length > 1 ? `${s.bhks.length} flat sizes` : ""] : null,
+    ["RERA registered", String(s.rera), `of ${s.count} projects`]
+  ].filter(Boolean);
 
   const html = `
 <section id="guide" class="home-guide" aria-labelledby="guideTitle">
   <div class="container">
-    <div class="section-head">
-      <div>
+    <div class="guide-panel">
+
+      <div class="guide-head">
         <div class="section-kicker">Buyer's Guide</div>
         <h2 class="section-title" id="guideTitle">New Residential Projects in ${e(place)}</h2>
+        <p class="home-guide-intro">${e(introText(H, s, place))}</p>
       </div>
-    </div>
-    <p class="home-guide-intro">${e(introText(H, s, place))}</p>
-    <p class="home-guide-links">${browse}${sizeLinks}${budgetLinks}${statusLinks}${devLinks}</p>
-    <h3>Frequently Asked Questions</h3>
-    <div class="hub-faqs">${questions.map(f => `
-      <details class="hub-faq">
-        <summary>${e(f.q)}</summary>
-        <p>${e(f.a)}</p>
-      </details>`).join("")}
+
+      <dl class="guide-stats">${stats.map(([label, value, note]) => `
+        <div class="guide-stat">
+          <dt>${e(label)}</dt>
+          <dd>${e(value)}</dd>${note ? `
+          <small>${e(note)}</small>` : ""}
+        </div>`).join("")}
+      </dl>
+
+      <div class="guide-browse">${groups.map(g => `
+        <div class="guide-group">
+          <h3><span class="guide-icon" aria-hidden="true">${g.icon}</span>${e(g.title)}</h3>
+          <div class="guide-chips">${g.chips.join("")}</div>
+        </div>`).join("")}
+      </div>
+
+      <div class="guide-faq">
+        <h3>Frequently Asked Questions</h3>
+        <div class="hub-faqs">${questions.map(f => `
+          <details class="hub-faq">
+            <summary>${e(f.q)}</summary>
+            <p>${e(f.a)}</p>
+          </details>`).join("")}
+        </div>
+      </div>
+
     </div>
   </div>
 </section>`;
