@@ -1463,7 +1463,7 @@ footer{
   .hero{
     min-height:0;
 
-    padding:26px 0 24px;
+    padding:16px 0 16px;
 
     flex-direction:column;
 
@@ -1481,17 +1481,19 @@ footer{
   }
 
   .hero-content{
-    padding:0 0 22px;
+    padding:0 0 14px;
     max-width:100%;
   }
 
   .hero h1{
     font-size:42px;
     letter-spacing:-1.5px;
+    margin-bottom:10px;
   }
 
   .hero p{
     font-size:var(--fs-body);
+    line-height:1.5;
   }
 
 
@@ -1501,10 +1503,14 @@ footer{
     position:static;
   }
 
+  /* Compact two-column layout: the text search on its own row,
+     Property Type and BHK side by side, then Search and Filters
+     side by side - three short rows instead of five tall ones. */
   .search-bar{
-    display:block;
-    padding:9px;
-    border-radius:18px;
+    grid-template-columns:1fr 1fr;
+    column-gap:6px;
+    padding:6px;
+    border-radius:16px;
   }
 
   .search-field{
@@ -1512,33 +1518,42 @@ footer{
 
     border-bottom:1px solid var(--line);
 
-    min-height:44px;
+    min-height:40px;
 
-    padding:0 10px;
+    gap:6px;
+
+    padding:0 6px;
+
+    min-width:0;
+
+    font-size:var(--fs-ui);
   }
 
-  .search-field:last-of-type{
-    display:flex;
+  .search-field-main{
+    grid-column:1 / -1;
   }
 
-  .search-button{
-    width:100%;
-
-    justify-content:center;
-
-    margin-top:8px;
-
-    height:44px;
+  .search-icon{
+    font-size:18px;
   }
 
+  .search-button,
   .filter-toggle-btn{
     width:100%;
 
     justify-content:center;
 
-    margin-top:8px;
+    margin-top:6px;
 
-    height:44px;
+    height:40px;
+
+    padding:0 12px;
+
+    border-radius:12px;
+  }
+
+  .search-button{
+    font-size:var(--fs-ui);
   }
 
   .hero-filter-panel{
