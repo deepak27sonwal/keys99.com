@@ -152,8 +152,81 @@ footer{border-top:1px solid var(--line);margin-top:20px;background:#fff;padding:
 /* STICKY MOBILE CONTACT BAR */
 .sticky-contact-bar{display:none}
 
-/* MOBILE BOTTOM NAVIGATION */
+/* BOTTOM NAVIGATION: a small floating pill, centred at the bottom
+   of the screen, on desktop; a full-width bar on mobile (below). */
 .bottom-nav{display:none}
+@media(min-width:901px){
+
+  body{ padding-bottom:84px; }
+
+  .bottom-nav{
+    display:flex;
+    position:fixed;
+    left:50%;
+    bottom:14px;
+    transform:translateX(-50%);
+    z-index:60;
+    gap:2px;
+    padding:5px;
+    background:rgba(255,255,255,.94);
+    backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);
+    border:1px solid var(--line);
+    border-radius:999px;
+    box-shadow:0 10px 30px rgba(8,45,56,.14);
+  }
+
+  .bottom-nav button{
+    width:68px;
+    height:48px;
+    border:0;
+    border-radius:999px;
+    background:none;
+    cursor:pointer;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:1px;
+    color:#7ba89d;
+    font-size:11px;
+    font-weight:600;
+    transition:color .2s, background .2s;
+  }
+
+  .bottom-nav button:hover,
+  .bottom-nav button:focus-visible{
+    color:var(--green);
+    background:var(--green-soft);
+    outline:none;
+  }
+
+  .bottom-nav .bn-icon{
+    width:34px;
+    height:24px;
+    display:grid;
+    place-items:center;
+    border-radius:12px;
+    transition:background .25s, transform .25s;
+  }
+
+  .bottom-nav .bn-icon svg{
+    width:19px;
+    height:19px;
+    display:block;
+  }
+
+  .bottom-nav button.bn-active{
+    color:var(--green);
+  }
+
+  .bottom-nav button.bn-active .bn-icon{
+    background:var(--green-soft);
+  }
+
+  /* Toasts sit above the pill. */
+  .toast{ bottom:84px; }
+}
 
 /* TABLET */
 @media(max-width:1050px){
