@@ -501,8 +501,23 @@
 
     scroll-snap-align:start;
   }
+  /* Shorter cards on phones: a lower picture and tighter spacing
+     between the lines of text. */
   .property-image{
-    height:190px;
+    height:150px;
+  }
+  .property-body{
+    padding-top:10px;
+  }
+  .property-card .location,
+  .property-card .developer{
+    margin:2px 0;
+  }
+  .card-bottom{
+    padding-top:6px;
+  }
+  .bhk-wrap{
+    padding-top:8px;
   }
 }
 
