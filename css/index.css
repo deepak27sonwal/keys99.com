@@ -1507,14 +1507,44 @@ footer{
     display:none;
   }
 
+  /* Two cards per screen (the next one peeks in), illustration scaled
+     to the card's width, so the row is about half its former height. */
   .type-card{
-    flex:0 0 76%;
+    flex:0 0 46%;
 
     scroll-snap-align:start;
+
+    border-radius:14px;
   }
 
   .type-img{
-    height:145px;
+    height:auto;
+    aspect-ratio:5 / 3;
+  }
+
+  .type-body{
+    padding:10px 12px 12px;
+  }
+
+  .type-body h3{
+    font-size:15px;
+  }
+
+  .type-body p{
+    font-size:var(--fs-label);
+  }
+
+  /* The whole card is the link, so the arrow button goes on phones;
+     titles then fit one line and every card stays the same short
+     height. */
+  .type-card .arrow{
+    display:none;
+  }
+
+  .type-body h3{
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
   }
 
 
@@ -1701,7 +1731,7 @@ footer{
   }
 
   .type-card{
-    flex-basis:82%;
+    flex-basis:47%;
   }
 
   .city-card{
