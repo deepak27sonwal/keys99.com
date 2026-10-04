@@ -71,8 +71,8 @@
 .similar-body{display:flex;flex-direction:column;gap:4px;padding:12px 13px 14px;min-width:0}
 .similar-body strong{font:800 var(--fs-lead) Manrope,sans-serif;color:var(--text);overflow-wrap:anywhere}
 .similar-loc{font-size:var(--fs-small);color:#6b7f86}
-.similar-price{font-weight:800;color:var(--green);font-size:var(--fs-ui);margin-top:2px}
-.similar-price small{font-weight:600;color:#6b7f86;font-size:var(--fs-label)}
+.similar-price{font-weight:800;color:var(--green);font-size:var(--fs-lead);margin-top:2px}
+.similar-price small{font-weight:600;color:#6b7f86;font-size:var(--fs-small)}
 .similar-bhk{font-size:var(--fs-label);font-weight:700;color:#3d5560}
 @media (max-width:640px){
   .similar-list{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:12px;margin:0 -4px;padding:0 4px 6px}
@@ -151,4 +151,4 @@
 .saved-count[hidden]{display:none}
 
 /* Phone headings: same scale as the rest of the site. */
-@media(max-width:620px){.contact-gate-card h2{font-size:18px}}
+@media(max-width:620px){.contact-gate-card h2{font-size:17px}}
