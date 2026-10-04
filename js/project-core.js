@@ -559,29 +559,6 @@
       .map(x => x.o);
   }
 
-  /* root: path from the page to the site root, as for normalizeProject. */
-  function renderSimilar(list, root){
-    root = root || "";
-    return list.map(o => {
-      const img = o.images[0];
-      const placeholder = root + "assets/property-placeholder.svg";
-      const where = [o.locality, o.city].filter(Boolean).join(", ");
-      return `
-      <a class="similar-card" href="${escapeHtml(root + "projects/" + o.slug + "/")}">
-        <span class="similar-img">
-          <img src="${escapeHtml(img ? img.card : placeholder)}"${img ? ` data-full="${escapeHtml(img.url)}"` : ""} onerror="${IMG_FALLBACK}" alt="${escapeHtml(o.name)}" loading="lazy" decoding="async" width="400" height="300">
-          ${o.status ? `<span class="similar-status ${escapeHtml(o.statusClass)}">${escapeHtml(o.status)}</span>` : ""}
-        </span>
-        <span class="similar-body">
-          <strong>${escapeHtml(o.name)}</strong>
-          ${where ? `<span class="similar-loc">${escapeHtml(where)}</span>` : ""}
-          <span class="similar-price">${o.startingPrice ? `<small>Starting from</small> ${escapeHtml(o.startingPriceText)}` : "Price on Request"}</span>
-          ${o.bhkLabels.length ? `<span class="similar-bhk">${escapeHtml(o.bhkLabels.join(" · "))}</span>` : ""}
-        </span>
-      </a>`;
-    }).join("");
-  }
-
   /* ---------------- VIDEOS ----------------
      What the Reels page needs to show a video: where it is hosted, a
      player URL, a thumbnail, and whether it is a tall short. */
@@ -745,7 +722,6 @@
     renderFloorPlans,
     renderThumbs,
     pickSimilar,
-    renderSimilar,
     videoInfo,
     escapeHtml,
     formatPrice,

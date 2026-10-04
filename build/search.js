@@ -56,6 +56,7 @@ function buildSearchPage({ H, indexHtml, props, siteOrigin }){
 <link rel="icon" href="favicon.ico">
 ${chrome.fonts}
 <link rel="stylesheet" href="css/index.css">
+<link rel="stylesheet" href="css/cards.css">
 <link rel="stylesheet" href="css/hub.css">
 <link rel="stylesheet" href="css/custom-select.css">
 <link rel="stylesheet" href="css/search.css">
@@ -171,6 +172,7 @@ ${chrome.footer}
 ${chrome.bottomNav}
 
 <script defer src="js/custom-select.js"></script>
+<script defer src="js/cards.js"></script>
 <script defer src="js/hub.js"></script>
 <script defer src="js/attribution.js"></script>
 <script defer src="js/compare-tray.js"></script>

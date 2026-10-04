@@ -28,6 +28,7 @@ function shell({ chrome, title, description, canonical, robots, css, main, scrip
 <link rel="icon" href="favicon.ico">
 ${chrome.fonts}
 <link rel="stylesheet" href="css/index.css">
+<link rel="stylesheet" href="css/cards.css">
 <link rel="stylesheet" href="css/hub.css">
 ${css.map(href => `<link rel="stylesheet" href="${href}">`).join("\n")}
 </head>
@@ -102,7 +103,7 @@ function buildSavedPage({ H, indexHtml, props, siteOrigin }){
     robots: "noindex,follow",
     css: ["css/media-pages.css"],
     main,
-    scripts: ["js/hub.js", "js/attribution.js", "js/compare-tray.js", "js/saved.js"]
+    scripts: ["js/cards.js", "js/hub.js", "js/attribution.js", "js/compare-tray.js", "js/saved.js"]
   }), "saved");
 }
 
