@@ -736,9 +736,10 @@ section{
 .type-grid{
   display:grid;
 
-  grid-template-columns:repeat(3,1fr);
+  /* All six types in a single row. */
+  grid-template-columns:repeat(6,1fr);
 
-  gap:16px;
+  gap:14px;
 }
 
 .type-card{
@@ -748,7 +749,7 @@ section{
 
   border:1px solid var(--line);
 
-  border-radius:17px;
+  border-radius:14px;
 
   overflow:hidden;
 
@@ -786,7 +787,7 @@ section{
 }
 
 .type-img{
-  height:150px;
+  aspect-ratio:5 / 3;
 
   position:relative;
 
@@ -807,12 +808,16 @@ section{
 }
 
 .type-body{
-  padding:25px 15px 15px;
+  padding:10px 10px 12px;
+  text-align:center;
 }
 
 .type-body h3{
-  font-size:var(--fs-lead);
-  margin-bottom:3px;
+  font-size:15px;
+  margin-bottom:2px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
 
 .type-body p{
@@ -820,10 +825,14 @@ section{
   color:var(--muted);
 }
 
+/* The whole card is the link, so the arrow button is hidden and the
+   title and count are centred. */
 .type-row{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
+  display:block;
+}
+
+.type-card .arrow{
+  display:none;
 }
 
 .arrow{
@@ -850,9 +859,10 @@ section{
 .city-grid{
   display:grid;
 
-  grid-template-columns:repeat(5,1fr);
+  /* Six to a row, the same size as the property type cards. */
+  grid-template-columns:repeat(6,1fr);
 
-  gap:16px;
+  gap:14px;
 }
 
 /* City cards, locality chips and card titles are anchors so that
@@ -869,7 +879,7 @@ section{
 .city-card{
   border:1px solid var(--line);
 
-  border-radius:17px;
+  border-radius:14px;
 
   padding:22px 18px;
 
@@ -1520,34 +1530,8 @@ footer{
     border-radius:14px;
   }
 
-  .type-img{
-    height:auto;
-    aspect-ratio:5 / 3;
-  }
-
-  .type-body{
-    padding:10px 12px 12px;
-  }
-
-  .type-body h3{
-    font-size:15px;
-  }
-
   .type-body p{
     font-size:var(--fs-label);
-  }
-
-  /* The whole card is the link, so the arrow button goes on phones;
-     titles then fit one line and every card stays the same short
-     height. */
-  .type-card .arrow{
-    display:none;
-  }
-
-  .type-body h3{
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
   }
 
 
@@ -2090,13 +2074,13 @@ footer{
    the picture frame are spans too, so they reset it. */
 .city-card .city-body{
   display:block;
-  padding:12px 14px 14px;
+  padding:10px 10px 12px;
   text-align:center;
   font-size:inherit;
   color:var(--ink, #092c3d);
 }
 
-.city-card .city-body strong{ color:var(--ink, #092c3d); }
+.city-card .city-body strong{ font-size:15px; color:var(--ink, #092c3d); }
 /* Project count: the same green badge as the locality chips' count. */
 .city-card .city-body span{
   display:inline-block;
