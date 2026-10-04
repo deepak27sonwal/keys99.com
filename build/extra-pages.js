@@ -103,7 +103,7 @@ function buildSavedPage({ H, indexHtml, props, siteOrigin }){
     robots: "noindex,follow",
     css: ["css/media-pages.css"],
     main,
-    scripts: ["js/cards.js", "js/hub.js", "js/attribution.js", "js/compare-tray.js", "js/saved.js"]
+    scripts: ["js/cards.js", "js/hub.js", "js/nav-fx.js", "js/attribution.js", "js/compare-tray.js", "js/saved.js"]
   }), "saved");
 }
 
@@ -177,7 +177,7 @@ function buildReelsPage({ H, P, indexHtml, rows, supabaseUrl, siteOrigin, robots
     robots,
     css: ["css/media-pages.css"],
     main,
-    scripts: ["js/hub.js", "js/attribution.js", "js/compare-tray.js", "js/reels.js"]
+    scripts: ["js/hub.js", "js/nav-fx.js", "js/attribution.js", "js/compare-tray.js", "js/reels.js"]
   }), "reels") };
 }
 
