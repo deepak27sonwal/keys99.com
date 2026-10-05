@@ -58,6 +58,10 @@
     pros_cons:residential_project_pros_cons!residential_project_pros_cons_project_id_fkey (
       item_type, content, is_published, display_order
     ),
+    blogs:residential_project_blogs!residential_project_blogs_project_id_fkey (
+      title, slug, excerpt, body, cover_image_url, cover_image_path, storage_bucket,
+      author, tags, is_published, published_at, created_at, display_order
+    ),
     floor_plans:residential_floor_plans!residential_floor_plans_project_id_fkey (
       bhk_type, plan_type, title, image_url, image_path, storage_bucket,
       alt_text, is_active, display_order
@@ -353,6 +357,23 @@
     const pros = prosCons.filter(p => p.item_type === "pro").map(p => clean(p.content));
     const cons = prosCons.filter(p => p.item_type === "con").map(p => clean(p.content));
 
+    /* Posts are plain text with line breaks. The list shows the
+       excerpt (or the start of the body); the full text opens below. */
+    const blogs = list(row.blogs).filter(b => b.is_published === true && clean(b.title) && clean(b.body)).map(b => {
+      const body = clean(b.body).replace(/\r\n?/g, "\n").replace(/\n{3,}/g, "\n\n");
+      const flat = body.replace(/\s+/g, " ");
+      return {
+        title: clean(b.title),
+        slug: clean(b.slug),
+        excerpt: clean(b.excerpt) || (flat.length > 180 ? flat.slice(0, 180).replace(/\s+\S*$/, "") + "…" : flat),
+        body,
+        image: clean(b.cover_image_url) || storagePublicUrl(supabaseUrl, b.storage_bucket, b.cover_image_path),
+        author: clean(b.author),
+        tags: (b.tags || []).map(clean).filter(Boolean),
+        date: b.published_at || b.created_at || ""
+      };
+    });
+
     const floorPlans = list(row.floor_plans).filter(f => f.is_active !== false).map(f => ({
       url: clean(f.image_url) || storagePublicUrl(supabaseUrl, f.storage_bucket, f.image_path),
       title: clean(f.title) || normaliseBhk(f.bhk_type) || "Floor Plan",
@@ -419,6 +440,7 @@
       nearby,
       faqs,
       pros, cons,
+      blogs,
       floorPlans,
       towers,
       specifications,
@@ -516,6 +538,35 @@
         <summary>${escapeHtml(f.question)}</summary>
         <p>${escapeHtml(f.answer)}</p>
       </details>`).join("");
+  }
+
+  function renderBlogs(p){
+    return p.blogs.map((b, i) => {
+      const id = "blog-" + (slugify(b.slug || b.title) || i + 1);
+      const d = b.date ? new Date(b.date) : null;
+      const day = d && Number.isFinite(d.getTime()) ? d.toISOString().slice(0, 10) : "";
+      const meta = [
+        b.author ? escapeHtml(b.author) : "",
+        day ? `<time datetime="${day}">${escapeHtml(formatDay(day))}</time>` : ""
+      ].filter(Boolean).join(" · ");
+      return `
+      <article class="project-blog" id="${escapeHtml(id)}">
+        ${b.image ? `<img class="project-blog-cover" src="${escapeHtml(b.image)}" onerror="this.remove()" alt="${escapeHtml(b.title)}" loading="lazy" decoding="async">` : ""}
+        <div class="project-blog-text">
+          ${b.tags.length ? `<div class="project-blog-tags">${b.tags.map(t => `<span>${escapeHtml(t)}</span>`).join("")}</div>` : ""}
+          <h3>${escapeHtml(b.title)}</h3>
+          ${meta ? `<p class="project-blog-meta">${meta}</p>` : ""}
+          <details>
+            <summary><span class="project-blog-excerpt">${escapeHtml(b.excerpt)}</span><span class="project-blog-more">Read more</span></summary>
+            <div class="project-blog-body">${escapeHtml(b.body)}</div>
+          </details>
+        </div>
+      </article>`;
+    }).join("");
+  }
+
+  function formatDay(day){
+    return new Date(day + "T00:00:00Z").toLocaleDateString("en-IN", { day:"numeric", month:"short", year:"numeric", timeZone:"UTC" });
   }
 
   function renderFloorPlans(p){
@@ -719,6 +770,7 @@
     renderTowerRows,
     renderProsCons,
     renderFaqs,
+    renderBlogs,
     renderFloorPlans,
     renderThumbs,
     pickSimilar,

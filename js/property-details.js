@@ -207,6 +207,7 @@ function renderProject(p){
   fillSection("towersSection", "towers", P.renderTowerRows(p));
   fillSection("prosConsSection", "prosCons", P.renderProsCons(p));
   fillSection("faqSection", "faqs", P.renderFaqs(p));
+  fillSection("blogSection", "projectBlogs", P.renderBlogs(p));
 
   $("locationAdvantages").innerHTML = P.renderNearbyRows(p);
   $("locationAdvantages").closest(".table-wrap").classList.toggle("hidden", !p.nearby.length);
