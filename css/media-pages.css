@@ -29,6 +29,14 @@
   border-radius:16px;
   background:#fff;
   box-shadow:0 1px 2px rgba(8,45,56,.06), 0 6px 18px rgba(8,45,56,.08);
+  /* Opened from a homepage reel (reels#reel-N): clear the sticky
+     header and outline the chosen video. */
+  scroll-margin-top:96px;
+}
+
+.reel-card:target{
+  border-color:var(--green);
+  box-shadow:0 0 0 3px rgba(0,107,91,.25), 0 10px 26px rgba(8,45,56,.14);
 }
 
 .reel-media{ position:relative; aspect-ratio:16/9; background:#0b1f26; }

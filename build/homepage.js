@@ -269,7 +269,8 @@ function buildGuide(H, props){
   return { html, faqs: questions };
 }
 
-function buildHomepage(indexPath, rows, supabaseUrl){
+/* reelsHtml: the "Reels" strip from build/extra-pages.js. */
+function buildHomepage(indexPath, rows, supabaseUrl, reelsHtml){
   let html = fs.readFileSync(indexPath, "utf8");
   const H = loadHomepageFunctions(html, supabaseUrl);
 
@@ -302,6 +303,7 @@ function buildHomepage(indexPath, rows, supabaseUrl){
 
   const guide = buildGuide(H, props);
   html = replaceBetween(html, "guide", guide.html);
+  html = replaceBetween(html, "reels", reelsHtml || "");
   const faqLd = guide.faqs.length ? `<script type="application/ld+json">${JSON.stringify({
     "@context": "https://schema.org",
     "@type": "FAQPage",
