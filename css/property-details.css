@@ -146,7 +146,8 @@ footer{border-top:1px solid var(--line);margin-top:20px;background:#fff;padding:
 .footer-col h4,.footer-col .footer-title{margin:0 0 10px;font-size:var(--fs-lead);line-height:1.3}
 .footer-col a,.footer-col p{display:block;color:#5b6c75;font-size:var(--fs-ui);line-height:1.5;margin:6px 0}.footer-col a{margin:0;padding:5px 0}
 .socials{display:flex;gap:8px}
-.socials a{width:36px;height:36px;font-size:16px;border:1px solid var(--line);border-radius:50%;display:grid;place-items:center;color:var(--green);text-decoration:none}
+.socials a{width:36px;height:36px;font-size:16px;border:1px solid var(--line);border-radius:50%;display:grid;place-items:center;color:var(--green);text-decoration:none;transition:background .15s,color .15s,border-color .15s}
+.socials a:hover,.socials a:focus-visible{background:var(--green);border-color:var(--green);color:#fff}
 .copyright{border-top:1px solid var(--line);margin-top:25px;padding-top:14px;color:#5b6c75;font-size:var(--fs-small);display:flex;flex-wrap:wrap;justify-content:center;gap:4px 24px;text-align:center}
 
 /* STICKY MOBILE CONTACT BAR */

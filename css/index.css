@@ -1250,6 +1250,14 @@ footer{
   place-items:center;
 
   color:var(--green);
+  transition:background .15s, color .15s, border-color .15s;
+}
+
+.socials a:hover,
+.socials a:focus-visible{
+  background:var(--green);
+  border-color:var(--green);
+  color:#fff;
 }
 
 .copyright{
