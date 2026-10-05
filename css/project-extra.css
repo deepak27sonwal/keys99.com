@@ -15,6 +15,7 @@
 .status-badge.st-completed{background:#3d5361}
 .status-badge.st-resale{background:#c2416b}
 
+.price-updated{display:block;margin-top:4px;font-size:var(--fs-label);font-weight:600;color:#00866e}
 .price-disclaimer{display:block;margin-top:6px;font-size:var(--fs-label);line-height:1.4;color:#6b7f86}
 
 .highlights{display:flex;flex-wrap:wrap;gap:9px;margin:0;padding:0;list-style:none}

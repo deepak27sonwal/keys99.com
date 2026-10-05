@@ -206,6 +206,8 @@ function buildPage(template, row, config, allProjects, shareImage, similarCards,
   toggle($, "#priceNote", !!p.startingPrice);
   $("#priceDisclaimer").text(p.priceDisclaimer);
   toggle($, "#priceDisclaimer", !!p.priceDisclaimer);
+  $("#priceUpdated").text(p.pricesUpdatedText ? "Prices updated " + p.pricesUpdatedText : "");
+  toggle($, "#priceUpdated", !!p.pricesUpdatedText);
   $("#bhk").text(p.bhkLabels.length ? p.bhkLabels.join(" / ") : "—");
   $("#carpetArea").text(p.firstArea || "—");
   $("#possession").text(p.possession || (p.status === "Ready to Move" ? "Ready" : "—"));

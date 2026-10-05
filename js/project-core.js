@@ -40,7 +40,7 @@
     locality:localities!residential_projects_locality_id_fkey ( name ),
     configurations:residential_configurations!residential_configurations_project_id_fkey (
       bhk_type, variant_name, carpet_area, area_unit, starting_price, maximum_price,
-      price_type, price_on_request, availability, display_order
+      price_type, price_on_request, availability, display_order, updated_at
     ),
     media:residential_media!residential_media_project_id_fkey (
       media_type, category, title, media_url, media_path, storage_bucket,
@@ -198,6 +198,12 @@
   function formatNumber(n){
     n = Number(n);
     return Number.isFinite(n) ? (+n.toFixed(2)).toLocaleString("en-IN") : "";
+  }
+
+  /* Newest of some timestamps, as given; "" when none parse. */
+  function latest(values){
+    return values.filter(v => v && Number.isFinite(new Date(v).getTime()))
+      .sort((a, b) => new Date(b) - new Date(a))[0] || "";
   }
 
   function formatMonthYear(v){
@@ -490,7 +496,12 @@
       seoDescription: clean(row.seo_description),
       views: Number(row.view_count) || 0,
       publishedAt: row.published_at || row.created_at,
-      updatedAt: row.updated_at || row.published_at || row.created_at
+      /* Price edits live in configurations, so they count too. */
+      updatedAt: latest([row.updated_at, ...list(row.configurations).map(c => c.updated_at)]) || row.published_at || row.created_at,
+      pricesUpdatedText: (() => {
+        const priced = list(row.configurations).map(c => c.updated_at).filter(Boolean);
+        return startingPrice ? formatMonthYear(latest(priced.length ? priced : [row.updated_at])) : "";
+      })()
     };
   }
 

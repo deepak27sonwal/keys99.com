@@ -176,6 +176,8 @@ function renderProject(p){
   $("priceNote").classList.toggle("hidden", !p.startingPrice);
   setText("priceDisclaimer", p.priceDisclaimer);
   $("priceDisclaimer").classList.toggle("hidden", !p.priceDisclaimer);
+  setText("priceUpdated", p.pricesUpdatedText ? "Prices updated " + p.pricesUpdatedText : "");
+  $("priceUpdated").classList.toggle("hidden", !p.pricesUpdatedText);
   setText("bhk", p.bhkLabels.length ? p.bhkLabels.join(" / ") : "—");
   setText("carpetArea", p.firstArea || "—");
   setText("possession", p.possession || (p.status === "Ready to Move" ? "Ready" : "—"));
