@@ -313,7 +313,7 @@ function removeStalePages(base, current){
   fs.writeFileSync(manifestFor(base), JSON.stringify(current.sort(), null, 2) + "\n");
 }
 
-function writeSitemap(pages, hubs, articles){
+function writeSitemap(pages, hubs, articles, extra){
   const day = v => {
     const d = new Date(v);
     return Number.isFinite(d.getTime()) ? d.toISOString().slice(0, 10) : "";
@@ -323,6 +323,7 @@ function writeSitemap(pages, hubs, articles){
     { loc: SITE_ORIGIN + "/about", lastmod: "" },
     { loc: SITE_ORIGIN + "/contact", lastmod: "" },
     { loc: SITE_ORIGIN + "/home-loans", lastmod: "" },
+    ...(extra || []).map(loc => ({ loc: SITE_ORIGIN + loc, lastmod: "" })),
     ...(hubs || []).filter(h => h.indexable || h.count >= HUB_MIN_INDEXED)
       .map(h => ({ loc: `${SITE_ORIGIN}/${h.dir}/`, lastmod: day(h.lastmod) })),
     ...pages.map(p => ({ loc: `${SITE_ORIGIN}/projects/${p.slug}/`, lastmod: day(p.lastmod), images: p.images || [] })),
@@ -518,7 +519,7 @@ async function main(){
   ]);
   removeStalePages("developers", hubs.filter(h => h.base === "developers").map(h => h.path));
   removeStalePages("blog", blog.pages.map(p => p.slug));
-  writeSitemap(pages, hubs, [...blog.pages, ...blog.projectPages].filter(p => !p.draft));
+  writeSitemap(pages, hubs, [...blog.pages, ...blog.projectPages].filter(p => !p.draft), reels.count ? ["/reels"] : []);
 
   const home = buildHomepage(indexPath, goodRows, config.url);
   /* Homepage link preview: the brand image, from where the site is served. */

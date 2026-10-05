@@ -43,8 +43,8 @@
       price_type, price_on_request, availability, display_order, updated_at
     ),
     media:residential_media!residential_media_project_id_fkey (
-      media_type, category, title, media_url, media_path, storage_bucket,
-      alt_text, platform, is_primary, is_active, display_order
+      media_type, category, title, description, media_url, media_path, storage_bucket,
+      alt_text, platform, is_primary, is_active, display_order, created_at
     ),
     amenities:residential_amenities!residential_amenities_project_id_fkey (
       category, amenity_name, is_available, display_order
@@ -309,7 +309,8 @@
 
     const masterPlans = pick("master_plan").map(m => ({ url: mediaUrl(m), title: clean(m.title) || "Master Plan", alt: clean(m.alt_text) })).filter(m => m.url).map(withCopies);
     const videos = media.filter(m => ["video","virtual_tour","reel"].includes(m.media_type))
-      .map(m => ({ url: mediaUrl(m), type: m.media_type, title: clean(m.title), platform: clean(m.platform) }))
+      .map(m => ({ url: mediaUrl(m), type: m.media_type, title: clean(m.title), platform: clean(m.platform),
+        description: clean(m.description), date: m.created_at || "" }))
       .filter(v => v.url);
 
     const priceOnRequest = row.price_on_request === true;

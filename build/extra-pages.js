@@ -14,7 +14,7 @@
 const cheerio = require("cheerio");
 const { homepageChrome, rebase } = require("./hubs");
 
-function shell({ chrome, title, description, canonical, robots, css, main, scripts }){
+function shell({ chrome, title, description, canonical, robots, css, main, scripts, jsonLd }){
   return `<!doctype html>
 <html lang="en-IN">
 <head>
@@ -30,7 +30,8 @@ ${chrome.fonts}
 <link rel="stylesheet" href="css/index.css">
 <link rel="stylesheet" href="css/cards.css">
 <link rel="stylesheet" href="css/hub.css">
-${css.map(href => `<link rel="stylesheet" href="${href}">`).join("\n")}
+${css.map(href => `<link rel="stylesheet" href="${href}">`).join("\n")}${jsonLd ? `
+<script type="application/ld+json">${JSON.stringify(jsonLd).replace(/</g, "\\u003c")}</script>` : ""}
 </head>
 <body data-root="">
 
@@ -169,6 +170,45 @@ function buildReelsPage({ H, P, indexHtml, rows, supabaseUrl, siteOrigin, robots
   </div>
 </main>`;
 
+  /* VideoObject for each video Google can show: it needs a thumbnail
+     and an upload date. Embedded players get embedUrl, files contentUrl. */
+  const absolute = u => /^https?:\/\//i.test(u || "") ? u : "";
+  const videoObjects = videos.map(({ p, v, info }) => {
+    const thumb = absolute(info.thumb) || absolute(p.images[0] && p.images[0].url);
+    const d = new Date(v.date);
+    if(!thumb || !Number.isFinite(d.getTime())) return null;
+    const where = [p.locality, p.city].filter(Boolean).join(", ");
+    return {
+      "@type": "VideoObject",
+      name: v.title || `${p.name} ${typeLabel[v.type] || "Video"}`,
+      description: v.description || `${typeLabel[v.type] || "Video"} of ${p.name}${where ? ", " + where : ""}${p.developer ? ", by " + p.developer : ""}.`,
+      thumbnailUrl: thumb,
+      uploadDate: d.toISOString(),
+      ...(info.platform === "file" ? { contentUrl: v.url } : { embedUrl: info.embed.replace(/[?&]autoplay=1/, "") }),
+      about: { "@type": "ApartmentComplex", name: p.name, url: `${siteOrigin}/projects/${p.slug}/` }
+    };
+  }).filter(Boolean);
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "CollectionPage",
+        "@id": `${siteOrigin}/reels#webpage`,
+        url: `${siteOrigin}/reels`,
+        name: "Project Videos & Reels",
+        isPartOf: { "@id": `${siteOrigin}/#website` },
+        ...(videoObjects.length ? { hasPart: videoObjects } : {})
+      },
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Home", item: siteOrigin + "/" },
+          { "@type": "ListItem", position: 2, name: "Reels", item: `${siteOrigin}/reels` }
+        ]
+      }
+    ]
+  };
+
   return { count: videos.length, html: finish(shell({
     chrome,
     title: "Project Videos &amp; Reels | Keys99",
@@ -177,6 +217,7 @@ function buildReelsPage({ H, P, indexHtml, rows, supabaseUrl, siteOrigin, robots
     robots,
     css: ["css/media-pages.css"],
     main,
+    jsonLd,
     scripts: ["js/hub.js", "js/nav-fx.js", "js/attribution.js", "js/compare-tray.js", "js/reels.js"]
   }), "reels") };
 }
