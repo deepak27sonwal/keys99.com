@@ -813,7 +813,12 @@ ${chrome.bottomNav}
 
   const $ = cheerio.load(html);
   rebase($, prefix);
-  return { base, path: hub.path, dir: dirPath, html: $.html(), lastmod: hub.lastmod, count: hub.indexCount || hub.props.length, indexable: !!hub.indexable };
+  return {
+    base, path: hub.path, dir: dirPath, html: $.html(), lastmod: hub.lastmod,
+    count: hub.indexCount || hub.props.length, indexable: !!hub.indexable,
+    /* For the "Explore more" links on project pages. */
+    label: hub.h1, projectIds: hub.props.map(p => p.id)
+  };
 }
 
 /* Group mapped projects into city and locality hubs. */

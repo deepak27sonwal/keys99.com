@@ -135,7 +135,7 @@ function toggle($, selector, show){
   $(selector).toggleClass("hidden", !show);
 }
 
-function buildPage(template, row, config, allProjects, shareImage, similarCards){
+function buildPage(template, row, config, allProjects, shareImage, similarCards, hubLinks){
   const p = P.normalizeProject(row, { supabaseUrl: config.url, root: "../" });   // template-relative; rebaseLinks() adds the extra ../
   const pageUrl = `${SITE_ORIGIN}/projects/${p.slug}/`;
   const title = P.pageTitle(p);
@@ -259,6 +259,14 @@ function buildPage(template, row, config, allProjects, shareImage, similarCards)
   }
   toggle($, "#similarSection", similar.length > 0);
 
+  /* Listing pages this project appears on (paths relative to projects/). */
+  const explore = (hubLinks || []).slice(0, 8);
+  if(explore.length){
+    $("#exploreList").html(explore.map(h => `
+            <a class="explore-link" href="${P.escapeHtml(h.path)}/">${P.escapeHtml(h.label)}<span>${h.count} project${h.count === 1 ? "" : "s"}</span></a>`).join(""));
+  }
+  toggle($, "#exploreSection", explore.length > 0);
+
   $("#locationAdvantages").html(P.renderNearbyRows(p));
   toggle($, "#locationSection", p.nearby.length > 0 || !!p.location);
 
@@ -376,27 +384,22 @@ async function main(){
     return $c("div").first().html();
   };
 
-  const pages = [];
-  for(const row of rows){
+  /* Rows that get a project page. */
+  const buildable = rows.filter(row => {
     if(!row || !SLUG_RE.test(String(row.slug || ""))){
       console.warn(`  skipped  project ${row && row.id}: slug "${row && row.slug}" is not a clean URL slug`);
-      continue;
+      return false;
     }
     if(row.slug === "property-details" || row.slug === "search"){
       console.warn(`  skipped  project ${row.id}: slug "${row.slug}" is reserved`);
-      continue;
+      return false;
     }
-    const page = buildPage(template, row, config, allProjects, shareImage, similarCards);
-    const dir = path.join(ROOT, "projects", page.slug);
-    fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(path.join(dir, "index.html"), page.html);
-    pages.push(page);
-    console.log("  wrote    /projects/" + page.slug + "/");
-  }
+    return true;
+  });
 
   /* Projects with a page, normalised with links from the site root,
      for the blog pages and the hubs' "From the Keys99 Blog" lists. */
-  const builtSlugs = new Set(pages.map(p => p.slug));
+  const builtSlugs = new Set(buildable.map(r => r.slug));
   const blogProjects = goodRows.filter(r => builtSlugs.has(r.slug))
     .map(r => P.normalizeProject(r, { supabaseUrl: config.url, root: "" }));
   const postsByProject = new Map(blogProjects.map(p => [p.id, p.blogs.filter(b => b.indexable)
@@ -409,7 +412,7 @@ async function main(){
     indexHtml: fs.readFileSync(indexPath, "utf8"),
     props: goodRows.map(row => H.mapResidentialProject(row)),
     rows: goodRows,
-    reservedSlugs: new Set([...pages.map(p => p.slug), "property-details", "search"]),
+    reservedSlugs: new Set([...builtSlugs, "property-details", "search"]),
     siteOrigin: SITE_ORIGIN,
     shareImageFor: prop => shareById.get(prop.id) || null,
     defaultShareImage: DEFAULT_SHARE_IMAGE,
@@ -423,6 +426,26 @@ async function main(){
     fs.writeFileSync(path.join(dir, "index.html"), hub.html);
     console.log(`  wrote    /${hub.dir}/  (${hub.count} project${hub.count === 1 ? "" : "s"})`);
   });
+
+  /* "Explore more" on each project page: the listing pages (locality,
+     BHK, budget, status) that include the project and are in the
+     sitemap. The city page is already in the breadcrumb. */
+  const hubLinksById = new Map();
+  hubs.filter(h => h.base === "projects" && h.path.includes("/") && (h.indexable || h.count >= HUB_MIN_INDEXED))
+    .forEach(h => h.projectIds.forEach(id => {
+      if(!hubLinksById.has(id)) hubLinksById.set(id, []);
+      hubLinksById.get(id).push({ path: h.path, label: h.label, count: h.count });
+    }));
+
+  const pages = [];
+  for(const row of buildable){
+    const page = buildPage(template, row, config, allProjects, shareImage, similarCards, hubLinksById.get(row.id) || []);
+    const dir = path.join(ROOT, "projects", page.slug);
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, "index.html"), page.html);
+    pages.push(page);
+    console.log("  wrote    /projects/" + page.slug + "/");
+  }
 
   fs.writeFileSync(path.join(ROOT, "projects", "search.html"), buildSearchPage({
     H, indexHtml: fs.readFileSync(indexPath, "utf8"), props: allProps, siteOrigin: SITE_ORIGIN
