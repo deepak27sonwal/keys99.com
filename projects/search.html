@@ -13,7 +13,7 @@
 <link rel="stylesheet" href="../css/cards.css?v=8c79f8b3">
 <link rel="stylesheet" href="../css/hub.css?v=383a8ee1">
 <link rel="stylesheet" href="../css/custom-select.css?v=cd907343">
-<link rel="stylesheet" href="../css/search.css?v=a6ab93f2">
+<link rel="stylesheet" href="../css/search.css?v=2f1c9721">
 </head>
 <body data-root="../">
 
@@ -93,7 +93,8 @@
     <form class="search-filters" id="searchFilters" autocomplete="off">
       <label class="sf-field sf-query">
         <span>Search</span>
-        <input type="search" name="q" id="sfQuery" placeholder="Project, developer, locality…">
+        <input type="search" name="q" id="sfQuery" placeholder="Project, developer, locality…" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="sfSuggest">
+        <div class="suggest-dropdown" id="sfSuggest" role="listbox" hidden=""></div>
       </label>
 
       <label class="sf-field">
@@ -988,7 +989,7 @@ premchand bdnsjajsk a521000879365 2 bhk 1 bhk" data-type="residential" data-bhk=
 <script defer="" src="../js/nav-fx.js?v=777d5b5c"></script>
 <script defer="" src="../js/attribution.js?v=207c1e9f"></script>
 <script defer="" src="../js/compare-tray.js?v=9bd20961"></script>
-<script defer="" src="../js/search.js?v=5bbe81ee"></script>
+<script defer="" src="../js/search.js?v=b365e58e"></script>
 
 
 </body></html>
