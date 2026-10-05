@@ -30,6 +30,7 @@ const { buildSearchPage } = require("./search.js");
 const { buildLegalPages } = require("./legal.js");
 const { buildBlog } = require("./blog.js");
 const { buildComparePage } = require("./compare.js");
+const { buildComparisons } = require("./compare-pages.js");
 const { buildSavedPage, buildReelsPage } = require("./extra-pages.js");
 const { stampAssetVersions, htmlFiles } = require("./asset-versions.js");
 
@@ -135,7 +136,7 @@ function toggle($, selector, show){
   $(selector).toggleClass("hidden", !show);
 }
 
-function buildPage(template, row, config, allProjects, shareImage, similarCards, hubLinks){
+function buildPage(template, row, config, allProjects, shareImage, similarCards, hubLinks, compareLinks){
   const p = P.normalizeProject(row, { supabaseUrl: config.url, root: "../" });   // template-relative; rebaseLinks() adds the extra ../
   const pageUrl = `${SITE_ORIGIN}/projects/${p.slug}/`;
   const title = P.pageTitle(p);
@@ -268,6 +269,14 @@ function buildPage(template, row, config, allProjects, shareImage, similarCards,
             <a class="explore-link" href="${P.escapeHtml(h.path)}/">${P.escapeHtml(h.label)}<span>${h.count} project${h.count === 1 ? "" : "s"}</span></a>`).join(""));
   }
   toggle($, "#exploreSection", explore.length > 0);
+
+  /* "Compare with": this project's /compare/<a>-vs-<b>/ pages. */
+  const compare = compareLinks || [];
+  if(compare.length){
+    $("#compareLinks").html(compare.map(c => `
+            <a class="explore-link" href="../compare/${P.escapeHtml(c.slug)}/">${P.escapeHtml(p.name)} vs ${P.escapeHtml(c.name)}<span>${P.escapeHtml(c.place)}</span></a>`).join(""));
+  }
+  toggle($, "#compareLinksSection", compare.length > 0);
 
   $("#locationAdvantages").html(P.renderNearbyRows(p));
   toggle($, "#locationSection", p.nearby.length > 0 || !!p.location);
@@ -447,9 +456,22 @@ async function main(){
       hubLinksById.get(id).push({ path: h.path, label: h.label, count: h.count });
     }));
 
+  /* "<A> vs <B>" pages for each project's closest alternatives. */
+  const comparisons = buildComparisons({
+    indexHtml: fs.readFileSync(indexPath, "utf8"), projects: blogProjects,
+    siteOrigin: SITE_ORIGIN, robots: ROBOTS, indexable: INDEXABLE
+  });
+  comparisons.pages.forEach(page => {
+    const dir = path.join(ROOT, ...page.dir.split("/"));
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, "index.html"), page.html);
+    console.log(`  wrote    /${page.dir}/${page.draft ? "  (missing prices: kept out of the index)" : ""}`);
+  });
+
   const pages = [];
   for(const row of buildable){
-    const page = buildPage(template, row, config, allProjects, shareImage, similarCards, hubLinksById.get(row.id) || []);
+    const page = buildPage(template, row, config, allProjects, shareImage, similarCards,
+      hubLinksById.get(row.id) || [], comparisons.linksById.get(row.id) || []);
     const dir = path.join(ROOT, "projects", page.slug);
     fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(path.join(dir, "index.html"), page.html);
@@ -519,7 +541,8 @@ async function main(){
   ]);
   removeStalePages("developers", hubs.filter(h => h.base === "developers").map(h => h.path));
   removeStalePages("blog", blog.pages.map(p => p.slug));
-  writeSitemap(pages, hubs, [...blog.pages, ...blog.projectPages].filter(p => !p.draft), reels.count ? ["/reels"] : []);
+  removeStalePages("compare", comparisons.pages.map(p => p.slug));
+  writeSitemap(pages, hubs, [...blog.pages, ...blog.projectPages, ...comparisons.pages].filter(p => !p.draft), reels.count ? ["/reels"] : []);
 
   const home = buildHomepage(indexPath, goodRows, config.url);
   /* Homepage link preview: the brand image, from where the site is served. */
@@ -538,7 +561,7 @@ async function main(){
     path.join(ROOT, "terms.html"),
     path.join(ROOT, "saved.html"),
     path.join(ROOT, "reels.html"),
-    ...htmlFiles(ROOT, ["projects", "developers", "blog", "admin"])
+    ...htmlFiles(ROOT, ["projects", "developers", "blog", "compare", "admin"])
   ]);
   console.log(`  versioned CSS/JS links in ${stamped} page(s)`);
 

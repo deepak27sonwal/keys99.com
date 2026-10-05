@@ -101,3 +101,16 @@
   .compare-table tbody th, .compare-corner{ width:110px; }
   .compare-table th, .compare-table td{ padding:10px; }
 }
+
+/* Static comparison pages (/compare/<a>-vs-<b>/). */
+.compare-static .compare-scroll{ margin-top:8px; }
+.compare-diffs{
+  margin:0 0 12px;
+  padding-left:20px;
+  font-size:var(--fs-body);
+  line-height:1.7;
+  color:#34505b;
+}
+.compare-diffs li{ margin-bottom:4px; }
+.compare-note{ margin:0; font-size:var(--fs-small); color:var(--muted); }
+.compare-static .compare-actions .btn-primary{ white-space:normal; line-height:1.3; }
