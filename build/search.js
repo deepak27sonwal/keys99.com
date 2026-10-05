@@ -82,7 +82,9 @@ ${chrome.mobileMenu}
     <form class="search-filters" id="searchFilters" autocomplete="off">
       <label class="sf-field sf-query">
         <span>Search</span>
-        <input type="search" name="q" id="sfQuery" placeholder="Project, developer, locality…">
+        <input type="search" name="q" id="sfQuery" placeholder="Project, developer, locality…"
+          autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="sfSuggest">
+        <div class="suggest-dropdown" id="sfSuggest" role="listbox" hidden></div>
       </label>
 
       <label class="sf-field">

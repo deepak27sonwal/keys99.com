@@ -34,8 +34,11 @@
 }
 
 .sf-query{
+  position:relative;                 /* anchors the suggestion list */
   grid-column:span 2;
 }
+
+.sf-query .suggest-dropdown{ top:calc(100% + 6px); }
 
 .sf-query input{
   padding:10px 12px;
@@ -96,3 +99,5 @@
   .search-filters{ grid-template-columns:1fr 1fr; padding:12px; gap:10px; }
   .sf-query, .sf-actions{ grid-column:1 / -1; }
 }
+
+.suggest-sub{ display:block; font-size:var(--fs-label); color:var(--muted); }
