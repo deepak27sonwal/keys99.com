@@ -87,69 +87,90 @@ ${chrome.mobileMenu}
         <div class="suggest-dropdown" id="sfSuggest" role="listbox" hidden></div>
       </label>
 
-      <label class="sf-field">
-        <span>City</span>
-        <select name="city" id="sfCity">
-          ${option("", "All Cities")}
-          ${cities.map(c => option(c.value, c.label)).join("")}
-        </select>
-      </label>
-
-      <label class="sf-field">
-        <span>Locality</span>
-        <select name="locality" id="sfLocality">
-          ${option("", "All Localities")}
-          ${localities.map(l => option(l.value, l.label, ` data-city="${e(l.city)}"`)).join("")}
-        </select>
-      </label>
-
-      <label class="sf-field">
-        <span>BHK</span>
-        <select name="bhk" id="sfBhk">
-          ${option("", "Any BHK")}
-          ${bhks.map(b => option(b.toLowerCase(), b)).join("")}
-          ${option("4+ bhk", "4+ BHK")}
-        </select>
-      </label>
-
-      <label class="sf-field">
-        <span>Type</span>
-        <select name="type" id="sfType">
-          ${option("", "All Types")}
-          ${TYPES.map(([v, l]) => option(v, l)).join("")}
-        </select>
-      </label>
-
-      <label class="sf-field">
-        <span>Min Price</span>
-        <select name="minPrice" id="sfMin">
-          ${option("", "No Min")}
-          ${PRICE_STEPS.map(([v, l]) => option(v, l)).join("")}
-        </select>
-      </label>
-
-      <label class="sf-field">
-        <span>Max Price</span>
-        <select name="maxPrice" id="sfMax">
-          ${option("", "No Max")}
-          ${PRICE_STEPS.map(([v, l]) => option(v, l)).join("")}
-        </select>
-      </label>
-
-      <label class="sf-field">
-        <span>Sort By</span>
-        <select name="sort" id="sfSort">
+      <!-- Filters and Sort, just below the search bar. The filters
+           open in a panel (a bottom sheet on phones); sort is a native
+           select styled as a button. -->
+      <div class="sf-toolbar">
+        <button type="button" class="sf-btn" id="sfFilterBtn" aria-expanded="false" aria-controls="sfPanel">
+          <span class="sf-btn-icon" aria-hidden="true">☰</span> Filters
+          <span class="sf-badge" id="sfBadge" hidden></span>
+        </button>
+        <label class="sf-btn sf-sort">
+          <span class="sf-btn-icon" aria-hidden="true">⇅</span>
+          <span class="sf-sort-label">Sort</span>
+          <select name="sort" id="sfSort" aria-label="Sort by" data-native>
           ${option("newest", "Newest First")}
           ${option("price-asc", "Price: Low to High")}
           ${option("price-desc", "Price: High to Low")}
-        </select>
-      </label>
+          </select>
+        </label>
+      </div>
+
+      <div class="sf-chips" id="sfChips" hidden></div>
+
+      <div class="sf-backdrop" id="sfBackdrop" hidden></div>
+      <div class="sf-panel" id="sfPanel" role="dialog" aria-modal="false" aria-labelledby="sfPanelTitle" hidden>
+        <div class="sf-panel-head">
+          <strong id="sfPanelTitle">Filters</strong>
+          <button type="button" class="sf-close" id="sfClose" aria-label="Close filters">✕</button>
+        </div>
+        <div class="sf-grid">
+          <label class="sf-field">
+            <span>City</span>
+            <select name="city" id="sfCity">
+              ${option("", "All Cities")}
+              ${cities.map(c => option(c.value, c.label)).join("")}
+            </select>
+          </label>
+
+          <label class="sf-field">
+            <span>Locality</span>
+            <select name="locality" id="sfLocality">
+              ${option("", "All Localities")}
+              ${localities.map(l => option(l.value, l.label, ` data-city="${e(l.city)}"`)).join("")}
+            </select>
+          </label>
+
+          <label class="sf-field">
+            <span>BHK</span>
+            <select name="bhk" id="sfBhk">
+              ${option("", "Any BHK")}
+              ${bhks.map(b => option(b.toLowerCase(), b)).join("")}
+              ${option("4+ bhk", "4+ BHK")}
+            </select>
+          </label>
+
+          <label class="sf-field">
+            <span>Type</span>
+            <select name="type" id="sfType">
+              ${option("", "All Types")}
+              ${TYPES.map(([v, l]) => option(v, l)).join("")}
+            </select>
+          </label>
+
+          <label class="sf-field">
+            <span>Min Price</span>
+            <select name="minPrice" id="sfMin">
+              ${option("", "No Min")}
+              ${PRICE_STEPS.map(([v, l]) => option(v, l)).join("")}
+            </select>
+          </label>
+
+          <label class="sf-field">
+            <span>Max Price</span>
+            <select name="maxPrice" id="sfMax">
+              ${option("", "No Max")}
+              ${PRICE_STEPS.map(([v, l]) => option(v, l)).join("")}
+            </select>
+          </label>
+        </div>
+        <div class="sf-actions">
+          <button type="reset" class="btn-ghost" id="sfClear">Clear all</button>
+          <button type="button" class="btn-primary" id="sfApply">Show results</button>
+        </div>
+      </div>
 
       <input type="hidden" name="status" id="sfStatus">
-
-      <div class="sf-actions">
-        <button type="reset" class="btn-ghost" id="sfClear">Clear</button>
-      </div>
     </form>
 
     <div class="search-summary">

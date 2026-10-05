@@ -186,9 +186,76 @@
     const url = location.pathname + (query.toString() ? "?" + query : "");
     history[push ? "pushState" : "replaceState"](null, "", url);
 
+    updateToolbar(v, visible.length);
+
     /* Cards that were hidden when the BHK rows were sized need it again. */
     window.dispatchEvent(new Event("resize"));
   }
+
+  /* ---------- Filters button, chips and panel ---------- */
+
+  const filterBtn = document.getElementById("sfFilterBtn");
+  const badge = document.getElementById("sfBadge");
+  const chips = document.getElementById("sfChips");
+  const panel = document.getElementById("sfPanel");
+  const backdrop = document.getElementById("sfBackdrop");
+  const applyBtn = document.getElementById("sfApply");
+  const FILTERS = ["city", "locality", "bhk", "type", "minPrice", "maxPrice"];
+
+  /* Count on the Filters button, one removable chip per active
+     filter, and the result count on the panel's button. */
+  function updateToolbar(v, count){
+    const active = FILTERS.filter(f => v[f] && form.elements[f]);
+    badge.textContent = active.length;
+    badge.hidden = !active.length;
+    chips.innerHTML = active.map(f => {
+      const el = form.elements[f];
+      const text = label(el);
+      const prefix = f === "minPrice" ? "Min " : f === "maxPrice" ? "Max " : "";
+      return `<button type="button" class="sf-chip" data-field="${f}" aria-label="Remove filter ${prefix}${text}">${prefix}${text}<span aria-hidden="true">✕</span></button>`;
+    }).join("");
+    chips.hidden = !active.length;
+    applyBtn.textContent = count === 1 ? "Show 1 project" : `Show ${count} projects`;
+  }
+
+  chips.addEventListener("click", e => {
+    const chip = e.target.closest(".sf-chip");
+    if(!chip) return;
+    form.elements[chip.dataset.field].value = "";
+    if(chip.dataset.field === "city") syncLocalities();
+    apply(true);
+  });
+
+  const isSheet = () => window.matchMedia("(max-width:700px)").matches;
+
+  function openPanel(){
+    panel.hidden = false;
+    filterBtn.setAttribute("aria-expanded", "true");
+    if(isSheet()){
+      backdrop.hidden = false;
+      document.body.classList.add("sf-sheet-open");
+    }
+    (panel.querySelector("select") || panel).focus();
+  }
+
+  function closePanel(returnFocus){
+    panel.hidden = true;
+    backdrop.hidden = true;
+    filterBtn.setAttribute("aria-expanded", "false");
+    document.body.classList.remove("sf-sheet-open");
+    if(returnFocus) filterBtn.focus();
+  }
+
+  filterBtn.addEventListener("click", () => panel.hidden ? openPanel() : closePanel(false));
+  document.getElementById("sfClose").addEventListener("click", () => closePanel(true));
+  backdrop.addEventListener("click", () => closePanel(true));
+  applyBtn.addEventListener("click", () => {
+    closePanel(false);
+    results.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+  document.addEventListener("keydown", e => {
+    if(e.key === "Escape" && !panel.hidden) closePanel(true);
+  });
 
   function load(){
     const p = readParams();
