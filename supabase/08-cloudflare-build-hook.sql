@@ -7,7 +7,7 @@
 --
 -- How it works:
 -- - Saving anything shown on the site (a published project, its
---   configurations, photos, amenities, FAQs, towers, developer,
+--   configurations, photos, amenities, FAQs, blog posts, towers, developer,
 --   agent, city or locality) only marks the site as "needs a
 --   build". No web request is made inside the save, so a save can
 --   never fail or slow down because of this.
@@ -159,6 +159,7 @@ begin
     'residential_nearby_locations',
     'residential_faqs',
     'residential_project_pros_cons',
+    'residential_project_blogs',
     'residential_floor_plans',
     'residential_towers',
     'developers',

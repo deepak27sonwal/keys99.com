@@ -232,7 +232,8 @@ function buildPage(template, row, config, allProjects, shareImage, similarCards)
     ["#specsSection", "#specifications", P.renderSpecificationRows(p)],
     ["#towersSection", "#towers", P.renderTowerRows(p)],
     ["#prosConsSection", "#prosCons", P.renderProsCons(p)],
-    ["#faqSection", "#faqs", P.renderFaqs(p)]
+    ["#faqSection", "#faqs", P.renderFaqs(p)],
+    ["#blogSection", "#projectBlogs", P.renderBlogs(p)]
   ].forEach(([section, container, html]) => {
     $(container).html(html);
     toggle($, section, !!html.trim());
