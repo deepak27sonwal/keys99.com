@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<channel>
+  <title>Keys99 Blog</title>
+  <link>https://keys99.com/blog/</link>
+  <atom:link href="https://keys99.com/blog/feed.xml" rel="self" type="application/rss+xml"/>
+  <description>Guides for home buyers in Pune and Hyderabad: RERA checks, carpet area, home loans, choosing a new project, and in-depth notes on individual projects.</description>
+  <language>en-IN</language>
+
+</channel>
+</rss>
