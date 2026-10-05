@@ -18,6 +18,7 @@
 const fs = require("fs");
 const path = require("path");
 const cheerio = require("cheerio");
+const P = require("../js/project-core.js");
 
 const SKIP_URL = /^(?:[a-z][a-z0-9+.-]*:|\/\/|#|data:)/i;
 
@@ -493,8 +494,13 @@ function loadLocalityGuides(dir){
 }
 
 function pageTitle(H, s, place){
-  const bhk = s.bhks.length ? `${listText(s.bhks.map(b => b.replace(/ BHK$/, "")), 4)} BHK Flats` : "Flats";
-  return `New Projects in ${place} | ${bhk} for Sale | Keys99`;
+  const sizes = listText(s.bhks.map(b => b.replace(/ BHK$/, "")), 4);
+  const bhk = s.bhks.length ? `${sizes} BHK Flats` : "Flats";
+  return P.fitText([
+    `New Projects in ${place} | ${bhk} for Sale | Keys99`,
+    `New Projects in ${place} | ${bhk.replace(/ and /g, " & ")} | Keys99`,
+    `New Projects in ${place} | Keys99`
+  ], 65);
 }
 
 /* Copy shared chrome from the homepage once per build. */
@@ -595,7 +601,7 @@ function hubPage(ctx, hub){
     : hub.budget ? budgetCopy(H, hub)
     : hub.statusSlug ? statusCopy(H, hub)
     : hub.copy ? hub.copy(H, s) : null;
-  const title = copy ? copy.title : pageTitle(H, s, hub.place);
+  const title = P.fitTitle(copy ? copy.title : pageTitle(H, s, hub.place));
   const intro = copy ? copy.intro : introText(H, s, hub.place, hub.introExtra);
   const description = metaDescription(intro);
   const questions = [...(copy ? copy.questions : faqs(H, s, hub.place)), ...(hub.guide ? hub.guide.faqs : [])];
@@ -1064,7 +1070,11 @@ function collectDeveloperHubs(H, props, rows){
     devLinksHeading: "All Developers on Keys99",
     indexCount: devs.length,
     copy: () => ({
-      title: `Real Estate Developers & Builders in ${place} | Keys99`,
+      title: P.fitText([
+        `Real Estate Developers & Builders in ${place} | Keys99`,
+        `Real Estate Developers & Builders in ${listText(allCities, 2)} | Keys99`,
+        "Real Estate Developers & Builders | Keys99"
+      ], 65),
       intro: `Browse ${plural(devs.length, "developer", "developers")} with ${plural(devProps.length, "new residential project", "new residential projects")} in ${place} on Keys99, including ${listText(devs.map(d => d.name), 4)}. Open a developer to see all of their projects, prices and configurations.`,
       questions: [{
         q: `Which developers have new projects in ${place}?`,

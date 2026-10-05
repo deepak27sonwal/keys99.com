@@ -496,11 +496,36 @@
 
   /* ---------------- SEO TEXT ---------------- */
 
+  /* Google shows about 60 characters of a title. */
+  const TITLE_MAX = 65;
+  const DESCRIPTION_MAX = 160;
+
+  /* The first option that fits, else the shortest. */
+  function fitText(options, max){
+    const list = options.filter(Boolean);
+    return list.find(t => t.length <= max) || list.reduce((a, b) => b.length < a.length ? b : a);
+  }
+
+  /* "A | B | C | Keys99": drops middle parts from the right until it fits. */
+  function fitTitle(title){
+    const parts = String(title).split(" | ");
+    const options = [title];
+    for(let n = parts.length - 2; n >= 1; n--) options.push([...parts.slice(0, n), parts[parts.length - 1]].join(" | "));
+    return fitText(options, TITLE_MAX);
+  }
+
   function pageTitle(p){
     if(p.seoTitle) return p.seoTitle;
     const bhk = p.bhkLabels.length ? p.bhkLabels.join(", ") + " " : "";
     const where = [p.locality, p.city].filter(Boolean).join(", ");
-    return `${p.name}${where ? " " + where : ""} - ${bhk}${p.typeLabel}${p.developer ? " by " + p.developer : ""} | Keys99`;
+    const head = `${p.name}${where ? " " + where : ""}`;
+    return fitText([
+      `${head} - ${bhk}${p.typeLabel}${p.developer ? " by " + p.developer : ""} | Keys99`,
+      `${head} - ${bhk}${p.typeLabel} | Keys99`,
+      `${head} | ${bhk ? bhk + "Flats" : p.typeLabel} | Keys99`,
+      `${head} | Keys99`,
+      `${p.name}${p.city ? " " + p.city : ""} | Keys99`
+    ], TITLE_MAX);
   }
 
   function pageDescription(p){
@@ -512,7 +537,14 @@
       p.startingPrice ? `from ${p.startingPriceText}` : "",
     ].filter(Boolean).join(" ");
     const tail = [p.status, p.possession ? "possession " + p.possession : "", p.rera ? "RERA " + p.rera : ""].filter(Boolean).join(", ");
-    return (parts + "." + (tail ? " " + tail + "." : "") + " Photos, floor plans, amenities and price on Keys99.").slice(0, 300);
+    const close = " Photos, floor plans, amenities and price on Keys99.";
+    /* Longest version that fits in Google's snippet. */
+    return fitText([
+      parts + "." + (tail ? " " + tail + "." : "") + close,
+      parts + "." + (p.status ? " " + p.status + "." : "") + close,
+      parts + "." + close,
+      parts + "."
+    ], DESCRIPTION_MAX);
   }
 
   /* ---------------- SECTION RENDERERS (HTML strings) ---------------- */
@@ -805,6 +837,8 @@
     ogName,
     OG_SIZE,
     pageTitle,
+    fitTitle,
+    fitText,
     pageDescription,
     structuredData,
     renderConfigurationRows,

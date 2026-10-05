@@ -1204,9 +1204,11 @@ footer{
 
 /* Sizes: 14px text and 15px headings keep the footer readable on a
    phone; links get vertical padding so each is an easy tap target. */
-.footer-col h4{
+.footer-col h4,
+.footer-col .footer-title{
+  margin:0 0 10px;
   font-size:var(--fs-lead);
-  margin-bottom:10px;
+  line-height:1.3;
 }
 
 .footer-col a,
