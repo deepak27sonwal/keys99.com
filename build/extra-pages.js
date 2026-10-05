@@ -125,7 +125,7 @@ function buildReelsPage({ H, P, indexHtml, rows, supabaseUrl, siteOrigin, robots
   const typeLabel = { video: "Video", reel: "Reel", virtual_tour: "Virtual tour" };
   const platformLabel = { youtube: "YouTube", instagram: "Instagram", facebook: "Facebook", file: "Video" };
 
-  const cards = videos.map(({ p, v, info }) => {
+  const cards = videos.map(({ p, v, info }, i) => {
     const img = p.images[0];
     const poster = info.thumb || (img ? img.card : "assets/property-placeholder.svg");
     const title = v.title || `${p.name} ${typeLabel[v.type] || "Video"}`;
@@ -136,7 +136,7 @@ function buildReelsPage({ H, P, indexHtml, rows, supabaseUrl, siteOrigin, robots
           <span class="reel-play-icon" aria-hidden="true">▶</span>
         </button>`;
     return `
-    <article class="reel-card${info.tall ? " is-tall" : ""}">
+    <article class="reel-card${info.tall ? " is-tall" : ""}" id="reel-${i + 1}">
       <div class="reel-media">${player}</div>
       <div class="reel-body">
         <span class="reel-tag">${e(typeLabel[v.type] || "Video")} · ${e(platformLabel[info.platform])}</span>
@@ -209,7 +209,7 @@ function buildReelsPage({ H, P, indexHtml, rows, supabaseUrl, siteOrigin, robots
     ]
   };
 
-  return { count: videos.length, html: finish(shell({
+  return { count: videos.length, home: homeReelsHtml(videos, e, typeLabel, platformLabel), html: finish(shell({
     chrome,
     title: "Project Videos &amp; Reels | Keys99",
     description: "Watch walkthroughs and reels of new residential projects on Keys99.",
@@ -220,6 +220,52 @@ function buildReelsPage({ H, P, indexHtml, rows, supabaseUrl, siteOrigin, robots
     jsonLd,
     scripts: ["js/hub.js", "js/nav-fx.js", "js/attribution.js", "js/compare-tray.js", "js/reels.js"]
   }), "reels") };
+}
+
+/* The homepage's "Reels" strip: the first few videos as tall
+   cards. Each opens its own video on the reels page (#reel-N), so
+   the homepage loads thumbnails only, never a player. Empty when
+   there are no videos, which removes the section. */
+const HOME_REEL_COUNT = 8;
+
+function homeReelsHtml(videos, e, typeLabel, platformLabel){
+  if(!videos.length) return "";
+  const cards = videos.slice(0, HOME_REEL_COUNT).map(({ p, v, info }, i) => {
+    const img = p.images[0];
+    const poster = info.thumb || (img ? img.card : "assets/property-placeholder.svg");
+    const title = v.title || `${p.name} ${typeLabel[v.type] || "Video"}`;
+    const where = [p.locality, p.city].filter(Boolean).join(", ");
+    return `
+      <a class="home-reel" href="reels#reel-${i + 1}" aria-label="Watch ${e(title)}">
+        <img src="${e(poster)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">
+        <span class="home-reel-tag">${e(typeLabel[v.type] || "Video")} · ${e(platformLabel[info.platform])}</span>
+        <span class="home-reel-play" aria-hidden="true"></span>
+        <span class="home-reel-body">
+          <strong>${e(title)}</strong>
+          <span>${e(p.name)}${where ? ` · ${e(where)}` : ""}</span>
+        </span>
+      </a>`;
+  }).join("");
+  const more = `
+      <a class="home-reel home-reel-more" href="reels">
+        <span class="home-reel-more-icon" aria-hidden="true">▶</span>
+        <strong>Watch all ${videos.length} video${videos.length === 1 ? "" : "s"}</strong>
+        <span>Walkthroughs, sample flats &amp; site tours →</span>
+      </a>`;
+  return `
+<section id="reels" class="home-reels" aria-labelledby="reelsTitle">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <div class="section-kicker">Watch Before You Visit</div>
+        <h2 class="section-title" id="reelsTitle">Project Reels &amp; Walkthroughs</h2>
+      </div>
+      <a class="view-all" href="reels">All Reels →</a>
+    </div>
+    <div class="home-reel-track">${cards}${more}
+    </div>
+  </div>
+</section>`;
 }
 
 module.exports = { buildSavedPage, buildReelsPage };
