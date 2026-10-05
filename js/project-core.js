@@ -60,7 +60,8 @@
     ),
     blogs:residential_project_blogs!residential_project_blogs_project_id_fkey (
       title, slug, excerpt, body, cover_image_url, cover_image_path, storage_bucket,
-      author, tags, is_published, published_at, created_at, display_order
+      author, tags, meta_description, is_published, published_at, created_at, updated_at,
+      display_order
     ),
     floor_plans:residential_floor_plans!residential_floor_plans_project_id_fkey (
       bhk_type, plan_type, title, image_url, image_path, storage_bucket,
@@ -224,6 +225,12 @@
   const THUMB_DIR = "assets/thumbs/";
   const IMAGE_WIDTHS = { large: 1280, small: 320 };
   const IMG_FALLBACK = "if(this.dataset.full){this.src=this.dataset.full;this.dataset.full=''}";
+  /* Blog covers: resized copy, then the original, then no image. */
+  const COVER_FALLBACK = "if(this.dataset.full){this.src=this.dataset.full;this.dataset.full=''}else{this.remove()}";
+
+  /* Posts shorter than this are built and linked but kept out of
+     search engines' index (thin content counts against the site). */
+  const MIN_INDEXED_WORDS = 250;
 
   function urlHash(url){
     let hash = 0x811c9dc5;
@@ -252,6 +259,22 @@
   function slugify(v){
     return clean(v).toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g,"")
       .replace(/&/g," and ").replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
+  }
+
+  const POST_SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+  /* A post body as plain words: the formatting marks build/blog.js
+     understands (## headings, - lists, **bold**, [text](link)) removed. */
+  function articleText(body){
+    return clean(body)
+      .replace(/^\s*(?:#{1,3}|[-*•]|\d+[.)])\s+/gm, "")
+      .replace(/\[([^\]]+)\]\([^)\s]+\)/g, "$1")
+      .replace(/\*\*(.+?)\*\*/g, "$1")
+      .replace(/\s+/g, " ").trim();
+  }
+
+  function shorten(text, max){
+    return text.length > max ? text.slice(0, max).replace(/\s+\S*$/, "").replace(/[\s,.;:!?-]+$/, "") + "…" : text;
   }
 
   /* ---------------- NORMALISE ---------------- */
@@ -357,21 +380,39 @@
     const pros = prosCons.filter(p => p.item_type === "pro").map(p => clean(p.content));
     const cons = prosCons.filter(p => p.item_type === "con").map(p => clean(p.content));
 
-    /* Posts are plain text with line breaks. The list shows the
-       excerpt (or the start of the body); the full text opens below. */
+    /* Each published post has its own page at
+       projects/<project>/blog/<post>/ (build/blog.js). The project
+       page lists them as cards that link there. */
+    const postSlugs = new Set();
     const blogs = list(row.blogs).filter(b => b.is_published === true && clean(b.title) && clean(b.body)).map(b => {
-      const body = clean(b.body).replace(/\r\n?/g, "\n").replace(/\n{3,}/g, "\n\n");
-      const flat = body.replace(/\s+/g, " ");
+      const body = clean(b.body).replace(/\r\n?/g, "\n");
+      const flat = articleText(body);
+      /* The card excerpt skips headings so it reads as one passage. */
+      const lead = articleText(body.replace(/^\s*#{1,3}\s+.*$/gm, ""));
+      let slug = POST_SLUG_RE.test(clean(b.slug)) ? clean(b.slug) : slugify(b.title) || "post";
+      for(let n = 2; postSlugs.has(slug); n++) slug = slug.replace(/-\d+$/, "") + "-" + n;
+      postSlugs.add(slug);
+      const path = "projects/" + row.slug + "/blog/" + slug + "/";
       return {
         title: clean(b.title),
-        slug: clean(b.slug),
-        excerpt: clean(b.excerpt) || (flat.length > 180 ? flat.slice(0, 180).replace(/\s+\S*$/, "") + "…" : flat),
+        slug,
+        path,
+        href: root + path,
+        excerpt: clean(b.excerpt) || shorten(lead, 180),
+        description: clean(b.meta_description) || clean(b.excerpt) || lead,
         body,
+        words: flat.split(/\s+/).filter(Boolean).length,
         image: clean(b.cover_image_url) || storagePublicUrl(supabaseUrl, b.storage_bucket, b.cover_image_path),
+        indexable: flat.split(/\s+/).filter(Boolean).length >= MIN_INDEXED_WORDS,
         author: clean(b.author),
         tags: (b.tags || []).map(clean).filter(Boolean),
-        date: b.published_at || b.created_at || ""
+        date: b.published_at || b.created_at || "",
+        updated: b.updated_at || b.published_at || b.created_at || ""
       };
+    });
+
+    blogs.forEach(b => {
+      b.cover = b.image ? { large: resized(b.image, IMAGE_WIDTHS.large, root), card: resized(b.image, 0, root) } : null;
     });
 
     const floorPlans = list(row.floor_plans).filter(f => f.is_active !== false).map(f => ({
@@ -540,28 +581,28 @@
       </details>`).join("");
   }
 
+  /* Each card is one link to the post's own page, so search engines
+     follow it and the post links back to the project. */
   function renderBlogs(p){
-    return p.blogs.map((b, i) => {
-      const id = "blog-" + (slugify(b.slug || b.title) || i + 1);
+    return p.blogs.map(b => {
       const d = b.date ? new Date(b.date) : null;
       const day = d && Number.isFinite(d.getTime()) ? d.toISOString().slice(0, 10) : "";
       const meta = [
         b.author ? escapeHtml(b.author) : "",
-        day ? `<time datetime="${day}">${escapeHtml(formatDay(day))}</time>` : ""
+        day ? `<time datetime="${day}">${escapeHtml(formatDay(day))}</time>` : "",
+        Math.max(1, Math.round(b.words / 200)) + " min read"
       ].filter(Boolean).join(" · ");
       return `
-      <article class="project-blog" id="${escapeHtml(id)}">
-        ${b.image ? `<img class="project-blog-cover" src="${escapeHtml(b.image)}" onerror="this.remove()" alt="${escapeHtml(b.title)}" loading="lazy" decoding="async">` : ""}
-        <div class="project-blog-text">
-          ${b.tags.length ? `<div class="project-blog-tags">${b.tags.map(t => `<span>${escapeHtml(t)}</span>`).join("")}</div>` : ""}
+      <a class="project-blog" href="${escapeHtml(b.href)}">
+        ${b.cover ? `<img class="project-blog-cover" src="${escapeHtml(b.cover.card)}" data-full="${escapeHtml(b.image)}" onerror="${COVER_FALLBACK}" alt="${escapeHtml(b.title)}" width="640" height="480" loading="lazy" decoding="async">` : ""}
+        <span class="project-blog-text">
+          ${b.tags.length ? `<span class="project-blog-tags">${b.tags.map(t => `<span>${escapeHtml(t)}</span>`).join("")}</span>` : ""}
           <h3>${escapeHtml(b.title)}</h3>
-          ${meta ? `<p class="project-blog-meta">${meta}</p>` : ""}
-          <details>
-            <summary><span class="project-blog-excerpt">${escapeHtml(b.excerpt)}</span><span class="project-blog-more">Read more</span></summary>
-            <div class="project-blog-body">${escapeHtml(b.body)}</div>
-          </details>
-        </div>
-      </article>`;
+          <span class="project-blog-meta">${meta}</span>
+          <span class="project-blog-excerpt">${escapeHtml(b.excerpt)}</span>
+          <span class="project-blog-more">Read full article</span>
+        </span>
+      </a>`;
     }).join("");
   }
 
@@ -672,6 +713,9 @@
       place.hasMap = `https://www.google.com/maps?q=${Number(p.latitude)},${Number(p.longitude)}`;
     }
     if(p.rera) place.identifier = { "@type":"PropertyValue", name:"RERA registration number", value:p.rera };
+    /* Articles about the project (each has its own page). */
+    const posts = (p.blogs || []).filter(b => b.indexable);
+    if(posts.length) place.subjectOf = posts.map(b => ({ "@type":"BlogPosting", headline:b.title, url: siteUrl + "/" + b.path }));
     graph.push(place);
 
     /* The page itself is a listing of that project. Its offers give
@@ -755,6 +799,8 @@
     THUMB_DIR,
     IMAGE_WIDTHS,
     IMG_FALLBACK,
+    COVER_FALLBACK,
+    MIN_INDEXED_WORDS,
     thumbName,
     ogName,
     OG_SIZE,
@@ -771,6 +817,9 @@
     renderProsCons,
     renderFaqs,
     renderBlogs,
+    articleText,
+    shorten,
+    formatDay,
     renderFloorPlans,
     renderThumbs,
     pickSimilar,

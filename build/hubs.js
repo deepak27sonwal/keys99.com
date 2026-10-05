@@ -572,8 +572,17 @@ function crumbPath(c){
   return `${c.base || "projects"}/${c.path ? c.path + "/" : ""}`;
 }
 
+/* Newest indexable blog posts about the projects on a hub page. */
+function hubPosts(ctx, hub){
+  if(!ctx.postsByProject) return [];
+  return hub.props.flatMap(p => ctx.postsByProject.get(p.id) || [])
+    .sort((a, b) => String(b.date).localeCompare(String(a.date)))
+    .slice(0, 6);
+}
+
 function hubPage(ctx, hub){
   const { H, chrome, siteOrigin, robots, shareImageFor, defaultShareImage } = ctx;
+  const posts = hubPosts(ctx, hub);
   /* Link preview: the first project on the page that has one. */
   const shareImage = shareImageFor ? hub.props.map(shareImageFor).find(Boolean) || null : null;
   const base = hub.base || "projects";                    // top-level folder
@@ -753,6 +762,18 @@ ${chrome.mobileMenu}
         <a class="locality-chip" href="projects/${e(l.path)}/">
           <strong>${e(l.name)}</strong>
           <span class="count">${plural(l.count, "Project", "Projects")}</span>
+        </a>`).join("")}
+      </div>
+    </section>` : ""}
+
+    ${posts.length ? `
+    <section class="hub-section" aria-labelledby="hubPosts">
+      <h2 class="section-title" id="hubPosts">From the Keys99 Blog</h2>
+      <div class="hub-posts">
+        ${posts.map(b => `
+        <a class="hub-post" href="${e(b.href)}">
+          <span class="hub-post-project">${e(b.project)}</span>
+          <strong>${e(b.title)}</strong>
         </a>`).join("")}
       </div>
     </section>` : ""}
@@ -1086,9 +1107,11 @@ function collectDeveloperHubs(H, props, rows){
   return pages;
 }
 
-function buildHubs({ H, indexHtml, props, rows, reservedSlugs, siteOrigin, robots, shareImageFor, defaultShareImage, guides }){
+/* postsByProject: project id -> [{ href, title, project, date }],
+   links from the site root to that project's blog posts. */
+function buildHubs({ H, indexHtml, props, rows, reservedSlugs, siteOrigin, robots, shareImageFor, defaultShareImage, guides, postsByProject }){
   const chrome = homepageChrome(indexHtml);
-  const ctx = { H, chrome, siteOrigin, robots, shareImageFor, defaultShareImage };
+  const ctx = { H, chrome, siteOrigin, robots, shareImageFor, defaultShareImage, postsByProject };
   const hubs = collectHubs(H, props, reservedSlugs, guides);
   (guides || new Map()).forEach((guide, key) => {
     if(!hubs.some(h => h.path === key)) console.warn(`  unused   content/localities/${key}.html: no published project in that locality`);

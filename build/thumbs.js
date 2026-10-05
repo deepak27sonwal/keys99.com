@@ -6,10 +6,12 @@
    original URL so the live pages can find them without a lookup:
 
      <hash>.webp        640px   cards (thumbName() in index.html),
+                                blog post cards,
                                 similar-project cards on project pages
                                 and city card photos
      <hash>-1280.webp  1280px   project page main photo, lightbox,
-                                floor plans and master plans
+                                floor plans, master plans and the
+                                blog post cover on its page
      <hash>-320.webp    320px   project page gallery strip
                                 (thumbName() in js/project-core.js)
      <hash>-og.jpg   1200x630   link preview (og:image) for WhatsApp,
@@ -70,6 +72,13 @@ function plannedCopies({ H, P, props, rows, supabaseUrl }){
     p.images.filter(i => remote(i.url)).forEach(i => {
       add(P.thumbName(i.url, P.IMAGE_WIDTHS.large), i.url, P.IMAGE_WIDTHS.large, 72);
       add(P.thumbName(i.url, P.IMAGE_WIDTHS.small), i.url, P.IMAGE_WIDTHS.small, 65);
+    });
+    /* Blog post covers: the post page (1280px), cards (640px) and the
+       post's link preview. */
+    p.blogs.filter(b => remote(b.image)).forEach(b => {
+      add(P.thumbName(b.image, P.IMAGE_WIDTHS.large), b.image, P.IMAGE_WIDTHS.large, 72);
+      add(P.thumbName(b.image, 0), b.image, CARD_WIDTH, 70);
+      add(P.ogName(b.image), b.image, P.OG_SIZE.width, 78, true);
     });
     /* Plans carry small print, so they get a higher quality. */
     [...p.floorPlans, ...p.masterPlans].filter(f => remote(f.url)).forEach(f => {

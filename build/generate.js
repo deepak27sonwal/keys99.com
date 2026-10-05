@@ -288,6 +288,8 @@ function removeStalePages(base, current){
       const file = path.join(dir, "index.html");
       if(fs.existsSync(file)) fs.unlinkSync(file);
       try{ fs.rmdirSync(dir); }catch(_){}   // only removes the folder if nothing else is in it
+      /* A project's last post gone: its empty blog/ folder goes too. */
+      if(path.basename(path.dirname(dir)) === "blog"){ try{ fs.rmdirSync(path.dirname(dir)); }catch(_){} }
       console.log(`  removed  /${base}/${entry}/`);
     });
 
@@ -308,11 +310,13 @@ function writeSitemap(pages, hubs, articles){
     ...(hubs || []).filter(h => h.indexable || h.count >= HUB_MIN_INDEXED)
       .map(h => ({ loc: `${SITE_ORIGIN}/${h.dir}/`, lastmod: day(h.lastmod) })),
     ...pages.map(p => ({ loc: `${SITE_ORIGIN}/projects/${p.slug}/`, lastmod: day(p.lastmod) })),
-    ...(articles || []).map(a => ({ loc: `${SITE_ORIGIN}/${a.dir}/`, lastmod: day(a.lastmod) }))
+    ...(articles || []).map(a => ({ loc: `${SITE_ORIGIN}/${a.dir}/`, lastmod: day(a.lastmod), image: a.image || "" }))
   ];
+  const x = v => String(v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  /* Blog covers are listed as images of their post (Google Images). */
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls.map(u => `  <url>\n    <loc>${u.loc}</loc>${u.lastmod ? `\n    <lastmod>${u.lastmod}</lastmod>` : ""}\n  </url>`).join("\n")}
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+${urls.map(u => `  <url>\n    <loc>${x(u.loc)}</loc>${u.lastmod ? `\n    <lastmod>${u.lastmod}</lastmod>` : ""}${u.image ? `\n    <image:image><image:loc>${x(u.image)}</image:loc></image:image>` : ""}\n  </url>`).join("\n")}
 </urlset>
 `;
   fs.writeFileSync(path.join(ROOT, "sitemap.xml"), xml);
@@ -390,8 +394,17 @@ async function main(){
     console.log("  wrote    /projects/" + page.slug + "/");
   }
 
+  /* Projects with a page, normalised with links from the site root,
+     for the blog pages and the hubs' "From the Keys99 Blog" lists. */
+  const builtSlugs = new Set(pages.map(p => p.slug));
+  const blogProjects = goodRows.filter(r => builtSlugs.has(r.slug))
+    .map(r => P.normalizeProject(r, { supabaseUrl: config.url, root: "" }));
+  const postsByProject = new Map(blogProjects.map(p => [p.id, p.blogs.filter(b => b.indexable)
+    .map(b => ({ href: b.path, title: b.title, project: p.name, date: b.date }))]));
+
   /* City + locality hubs, from the same projects. */
   const hubs = buildHubs({
+    postsByProject,
     H,
     indexHtml: fs.readFileSync(indexPath, "utf8"),
     props: goodRows.map(row => H.mapResidentialProject(row)),
@@ -439,9 +452,21 @@ async function main(){
       console.log(`  wrote    /${page.file}`);
     });
 
+  /* Blog: the guides in content/blog/ plus every published project
+     post (residential_project_blogs), which gets a page under its
+     project. Links in these pages are written from the site root. */
   const blog = buildBlog({
     root: ROOT, indexHtml: fs.readFileSync(indexPath, "utf8"), siteOrigin: SITE_ORIGIN,
-    robots: ROBOTS, indexable: INDEXABLE, defaultShareImage: DEFAULT_SHARE_IMAGE
+    robots: ROBOTS, indexable: INDEXABLE, defaultShareImage: DEFAULT_SHARE_IMAGE,
+    projects: blogProjects,
+    shareImage,
+    copyUrl: rel => /^assets\//.test(rel || "") && fs.existsSync(path.join(ROOT, ...rel.split("/"))) ? `${ASSET_ORIGIN}/${rel}` : ""
+  });
+  blog.projectPages.forEach(page => {
+    const dir = path.join(ROOT, ...page.dir.split("/"));
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, "index.html"), page.html);
+    console.log(`  wrote    /${page.dir}/${page.draft ? "  (short post: kept out of the index)" : ""}`);
   });
   blog.pages.forEach(page => {
     const dir = path.join(ROOT, ...page.dir.split("/"));
@@ -449,13 +474,19 @@ async function main(){
     fs.writeFileSync(path.join(dir, "index.html"), page.html);
     console.log(`  wrote    /${page.dir}/${page.draft ? "  (draft: kept out of the index)" : ""}`);
   });
-  /* No articles left: the list page goes too. */
+  /* No articles left: the list page and the feed go too. */
   if(!blog.pages.length) fs.rmSync(path.join(ROOT, "blog", "index.html"), { force: true });
+  if(blog.feed && blog.pages.length) fs.writeFileSync(path.join(ROOT, "blog", "feed.xml"), blog.feed);
+  else fs.rmSync(path.join(ROOT, "blog", "feed.xml"), { force: true });
 
-  removeStalePages("projects", [...pages.map(p => p.slug), ...hubs.filter(h => h.base === "projects").map(h => h.path)]);
+  removeStalePages("projects", [
+    ...pages.map(p => p.slug),
+    ...hubs.filter(h => h.base === "projects").map(h => h.path),
+    ...blog.projectPages.map(p => p.path)
+  ]);
   removeStalePages("developers", hubs.filter(h => h.base === "developers").map(h => h.path));
   removeStalePages("blog", blog.pages.map(p => p.slug));
-  writeSitemap(pages, hubs, blog.pages.filter(p => !p.draft));
+  writeSitemap(pages, hubs, [...blog.pages, ...blog.projectPages].filter(p => !p.draft));
 
   const home = buildHomepage(indexPath, goodRows, config.url);
   /* Homepage link preview: the brand image, from where the site is served. */
@@ -478,7 +509,7 @@ async function main(){
   ]);
   console.log(`  versioned CSS/JS links in ${stamped} page(s)`);
 
-  console.log(`\n  ${pages.length} project page(s), ${hubs.length} city/locality page(s), sitemap.xml updated` +
+  console.log(`\n  ${pages.length} project page(s), ${blog.projectPages.length} project post(s), ${hubs.length} city/locality page(s), sitemap.xml updated` +
     (INDEXABLE ? "" : "\n  pages are noindex (set SITE_INDEXABLE=true at launch)"));
 }
 

@@ -74,6 +74,36 @@ Run locally: `npm install` then `npm run build`.
   agent (when active and verified), else `SITE_CONTACT` in `js/config.js`.
 - Projects removed or unpublished disappear on the next build.
 
+### Project blog posts
+
+Published posts in `residential_project_blogs` get their own page at
+`/projects/<project>/blog/<post-slug>/` (`build/blog.js`). The project page
+lists them as cards that link there, each post links back to its project, and
+`/blog/` lists them under "Project Insights" next to the guides in
+`content/blog/`. Every post page has its own title, meta description,
+canonical URL, a 1200x630 link-preview image made from the cover, and
+`BlogPosting` + `BreadcrumbList` structured data, and is added to
+`sitemap.xml` (with its cover as an image entry) and to the feed at
+`/blog/feed.xml`. City, locality and developer pages link the newest posts
+about their projects ("From the Keys99 Blog"), and the project's structured
+data lists its posts (`subjectOf`).
+
+- Covers are resized at build time (`build/thumbs.js`): WebP copies for the
+  page and cards, so a 2 MB phone photo never loads on the page.
+- Each `## ` heading gets a link anchor, and a post with 3 or more of them
+  shows an "On this page" list at the top.
+
+- Write the body as plain text: a blank line starts a paragraph, `## ` a
+  heading (`### ` a smaller one), `- ` a bullet, `1. ` a numbered item,
+  `**bold**`, and `[text](link)` a link (`https://...` or a site path such as
+  `/projects/pune/`). Links to other Keys99 pages help Google crawl the site.
+- `meta_description` is the text Google shows; without it the excerpt or the
+  first lines of the post are used.
+- Posts under 250 words are built and linked but kept out of Google's index
+  and the sitemap (thin pages count against the whole site).
+- Run `supabase/09-blog-published-at.sql` once so `published_at` is set when
+  a post is first published.
+
 ### Instant rebuilds
 
 The site is built by Cloudflare Pages (see `CLOUDFLARE.md`).

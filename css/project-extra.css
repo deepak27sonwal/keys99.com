@@ -155,32 +155,23 @@
   #similarList.property-scroll{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 
-/* Project blog (residential_project_blogs): cover beside the text,
-   stacked on phones. The summary shows the excerpt; opening it
-   shows the full post. */
+/* Project blog (residential_project_blogs): each card links to the
+   post's own page. Cover beside the text, stacked on phones. */
 .project-blogs{display:grid;gap:14px}
-.project-blog{display:grid;grid-template-columns:200px minmax(0,1fr);gap:16px;padding:14px;border:1px solid #e7eeec;border-radius:12px;background:#fafcfb}
+.project-blog{display:grid;grid-template-columns:200px minmax(0,1fr);gap:16px;padding:14px;border:1px solid #e7eeec;border-radius:12px;background:#fafcfb;color:inherit;text-decoration:none;transition:border-color .15s,box-shadow .15s}
+.project-blog:hover{border-color:#b9dcd2;box-shadow:0 6px 18px rgba(9,44,61,.08)}
+.project-blog:focus-visible{outline:2px solid #00866e;outline-offset:2px}
 .project-blog:not(:has(.project-blog-cover)){grid-template-columns:minmax(0,1fr)}
-.project-blog-cover{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:10px;background:#e7eeec}
-.project-blog-text{min-width:0}
+.project-blog-cover{width:100%;height:auto;aspect-ratio:4/3;object-fit:cover;border-radius:10px;background:#e7eeec}
+.project-blog-text{display:flex;flex-direction:column;min-width:0}
 .project-blog-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
 .project-blog-tags span{padding:3px 9px;border-radius:999px;background:#e4f5ef;color:#00664f;font-size:var(--fs-label);font-weight:700}
 .project-blog h3{margin:0 0 4px;font-size:var(--fs-lead);line-height:1.35;color:#14343b;overflow-wrap:anywhere}
+.project-blog:hover h3{color:#00866e}
 .project-blog-meta{margin:0 0 8px;font-size:var(--fs-label);color:#6b7f86}
-.project-blog summary{cursor:pointer;list-style:none}
-.project-blog summary::-webkit-details-marker{display:none}
-.project-blog-excerpt{display:block;font-size:var(--fs-body);line-height:1.6;color:#35525b;overflow-wrap:anywhere}
-.project-blog-more{display:inline-block;margin-top:6px;font-size:var(--fs-small);font-weight:700;color:#00866e}
+.project-blog-excerpt{font-size:var(--fs-body);line-height:1.6;color:#35525b;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.project-blog-more{margin-top:8px;font-size:var(--fs-small);font-weight:700;color:#00866e}
 .project-blog-more:after{content:" →"}
-.project-blog details[open] .project-blog-excerpt{display:none}
-.project-blog details[open] .project-blog-more:before{content:"Show less"}
-.project-blog details[open] .project-blog-more{font-size:0}
-.project-blog details[open] .project-blog-more:before,
-.project-blog details[open] .project-blog-more:after{font-size:var(--fs-small)}
-.project-blog details[open] .project-blog-more:after{content:" ↑"}
-.project-blog-body{margin-top:6px;font-size:var(--fs-body);line-height:1.6;color:#35525b;white-space:pre-line;overflow-wrap:anywhere}
-.project-blog details[open]{display:flex;flex-direction:column-reverse}
-.project-blog details[open] summary{margin-top:4px}
 @media (max-width:560px){
   .project-blog{grid-template-columns:minmax(0,1fr);padding:12px}
 }

@@ -21,6 +21,13 @@
     location.replace(m[1] + "projects/property-details.html?slug=" + m[2] + location.hash);
     return;
   }
+  /* A project blog post published after the last build: its project
+     page, at the blog cards (the live data lists the new post). */
+  var b = path.match(/^(.*\/)projects\/([a-z0-9]+(?:-[a-z0-9]+)*)\/blog\/[a-z0-9]+(?:-[a-z0-9]+)*\/?$/);
+  if(b){
+    location.replace(b[1] + "projects/" + b[2] + "/#blogSection");
+    return;
+  }
   /* A developer whose page has not been built yet: the list of all developers. */
   var d = path.match(/^(.*\/)developers\/[a-z0-9]+(?:-[a-z0-9]+)*\/?$/);
   if(d){
