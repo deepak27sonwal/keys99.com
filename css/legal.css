@@ -126,6 +126,77 @@
 
 
 /* =========================================================
+   ABOUT PAGE - FOUNDER CARD
+========================================================= */
+
+.founder-card{
+  display:flex;
+  gap:22px;
+  align-items:flex-start;
+
+  margin:6px 0 8px;
+  padding:20px;
+
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:16px;
+}
+
+.founder-photo{
+  flex:none;
+  display:grid;
+  place-items:center;
+
+  width:120px;
+  height:120px;
+  object-fit:cover;
+
+  border-radius:50%;
+  background:var(--green-soft);
+  color:var(--green);
+  font-size:44px;
+  font-weight:800;
+}
+
+.founder-info{ min-width:0; }
+
+.legal-body .founder-info h3{
+  margin:2px 0 0;
+  font-size:var(--fs-h3);
+}
+
+.legal-body .founder-role{
+  margin:0 0 10px;
+  font-size:var(--fs-ui);
+  font-weight:600;
+  color:var(--green);
+}
+
+.founder-quote{
+  margin:0 0 12px;
+  padding:4px 0 4px 14px;
+  border-left:3px solid var(--green);
+  font-style:italic;
+  color:var(--ink);
+}
+
+.legal-body .founder-link{ font-size:var(--fs-ui); }
+
+@media (max-width:560px){
+  .founder-card{
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
+  }
+
+  .founder-quote{
+    padding-left:0;
+    border-left:0;
+  }
+}
+
+
+/* =========================================================
    HOME LOANS PAGE (/home-loans)
    The partner logos reuse .loan-partner-grid from index.css.
 ========================================================= */
