@@ -288,6 +288,8 @@ function removeStalePages(base, current){
       const file = path.join(dir, "index.html");
       if(fs.existsSync(file)) fs.unlinkSync(file);
       try{ fs.rmdirSync(dir); }catch(_){}   // only removes the folder if nothing else is in it
+      /* A project's last post gone: its empty blog/ folder goes too. */
+      if(path.basename(path.dirname(dir)) === "blog"){ try{ fs.rmdirSync(path.dirname(dir)); }catch(_){} }
       console.log(`  removed  /${base}/${entry}/`);
     });
 
@@ -439,9 +441,21 @@ async function main(){
       console.log(`  wrote    /${page.file}`);
     });
 
+  /* Blog: the guides in content/blog/ plus every published project
+     post (residential_project_blogs), which gets a page under its
+     project. Links in these pages are written from the site root. */
+  const builtSlugs = new Set(pages.map(p => p.slug));
   const blog = buildBlog({
     root: ROOT, indexHtml: fs.readFileSync(indexPath, "utf8"), siteOrigin: SITE_ORIGIN,
-    robots: ROBOTS, indexable: INDEXABLE, defaultShareImage: DEFAULT_SHARE_IMAGE
+    robots: ROBOTS, indexable: INDEXABLE, defaultShareImage: DEFAULT_SHARE_IMAGE,
+    projects: goodRows.filter(r => builtSlugs.has(r.slug))
+      .map(r => P.normalizeProject(r, { supabaseUrl: config.url, root: "" }))
+  });
+  blog.projectPages.forEach(page => {
+    const dir = path.join(ROOT, ...page.dir.split("/"));
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, "index.html"), page.html);
+    console.log(`  wrote    /${page.dir}/${page.draft ? "  (short post: kept out of the index)" : ""}`);
   });
   blog.pages.forEach(page => {
     const dir = path.join(ROOT, ...page.dir.split("/"));
@@ -452,10 +466,14 @@ async function main(){
   /* No articles left: the list page goes too. */
   if(!blog.pages.length) fs.rmSync(path.join(ROOT, "blog", "index.html"), { force: true });
 
-  removeStalePages("projects", [...pages.map(p => p.slug), ...hubs.filter(h => h.base === "projects").map(h => h.path)]);
+  removeStalePages("projects", [
+    ...pages.map(p => p.slug),
+    ...hubs.filter(h => h.base === "projects").map(h => h.path),
+    ...blog.projectPages.map(p => p.path)
+  ]);
   removeStalePages("developers", hubs.filter(h => h.base === "developers").map(h => h.path));
   removeStalePages("blog", blog.pages.map(p => p.slug));
-  writeSitemap(pages, hubs, blog.pages.filter(p => !p.draft));
+  writeSitemap(pages, hubs, [...blog.pages, ...blog.projectPages].filter(p => !p.draft));
 
   const home = buildHomepage(indexPath, goodRows, config.url);
   /* Homepage link preview: the brand image, from where the site is served. */
@@ -478,7 +496,7 @@ async function main(){
   ]);
   console.log(`  versioned CSS/JS links in ${stamped} page(s)`);
 
-  console.log(`\n  ${pages.length} project page(s), ${hubs.length} city/locality page(s), sitemap.xml updated` +
+  console.log(`\n  ${pages.length} project page(s), ${blog.projectPages.length} project post(s), ${hubs.length} city/locality page(s), sitemap.xml updated` +
     (INDEXABLE ? "" : "\n  pages are noindex (set SITE_INDEXABLE=true at launch)"));
 }
 
