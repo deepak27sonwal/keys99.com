@@ -108,6 +108,15 @@ function buildSavedPage({ H, indexHtml, props, siteOrigin }){
   }), "saved");
 }
 
+/* Alt text for a video thumbnail: the video's title with the project
+   it belongs to, so image search can tie the picture to the project
+   ("Shuban Enclave, Ravet, Pune - Sample Flat Video"). */
+function posterAlt(p, title){
+  const where = [p.locality, p.city].filter(Boolean).join(", ");
+  const project = [p.name, where].filter(Boolean).join(", ");
+  return title.toLowerCase().includes(String(p.name).toLowerCase()) ? title : `${project} - ${title}`;
+}
+
 function buildReelsPage({ H, P, indexHtml, rows, supabaseUrl, siteOrigin, robots }){
   const chrome = homepageChrome(indexHtml);
   const e = H.escapeHtml;
@@ -129,10 +138,11 @@ function buildReelsPage({ H, P, indexHtml, rows, supabaseUrl, siteOrigin, robots
     const img = p.images[0];
     const poster = info.thumb || (img ? img.card : "assets/property-placeholder.svg");
     const title = v.title || `${p.name} ${typeLabel[v.type] || "Video"}`;
+    const alt = posterAlt(p, title);
     const player = info.platform === "file"
       ? `<video controls playsinline preload="none" poster="${e(img ? img.card : "")}"><source src="${e(v.url)}"></video>`
       : `<button type="button" class="reel-play" data-embed="${e(info.embed)}" aria-label="Play ${e(title)}">
-          <img src="${e(poster)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">
+          <img src="${e(poster)}" alt="${e(alt)}" loading="lazy" decoding="async" referrerpolicy="no-referrer">
           <span class="reel-play-icon" aria-hidden="true">▶</span>
         </button>`;
     return `
@@ -237,7 +247,7 @@ function homeReelsHtml(videos, e, typeLabel, platformLabel){
     const where = [p.locality, p.city].filter(Boolean).join(", ");
     return `
       <a class="home-reel" href="reels#reel-${i + 1}" aria-label="Watch ${e(title)}">
-        <img src="${e(poster)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">
+        <img src="${e(poster)}" alt="${e(posterAlt(p, title))}" loading="lazy" decoding="async" referrerpolicy="no-referrer">
         <span class="home-reel-tag">${e(typeLabel[v.type] || "Video")} · ${e(platformLabel[info.platform])}</span>
         <span class="home-reel-play" aria-hidden="true"></span>
         <span class="home-reel-body">

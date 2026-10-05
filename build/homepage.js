@@ -91,12 +91,14 @@ function replaceBetween(html, key, content){
 }
 
 /* Title, description, preview tags and the H1 place name follow
-   where the projects actually are: "Pune" today, "Pune & Mumbai"
-   with two cities, "Pune, Mumbai & More" beyond that. */
+   where the projects actually are, busiest city first. Every city is
+   named while the list is short ("Pune, Hyderabad & Indore"): a vague
+   "& More" is not something anyone searches for. Past four cities
+   the rest are summed up. */
 function placeText(cities){
   if(cities.length <= 1) return cities[0] || "India";
-  if(cities.length === 2) return `${cities[0]} & ${cities[1]}`;
-  return `${cities[0]}, ${cities[1]} & More`;
+  const list = cities.length <= 4 ? cities : [...cities.slice(0, 3), "Other Cities"];
+  return list.slice(0, -1).join(", ") + " & " + list[list.length - 1];
 }
 
 function applyHomepageSeo(H, html, props){
@@ -116,7 +118,14 @@ function applyHomepageSeo(H, html, props){
   const bhkList = [...bhks].sort((a, b) => parseFloat(a) - parseFloat(b));
   const join = list => list.length > 1 ? list.slice(0, -1).join(", ") + " & " + list[list.length - 1] : (list[0] || "");
 
-  const title = `New Projects & Flats for Sale in ${place} | Keys99`;
+  /* Google cuts titles off at about 60 characters, so the title names
+     as many cities as fit, busiest first - the one most of the
+     projects are in leads the keyword. */
+  const title = [
+    `New Projects & Flats for Sale in ${place} | Keys99`,
+    cities.length > 1 ? `New Projects & Flats for Sale in ${cities[0]} & ${cities[1]} | Keys99` : null,
+    `New Projects & Flats for Sale in ${cities[0]} | Keys99`
+  ].find(t => t && t.length <= 60) || `New Projects & Flats for Sale in ${cities[0]} | Keys99`;
   const explore = n => `Explore ${props.length} new residential project${props.length === 1 ? "" : "s"} in ${place}` +
     (n && localities.length ? ` across ${join(localities.slice(0, n))}` : "") + ".";
   const compare = `Compare ${bhkList.length ? join(bhkList) + " BHK flats" : "flats"}` +
@@ -129,8 +138,17 @@ function applyHomepageSeo(H, html, props){
     `${explore(0)} ${compare} on Keys99.`
   ].find(d => d.length <= 160) || `${explore(0)} ${compare} on Keys99.`;
 
+  /* Hero line under the H1: what a buyer can do here, where and from
+     what price, in place of a generic slogan. */
+  const range = bhkList.length > 1 ? `${bhkList[0]}–${bhkList[bhkList.length - 1]} BHK` : (bhkList.length ? `${bhkList[0]} BHK` : "");
+  const heroIntro = `Compare prices, floor plans and RERA details of new ${range ? range + " " : ""}flats` +
+    (localities.length > 3 ? ` in ${localities.slice(0, 3).join(", ")} and more`
+      : localities.length ? ` in ${join(localities)}` : ` in ${place}`) +
+    (prices.length ? `, starting from ${H.formatPrice(Math.min(...prices))}.` : ".");
+
   const attr = v => H.escapeHtml(v);
   html = html
+    .replace(/(<p data-seo="hero-intro">)[\s\S]*?(<\/p>)/, `$1${attr(heroIntro)}$2`)
     .replace(/<title>[^<]*<\/title>/, `<title>${attr(title)}</title>`)
     .replace(/(<meta name="description" content=")[^"]*(")/, `$1${attr(description)}$2`)
     .replace(/(<meta property="og:title" content=")[^"]*(")/, `$1${attr(title)}$2`)
