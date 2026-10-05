@@ -124,6 +124,45 @@
   gap:10px;
 }
 
+/* "From the Keys99 Blog": links to articles about projects on the page. */
+.hub-posts{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(260px, 1fr));
+  gap:12px;
+}
+
+.hub-post{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  padding:14px 16px;
+  border:1px solid #d3e0dc;
+  border-radius:14px;
+  background:#fff;
+  color:inherit;
+  text-decoration:none;
+  transition:border-color .15s;
+}
+
+.hub-post:hover,
+.hub-post:focus-visible{ border-color:var(--green); }
+
+.hub-post-project{
+  font-size:var(--fs-label);
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:.4px;
+  color:var(--green);
+}
+
+.hub-post strong{
+  font-size:var(--fs-ui);
+  line-height:1.4;
+  color:var(--ink);
+}
+
+.hub-post strong:after{ content:" →"; color:var(--green); }
+
 /* FAQ styles live in css/index.css (the homepage uses them too). */
 
 @media (max-width:560px){

@@ -225,6 +225,12 @@
   const THUMB_DIR = "assets/thumbs/";
   const IMAGE_WIDTHS = { large: 1280, small: 320 };
   const IMG_FALLBACK = "if(this.dataset.full){this.src=this.dataset.full;this.dataset.full=''}";
+  /* Blog covers: resized copy, then the original, then no image. */
+  const COVER_FALLBACK = "if(this.dataset.full){this.src=this.dataset.full;this.dataset.full=''}else{this.remove()}";
+
+  /* Posts shorter than this are built and linked but kept out of
+     search engines' index (thin content counts against the site). */
+  const MIN_INDEXED_WORDS = 250;
 
   function urlHash(url){
     let hash = 0x811c9dc5;
@@ -397,11 +403,16 @@
         body,
         words: flat.split(/\s+/).filter(Boolean).length,
         image: clean(b.cover_image_url) || storagePublicUrl(supabaseUrl, b.storage_bucket, b.cover_image_path),
+        indexable: flat.split(/\s+/).filter(Boolean).length >= MIN_INDEXED_WORDS,
         author: clean(b.author),
         tags: (b.tags || []).map(clean).filter(Boolean),
         date: b.published_at || b.created_at || "",
         updated: b.updated_at || b.published_at || b.created_at || ""
       };
+    });
+
+    blogs.forEach(b => {
+      b.cover = b.image ? { large: resized(b.image, IMAGE_WIDTHS.large, root), card: resized(b.image, 0, root) } : null;
     });
 
     const floorPlans = list(row.floor_plans).filter(f => f.is_active !== false).map(f => ({
@@ -583,7 +594,7 @@
       ].filter(Boolean).join(" · ");
       return `
       <a class="project-blog" href="${escapeHtml(b.href)}">
-        ${b.image ? `<img class="project-blog-cover" src="${escapeHtml(b.image)}" onerror="this.remove()" alt="${escapeHtml(b.title)}" loading="lazy" decoding="async">` : ""}
+        ${b.cover ? `<img class="project-blog-cover" src="${escapeHtml(b.cover.card)}" data-full="${escapeHtml(b.image)}" onerror="${COVER_FALLBACK}" alt="${escapeHtml(b.title)}" width="640" height="480" loading="lazy" decoding="async">` : ""}
         <span class="project-blog-text">
           ${b.tags.length ? `<span class="project-blog-tags">${b.tags.map(t => `<span>${escapeHtml(t)}</span>`).join("")}</span>` : ""}
           <h3>${escapeHtml(b.title)}</h3>
@@ -702,6 +713,9 @@
       place.hasMap = `https://www.google.com/maps?q=${Number(p.latitude)},${Number(p.longitude)}`;
     }
     if(p.rera) place.identifier = { "@type":"PropertyValue", name:"RERA registration number", value:p.rera };
+    /* Articles about the project (each has its own page). */
+    const posts = (p.blogs || []).filter(b => b.indexable);
+    if(posts.length) place.subjectOf = posts.map(b => ({ "@type":"BlogPosting", headline:b.title, url: siteUrl + "/" + b.path }));
     graph.push(place);
 
     /* The page itself is a listing of that project. Its offers give
@@ -785,6 +799,8 @@
     THUMB_DIR,
     IMAGE_WIDTHS,
     IMG_FALLBACK,
+    COVER_FALLBACK,
+    MIN_INDEXED_WORDS,
     thumbName,
     ogName,
     OG_SIZE,

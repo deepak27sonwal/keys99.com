@@ -48,7 +48,11 @@ const P = require("../js/project-core.js");
 
 const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const WORDS_PER_MINUTE = 200;
-const MIN_INDEXED_WORDS = 250;
+const MIN_INDEXED_WORDS = P.MIN_INDEXED_WORDS;
+/* Google shows about 60 characters of a title. */
+const TITLE_MAX = 65;
+/* "On this page" links once a post has this many sections. */
+const TOC_MIN_HEADINGS = 3;
 
 const esc = v => String(v == null ? "" : v)
   .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -77,8 +81,10 @@ function inlineMarks(text){
     });
 }
 
+/* Returns { html, toc }: every h2 gets an id so search results and
+   the "On this page" list can link straight to a section. */
 function formatArticle(body){
-  const out = [];
+  const out = [], toc = [], ids = new Set();
   let para = [], list = null;
   const flushPara = () => { if(para.length){ out.push(`<p>${para.map(inlineMarks).join("<br>")}</p>`); para = []; } };
   const flushList = () => { if(list){ out.push(`<${list.tag}>${list.items.map(i => `<li>${inlineMarks(i)}</li>`).join("")}</${list.tag}>`); list = null; } };
@@ -90,7 +96,13 @@ function formatArticle(body){
     if((m = line.match(/^(#{1,3})\s+(.+)$/))){
       flushPara(); flushList();
       const level = m[1].length === 3 ? 3 : 2;
-      out.push(`<h${level}>${inlineMarks(m[2])}</h${level}>`);
+      if(level === 3){ out.push(`<h3>${inlineMarks(m[2])}</h3>`); return; }
+      const text = m[2].replace(/\*\*(.+?)\*\*/g, "$1").replace(/\[([^\]]+)\]\([^)\s]+\)/g, "$1");
+      let id = P.slugify(text) || "section";
+      for(let n = 2; ids.has(id); n++) id = id.replace(/-\d+$/, "") + "-" + n;
+      ids.add(id);
+      toc.push({ id, text });
+      out.push(`<h2 id="${id}">${inlineMarks(m[2])}</h2>`);
       return;
     }
     const item = line.match(/^[-*•]\s+(.+)$/) ? ["ul", line.replace(/^[-*•]\s+/, "")]
@@ -106,7 +118,18 @@ function formatArticle(body){
     para.push(line);
   });
   flushPara(); flushList();
-  return out.join("\n      ");
+  return { html: out.join("\n        "), toc };
+}
+
+/* The longest of these that fits; a long post title is kept whole.
+   The project name is left out when the post title already has it. */
+function postTitle(title, p){
+  const named = title.toLowerCase().includes(p.name.toLowerCase());
+  const where = p.city ? `${p.name}, ${p.city}` : p.name;
+  const options = named
+    ? [`${title} | ${p.city} | Keys99`, `${title} | Keys99`]
+    : [`${title} | ${where} | Keys99`, `${title} | ${p.name} | Keys99`, `${title} | ${where}`, `${title} | ${p.name}`, `${title} | Keys99`];
+  return options.find(t => t.length <= TITLE_MAX && !t.includes("|  |")) || title;
 }
 
 function loadPosts(dir){
@@ -185,6 +208,7 @@ ${chrome.fonts}
 <link rel="stylesheet" href="css/hub.css">
 <link rel="stylesheet" href="css/legal.css">
 <link rel="stylesheet" href="css/blog.css">
+<link rel="alternate" type="application/rss+xml" title="Keys99 Blog" href="blog/feed.xml">
 <script type="application/ld+json">${JSON.stringify(jsonLd).replace(/</g, "\\u003c")}</script>
 </head>
 <body data-root="${prefix}">
@@ -214,12 +238,14 @@ function finish(html, prefix){
   return $.html();
 }
 
+const CARD_FALLBACK = "if(this.dataset.full){this.src=this.dataset.full;this.dataset.full=''}else{this.parentNode.remove()}";
+
 /* A card on /blog/ and under articles. Guides link to blog/<slug>/,
    project posts to their page under the project. */
 function postCard(p){
   return `
       <article class="blog-card${p.image ? " has-cover" : ""}">
-        ${p.image ? `<a class="blog-card-cover" href="${p.href}" tabindex="-1" aria-hidden="true"><img src="${esc(p.image)}" alt="" loading="lazy" decoding="async" onerror="this.parentNode.remove()"></a>` : ""}
+        ${p.image ? `<a class="blog-card-cover" href="${p.href}" tabindex="-1" aria-hidden="true"><img src="${esc(p.cardImage || p.image)}" data-full="${esc(p.image)}" alt="" width="640" height="360" loading="lazy" decoding="async" onerror="${CARD_FALLBACK}"></a>` : ""}
         <div class="blog-card-meta">${esc(p.kicker || p.category)} · ${p.minutes} min read</div>
         <h2><a href="${p.href}">${esc(p.title)}</a></h2>
         <p>${esc(p.description)}</p>
@@ -246,8 +272,9 @@ function projectPostList(projects){
       date,
       updated: isoDay(b.updated) || date,
       image: b.image,
+      cardImage: b.cover ? b.cover.card : "",
       minutes: Math.max(1, Math.round(b.words / WORDS_PER_MINUTE)),
-      thin: b.words < MIN_INDEXED_WORDS
+      thin: !b.indexable
     });
   }));
   return posts.sort((a, b) => b.date.localeCompare(a.date) || a.title.localeCompare(b.title));
@@ -288,13 +315,18 @@ function similarLinks(list){
 
 function buildProjectPostPage(entry, ctx){
   const { project: p, post: b } = entry;
-  const { chrome, siteOrigin, robotsFor, organisation, guides, allPosts, allProjects, defaultShareImage } = ctx;
+  const { chrome, siteOrigin, robotsFor, organisation, guides, allPosts, allProjects, defaultShareImage, shareImage, copyUrl } = ctx;
   const url = `${siteOrigin}/${entry.href}`;
   const projectUrl = `${siteOrigin}/projects/${p.slug}/`;
   const blogUrl = `${siteOrigin}/blog/`;
   const prefix = "../../../../";
   const citySlug = P.slugify(p.city);
-  const image = b.image || (p.images[0] && p.images[0].url) || defaultShareImage;
+  const article = formatArticle(b.body);
+  /* Link preview: the cover's 1200x630 JPEG, else the project photo's. */
+  const preview = (b.image && shareImage(b.image)) || (p.images[0] && shareImage(p.images[0].url)) || null;
+  const image = preview || b.image || (p.images[0] && p.images[0].url) || defaultShareImage;
+  /* The cover as shown on the page, for structured data and the sitemap. */
+  const coverShown = b.cover ? (copyUrl(b.cover.large) || b.image) : "";
   const dateLine = entry.updated !== entry.date
     ? `Updated <time datetime="${entry.updated}">${displayDate(entry.updated)}</time>`
     : `<time datetime="${entry.date}">${displayDate(entry.date)}</time>`;
@@ -324,7 +356,7 @@ function buildProjectPostPage(entry, ctx){
       articleSection: p.name,
       keywords: b.tags.length ? b.tags.join(", ") : undefined,
       wordCount: b.words,
-      image,
+      image: coverShown ? [coverShown, image].filter((v, i, a) => a.indexOf(v) === i) : image,
       author: { "@type": "Organization", name: b.author || "Keys99 Team", url: siteOrigin },
       publisher: organisation,
       about: { "@type": "ApartmentComplex", "@id": projectUrl + "#project", name: p.name, url: projectUrl },
@@ -350,8 +382,13 @@ function buildProjectPostPage(entry, ctx){
         <div class="section-kicker"><a href="projects/${p.slug}/">${esc(p.name)}</a>${p.locality ? " · " + esc(p.locality) : ""}</div>
         <h1>${esc(b.title)}</h1>
         <p class="blog-meta">By ${esc(b.author || "Keys99 Team")} · ${dateLine} · ${entry.minutes} min read</p>
-        ${b.image ? `<figure class="post-cover"><img src="${esc(b.image)}" alt="${esc(b.title)}" decoding="async" fetchpriority="high" onerror="this.parentNode.remove()"></figure>` : ""}
-        ${formatArticle(b.body)}
+        ${b.cover ? `<figure class="post-cover"><img src="${esc(b.cover.large)}" data-full="${esc(b.image)}" alt="${esc(b.title)}" width="1280" height="720" decoding="async" fetchpriority="high" onerror="${CARD_FALLBACK}"></figure>` : ""}
+        ${article.toc.length >= TOC_MIN_HEADINGS ? `
+        <nav class="post-toc" aria-labelledby="postToc">
+          <strong id="postToc">On this page</strong>
+          <ol>${article.toc.map(t => `<li><a href="#${t.id}">${esc(t.text)}</a></li>`).join("")}</ol>
+        </nav>` : ""}
+        ${article.html}
         ${b.tags.length ? `<p class="post-tags">${b.tags.map(t => `<span>${esc(t)}</span>`).join("")}</p>` : ""}
         <aside class="blog-cta">
           <strong>Interested in ${esc(p.name)}?</strong>
@@ -387,9 +424,10 @@ function buildProjectPostPage(entry, ctx){
     path: entry.dir.replace(/^projects\//, ""),
     draft: entry.thin,
     lastmod: entry.updated,
+    image: coverShown,
     html: finish(shell({
       chrome,
-      title: `${b.title} | ${p.name}${p.city ? ", " + p.city : ""} | Keys99`,
+      title: postTitle(b.title, p),
       description: P.shorten(entry.description, 158),
       canonical: url,
       robots: robotsFor(entry.thin),
@@ -398,14 +436,23 @@ function buildProjectPostPage(entry, ctx){
       jsonLd: { "@context": "https://schema.org", "@graph": graph },
       main,
       prefix,
-      extraHead: `<meta property="article:published_time" content="${entry.date}">\n<meta property="article:modified_time" content="${entry.updated}">`
+      extraHead: [
+        `<meta property="article:published_time" content="${entry.date}">`,
+        `<meta property="article:modified_time" content="${entry.updated}">`,
+        ...b.tags.map(t => `<meta property="article:tag" content="${esc(t)}">`),
+        preview ? `<meta property="og:image:type" content="image/jpeg">\n<meta property="og:image:width" content="${P.OG_SIZE.width}">\n<meta property="og:image:height" content="${P.OG_SIZE.height}">\n<meta property="og:image:alt" content="${esc(b.title)}">` : ""
+      ].filter(Boolean).join("\n")
     }), prefix)
   };
 }
 
 /* projects: normalised projects (P.normalizeProject, root "") whose
    published posts get pages under projects/<slug>/blog/. */
-function buildBlog({ root, indexHtml, siteOrigin, robots, indexable, defaultShareImage, projects = [] }){
+/* shareImage(url): absolute URL of a photo's 1200x630 link-preview
+   copy, or null. copyUrl(path): absolute URL of a resized copy
+   ("assets/thumbs/..."), or "" if it was not made. */
+function buildBlog({ root, indexHtml, siteOrigin, robots, indexable, defaultShareImage, projects = [],
+  shareImage = () => null, copyUrl = () => "" }){
   const posts = loadPosts(path.join(root, "content", "blog"));
   posts.forEach(p => { p.href = `blog/${p.slug}/`; });
   const projectPosts = projectPostList(projects);
@@ -426,7 +473,7 @@ function buildBlog({ root, indexHtml, siteOrigin, robots, indexable, defaultShar
 
   const guides = posts.filter(p => !p.draft);
   const projectPages = projectPosts.map(entry => buildProjectPostPage(entry, {
-    chrome, siteOrigin, robotsFor, organisation, defaultShareImage,
+    chrome, siteOrigin, robotsFor, organisation, defaultShareImage, shareImage, copyUrl,
     guides: guides.length ? guides : posts,
     allPosts: projectPosts,
     allProjects: projects
@@ -601,7 +648,35 @@ function buildBlog({ root, indexHtml, siteOrigin, robots, indexable, defaultShar
     }), "../")
   });
 
-  return { pages, projectPages, posts };
+  return { pages, projectPages, posts, feed: rssFeed({ siteOrigin, items: [...live, ...listed], description: listDescription }) };
+}
+
+/* /blog/feed.xml: the newest 50 indexable articles, for feed readers
+   and search engines that discover new pages through feeds. */
+function rssFeed({ siteOrigin, items, description }){
+  const xml = v => esc(v).replace(/'/g, "&apos;");
+  const rfc = day => new Date(day + "T00:00:00Z").toUTCString();
+  const sorted = items.slice().sort((a, b) => b.date.localeCompare(a.date)).slice(0, 50);
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<channel>
+  <title>Keys99 Blog</title>
+  <link>${siteOrigin}/blog/</link>
+  <atom:link href="${siteOrigin}/blog/feed.xml" rel="self" type="application/rss+xml"/>
+  <description>${xml(description)}</description>
+  <language>en-IN</language>${sorted.length ? `
+  <lastBuildDate>${rfc(sorted.map(i => i.updated).sort().pop())}</lastBuildDate>` : ""}
+${sorted.map(i => `  <item>
+    <title>${xml(i.title)}</title>
+    <link>${siteOrigin}/${i.href}</link>
+    <guid isPermaLink="true">${siteOrigin}/${i.href}</guid>
+    <pubDate>${rfc(i.date)}</pubDate>
+    <category>${xml(i.kicker || i.category)}</category>
+    <description>${xml(i.description)}</description>
+  </item>`).join("\n")}
+</channel>
+</rss>
+`;
 }
 
 module.exports = { buildBlog, loadPosts, formatArticle, MIN_INDEXED_WORDS };

@@ -81,8 +81,17 @@ Published posts in `residential_project_blogs` get their own page at
 lists them as cards that link there, each post links back to its project, and
 `/blog/` lists them under "Project Insights" next to the guides in
 `content/blog/`. Every post page has its own title, meta description,
-canonical URL, cover image for link previews, and `BlogPosting` +
-`BreadcrumbList` structured data, and is added to `sitemap.xml`.
+canonical URL, a 1200x630 link-preview image made from the cover, and
+`BlogPosting` + `BreadcrumbList` structured data, and is added to
+`sitemap.xml` (with its cover as an image entry) and to the feed at
+`/blog/feed.xml`. City, locality and developer pages link the newest posts
+about their projects ("From the Keys99 Blog"), and the project's structured
+data lists its posts (`subjectOf`).
+
+- Covers are resized at build time (`build/thumbs.js`): WebP copies for the
+  page and cards, so a 2 MB phone photo never loads on the page.
+- Each `## ` heading gets a link anchor, and a post with 3 or more of them
+  shows an "On this page" list at the top.
 
 - Write the body as plain text: a blank line starts a paragraph, `## ` a
   heading (`### ` a smaller one), `- ` a bullet, `1. ` a numbered item,

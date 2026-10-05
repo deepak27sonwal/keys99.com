@@ -310,11 +310,13 @@ function writeSitemap(pages, hubs, articles){
     ...(hubs || []).filter(h => h.indexable || h.count >= HUB_MIN_INDEXED)
       .map(h => ({ loc: `${SITE_ORIGIN}/${h.dir}/`, lastmod: day(h.lastmod) })),
     ...pages.map(p => ({ loc: `${SITE_ORIGIN}/projects/${p.slug}/`, lastmod: day(p.lastmod) })),
-    ...(articles || []).map(a => ({ loc: `${SITE_ORIGIN}/${a.dir}/`, lastmod: day(a.lastmod) }))
+    ...(articles || []).map(a => ({ loc: `${SITE_ORIGIN}/${a.dir}/`, lastmod: day(a.lastmod), image: a.image || "" }))
   ];
+  const x = v => String(v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  /* Blog covers are listed as images of their post (Google Images). */
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls.map(u => `  <url>\n    <loc>${u.loc}</loc>${u.lastmod ? `\n    <lastmod>${u.lastmod}</lastmod>` : ""}\n  </url>`).join("\n")}
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+${urls.map(u => `  <url>\n    <loc>${x(u.loc)}</loc>${u.lastmod ? `\n    <lastmod>${u.lastmod}</lastmod>` : ""}${u.image ? `\n    <image:image><image:loc>${x(u.image)}</image:loc></image:image>` : ""}\n  </url>`).join("\n")}
 </urlset>
 `;
   fs.writeFileSync(path.join(ROOT, "sitemap.xml"), xml);
@@ -392,8 +394,17 @@ async function main(){
     console.log("  wrote    /projects/" + page.slug + "/");
   }
 
+  /* Projects with a page, normalised with links from the site root,
+     for the blog pages and the hubs' "From the Keys99 Blog" lists. */
+  const builtSlugs = new Set(pages.map(p => p.slug));
+  const blogProjects = goodRows.filter(r => builtSlugs.has(r.slug))
+    .map(r => P.normalizeProject(r, { supabaseUrl: config.url, root: "" }));
+  const postsByProject = new Map(blogProjects.map(p => [p.id, p.blogs.filter(b => b.indexable)
+    .map(b => ({ href: b.path, title: b.title, project: p.name, date: b.date }))]));
+
   /* City + locality hubs, from the same projects. */
   const hubs = buildHubs({
+    postsByProject,
     H,
     indexHtml: fs.readFileSync(indexPath, "utf8"),
     props: goodRows.map(row => H.mapResidentialProject(row)),
@@ -444,12 +455,12 @@ async function main(){
   /* Blog: the guides in content/blog/ plus every published project
      post (residential_project_blogs), which gets a page under its
      project. Links in these pages are written from the site root. */
-  const builtSlugs = new Set(pages.map(p => p.slug));
   const blog = buildBlog({
     root: ROOT, indexHtml: fs.readFileSync(indexPath, "utf8"), siteOrigin: SITE_ORIGIN,
     robots: ROBOTS, indexable: INDEXABLE, defaultShareImage: DEFAULT_SHARE_IMAGE,
-    projects: goodRows.filter(r => builtSlugs.has(r.slug))
-      .map(r => P.normalizeProject(r, { supabaseUrl: config.url, root: "" }))
+    projects: blogProjects,
+    shareImage,
+    copyUrl: rel => /^assets\//.test(rel || "") && fs.existsSync(path.join(ROOT, ...rel.split("/"))) ? `${ASSET_ORIGIN}/${rel}` : ""
   });
   blog.projectPages.forEach(page => {
     const dir = path.join(ROOT, ...page.dir.split("/"));
@@ -463,8 +474,10 @@ async function main(){
     fs.writeFileSync(path.join(dir, "index.html"), page.html);
     console.log(`  wrote    /${page.dir}/${page.draft ? "  (draft: kept out of the index)" : ""}`);
   });
-  /* No articles left: the list page goes too. */
+  /* No articles left: the list page and the feed go too. */
   if(!blog.pages.length) fs.rmSync(path.join(ROOT, "blog", "index.html"), { force: true });
+  if(blog.feed && blog.pages.length) fs.writeFileSync(path.join(ROOT, "blog", "feed.xml"), blog.feed);
+  else fs.rmSync(path.join(ROOT, "blog", "feed.xml"), { force: true });
 
   removeStalePages("projects", [
     ...pages.map(p => p.slug),

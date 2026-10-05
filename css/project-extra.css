@@ -162,7 +162,7 @@
 .project-blog:hover{border-color:#b9dcd2;box-shadow:0 6px 18px rgba(9,44,61,.08)}
 .project-blog:focus-visible{outline:2px solid #00866e;outline-offset:2px}
 .project-blog:not(:has(.project-blog-cover)){grid-template-columns:minmax(0,1fr)}
-.project-blog-cover{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:10px;background:#e7eeec}
+.project-blog-cover{width:100%;height:auto;aspect-ratio:4/3;object-fit:cover;border-radius:10px;background:#e7eeec}
 .project-blog-text{display:flex;flex-direction:column;min-width:0}
 .project-blog-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
 .project-blog-tags span{padding:3px 9px;border-radius:999px;background:#e4f5ef;color:#00664f;font-size:var(--fs-label);font-weight:700}
