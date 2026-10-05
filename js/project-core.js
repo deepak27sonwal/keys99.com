@@ -40,11 +40,11 @@
     locality:localities!residential_projects_locality_id_fkey ( name ),
     configurations:residential_configurations!residential_configurations_project_id_fkey (
       bhk_type, variant_name, carpet_area, area_unit, starting_price, maximum_price,
-      price_type, price_on_request, availability, display_order
+      price_type, price_on_request, availability, display_order, updated_at
     ),
     media:residential_media!residential_media_project_id_fkey (
-      media_type, category, title, media_url, media_path, storage_bucket,
-      alt_text, platform, is_primary, is_active, display_order
+      media_type, category, title, description, media_url, media_path, storage_bucket,
+      alt_text, platform, is_primary, is_active, display_order, created_at
     ),
     amenities:residential_amenities!residential_amenities_project_id_fkey (
       category, amenity_name, is_available, display_order
@@ -200,6 +200,12 @@
     return Number.isFinite(n) ? (+n.toFixed(2)).toLocaleString("en-IN") : "";
   }
 
+  /* Newest of some timestamps, as given; "" when none parse. */
+  function latest(values){
+    return values.filter(v => v && Number.isFinite(new Date(v).getTime()))
+      .sort((a, b) => new Date(b) - new Date(a))[0] || "";
+  }
+
   function formatMonthYear(v){
     if(!v) return "";
     const d = new Date(v);
@@ -303,7 +309,8 @@
 
     const masterPlans = pick("master_plan").map(m => ({ url: mediaUrl(m), title: clean(m.title) || "Master Plan", alt: clean(m.alt_text) })).filter(m => m.url).map(withCopies);
     const videos = media.filter(m => ["video","virtual_tour","reel"].includes(m.media_type))
-      .map(m => ({ url: mediaUrl(m), type: m.media_type, title: clean(m.title), platform: clean(m.platform) }))
+      .map(m => ({ url: mediaUrl(m), type: m.media_type, title: clean(m.title), platform: clean(m.platform),
+        description: clean(m.description), date: m.created_at || "" }))
       .filter(v => v.url);
 
     const priceOnRequest = row.price_on_request === true;
@@ -490,17 +497,47 @@
       seoDescription: clean(row.seo_description),
       views: Number(row.view_count) || 0,
       publishedAt: row.published_at || row.created_at,
-      updatedAt: row.updated_at || row.published_at || row.created_at
+      /* Price edits live in configurations, so they count too. */
+      updatedAt: latest([row.updated_at, ...list(row.configurations).map(c => c.updated_at)]) || row.published_at || row.created_at,
+      pricesUpdatedText: (() => {
+        const priced = list(row.configurations).map(c => c.updated_at).filter(Boolean);
+        return startingPrice ? formatMonthYear(latest(priced.length ? priced : [row.updated_at])) : "";
+      })()
     };
   }
 
   /* ---------------- SEO TEXT ---------------- */
 
+  /* Google shows about 60 characters of a title. */
+  const TITLE_MAX = 65;
+  const DESCRIPTION_MAX = 160;
+
+  /* The first option that fits, else the shortest. */
+  function fitText(options, max){
+    const list = options.filter(Boolean);
+    return list.find(t => t.length <= max) || list.reduce((a, b) => b.length < a.length ? b : a);
+  }
+
+  /* "A | B | C | Keys99": drops middle parts from the right until it fits. */
+  function fitTitle(title){
+    const parts = String(title).split(" | ");
+    const options = [title];
+    for(let n = parts.length - 2; n >= 1; n--) options.push([...parts.slice(0, n), parts[parts.length - 1]].join(" | "));
+    return fitText(options, TITLE_MAX);
+  }
+
   function pageTitle(p){
     if(p.seoTitle) return p.seoTitle;
     const bhk = p.bhkLabels.length ? p.bhkLabels.join(", ") + " " : "";
     const where = [p.locality, p.city].filter(Boolean).join(", ");
-    return `${p.name}${where ? " " + where : ""} - ${bhk}${p.typeLabel}${p.developer ? " by " + p.developer : ""} | Keys99`;
+    const head = `${p.name}${where ? " " + where : ""}`;
+    return fitText([
+      `${head} - ${bhk}${p.typeLabel}${p.developer ? " by " + p.developer : ""} | Keys99`,
+      `${head} - ${bhk}${p.typeLabel} | Keys99`,
+      `${head} | ${bhk ? bhk + "Flats" : p.typeLabel} | Keys99`,
+      `${head} | Keys99`,
+      `${p.name}${p.city ? " " + p.city : ""} | Keys99`
+    ], TITLE_MAX);
   }
 
   function pageDescription(p){
@@ -512,7 +549,14 @@
       p.startingPrice ? `from ${p.startingPriceText}` : "",
     ].filter(Boolean).join(" ");
     const tail = [p.status, p.possession ? "possession " + p.possession : "", p.rera ? "RERA " + p.rera : ""].filter(Boolean).join(", ");
-    return (parts + "." + (tail ? " " + tail + "." : "") + " Photos, floor plans, amenities and price on Keys99.").slice(0, 300);
+    const close = " Photos, floor plans, amenities and price on Keys99.";
+    /* Longest version that fits in Google's snippet. */
+    return fitText([
+      parts + "." + (tail ? " " + tail + "." : "") + close,
+      parts + "." + (p.status ? " " + p.status + "." : "") + close,
+      parts + "." + close,
+      parts + "."
+    ], DESCRIPTION_MAX);
   }
 
   /* ---------------- SECTION RENDERERS (HTML strings) ---------------- */
@@ -805,6 +849,8 @@
     ogName,
     OG_SIZE,
     pageTitle,
+    fitTitle,
+    fitText,
     pageDescription,
     structuredData,
     renderConfigurationRows,

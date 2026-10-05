@@ -117,13 +117,17 @@ function applyHomepageSeo(H, html, props){
   const join = list => list.length > 1 ? list.slice(0, -1).join(", ") + " & " + list[list.length - 1] : (list[0] || "");
 
   const title = `New Projects & Flats for Sale in ${place} | Keys99`;
+  const explore = n => `Explore ${props.length} new residential project${props.length === 1 ? "" : "s"} in ${place}` +
+    (n && localities.length ? ` across ${join(localities.slice(0, n))}` : "") + ".";
+  const compare = `Compare ${bhkList.length ? join(bhkList) + " BHK flats" : "flats"}` +
+    (prices.length ? ` from ${H.formatPrice(Math.min(...prices))}` : "");
+  /* Longest version that fits Google's ~160-character snippet. */
   const description = [
-    `Explore ${props.length} new residential project${props.length === 1 ? "" : "s"} in ${place}` +
-      (localities.length ? ` across ${join(localities.slice(0, 4))}` : "") + ".",
-    `Compare ${bhkList.length ? join(bhkList) + " BHK flats" : "flats"}` +
-      (prices.length ? ` from ${H.formatPrice(Math.min(...prices))}` : "") +
-      ", RERA details, floor plans and amenities on Keys99."
-  ].join(" ");
+    `${explore(4)} ${compare}, RERA details, floor plans and amenities on Keys99.`,
+    `${explore(2)} ${compare}, RERA details and floor plans on Keys99.`,
+    `${explore(0)} ${compare}, RERA details and floor plans on Keys99.`,
+    `${explore(0)} ${compare} on Keys99.`
+  ].find(d => d.length <= 160) || `${explore(0)} ${compare} on Keys99.`;
 
   const attr = v => H.escapeHtml(v);
   html = html

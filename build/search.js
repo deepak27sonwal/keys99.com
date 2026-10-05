@@ -151,7 +151,7 @@ ${chrome.mobileMenu}
     </form>
 
     <div class="search-summary">
-      <p id="searchCount" aria-live="polite">${props.length} projects</p>
+      <h2 id="searchCount" aria-live="polite">${props.length} projects</h2>
     </div>
 
     <div class="hub-grid" id="searchResults">

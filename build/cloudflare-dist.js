@@ -27,8 +27,9 @@ const PUBLIC = [
 ];
 
 /* Published when they exist: /blog/ is only built once there is an
-   article in content/blog/. */
-const OPTIONAL = ["blog"];
+   article in content/blog/ or a project post, /compare/ once two
+   projects in a city can be compared. */
+const OPTIONAL = ["blog", "compare"];
 
 const CLOUDFLARE_FILES = ["_headers", "_redirects"];
 

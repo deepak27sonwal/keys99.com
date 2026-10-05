@@ -30,6 +30,7 @@ const { buildSearchPage } = require("./search.js");
 const { buildLegalPages } = require("./legal.js");
 const { buildBlog } = require("./blog.js");
 const { buildComparePage } = require("./compare.js");
+const { buildComparisons } = require("./compare-pages.js");
 const { buildSavedPage, buildReelsPage } = require("./extra-pages.js");
 const { stampAssetVersions, htmlFiles } = require("./asset-versions.js");
 
@@ -135,7 +136,7 @@ function toggle($, selector, show){
   $(selector).toggleClass("hidden", !show);
 }
 
-function buildPage(template, row, config, allProjects, shareImage, similarCards){
+function buildPage(template, row, config, allProjects, shareImage, similarCards, hubLinks, compareLinks){
   const p = P.normalizeProject(row, { supabaseUrl: config.url, root: "../" });   // template-relative; rebaseLinks() adds the extra ../
   const pageUrl = `${SITE_ORIGIN}/projects/${p.slug}/`;
   const title = P.pageTitle(p);
@@ -206,6 +207,8 @@ function buildPage(template, row, config, allProjects, shareImage, similarCards)
   toggle($, "#priceNote", !!p.startingPrice);
   $("#priceDisclaimer").text(p.priceDisclaimer);
   toggle($, "#priceDisclaimer", !!p.priceDisclaimer);
+  $("#priceUpdated").text(p.pricesUpdatedText ? "Prices updated " + p.pricesUpdatedText : "");
+  toggle($, "#priceUpdated", !!p.pricesUpdatedText);
   $("#bhk").text(p.bhkLabels.length ? p.bhkLabels.join(" / ") : "—");
   $("#carpetArea").text(p.firstArea || "—");
   $("#possession").text(p.possession || (p.status === "Ready to Move" ? "Ready" : "—"));
@@ -259,12 +262,34 @@ function buildPage(template, row, config, allProjects, shareImage, similarCards)
   }
   toggle($, "#similarSection", similar.length > 0);
 
+  /* Listing pages this project appears on (paths relative to projects/). */
+  const explore = (hubLinks || []).slice(0, 8);
+  if(explore.length){
+    $("#exploreList").html(explore.map(h => `
+            <a class="explore-link" href="${P.escapeHtml(h.path)}/">${P.escapeHtml(h.label)}<span>${h.count} project${h.count === 1 ? "" : "s"}</span></a>`).join(""));
+  }
+  toggle($, "#exploreSection", explore.length > 0);
+
+  /* "Compare with": this project's /compare/<a>-vs-<b>/ pages. */
+  const compare = compareLinks || [];
+  if(compare.length){
+    $("#compareLinks").html(compare.map(c => `
+            <a class="explore-link" href="../compare/${P.escapeHtml(c.slug)}/">${P.escapeHtml(p.name)} vs ${P.escapeHtml(c.name)}<span>${P.escapeHtml(c.place)}</span></a>`).join(""));
+  }
+  toggle($, "#compareLinksSection", compare.length > 0);
+
   $("#locationAdvantages").html(P.renderNearbyRows(p));
   toggle($, "#locationSection", p.nearby.length > 0 || !!p.location);
 
   rebaseLinks($);
 
-  return { slug: p.slug, html: $.html(), lastmod: p.updatedAt };
+  /* Photos, master plans and floor plans, for the image sitemap
+     (Google Images: "<project> photos", "<project> floor plan"). */
+  const images = [...p.images, ...p.masterPlans, ...p.floorPlans]
+    .map(i => i.url).filter(u => /^https?:\/\//i.test(u))
+    .filter((u, i, a) => a.indexOf(u) === i).slice(0, 30);
+
+  return { slug: p.slug, html: $.html(), lastmod: p.updatedAt, images };
 }
 
 
@@ -297,7 +322,7 @@ function removeStalePages(base, current){
   fs.writeFileSync(manifestFor(base), JSON.stringify(current.sort(), null, 2) + "\n");
 }
 
-function writeSitemap(pages, hubs, articles){
+function writeSitemap(pages, hubs, articles, extra){
   const day = v => {
     const d = new Date(v);
     return Number.isFinite(d.getTime()) ? d.toISOString().slice(0, 10) : "";
@@ -307,16 +332,18 @@ function writeSitemap(pages, hubs, articles){
     { loc: SITE_ORIGIN + "/about", lastmod: "" },
     { loc: SITE_ORIGIN + "/contact", lastmod: "" },
     { loc: SITE_ORIGIN + "/home-loans", lastmod: "" },
+    ...(extra || []).map(loc => ({ loc: SITE_ORIGIN + loc, lastmod: "" })),
     ...(hubs || []).filter(h => h.indexable || h.count >= HUB_MIN_INDEXED)
       .map(h => ({ loc: `${SITE_ORIGIN}/${h.dir}/`, lastmod: day(h.lastmod) })),
-    ...pages.map(p => ({ loc: `${SITE_ORIGIN}/projects/${p.slug}/`, lastmod: day(p.lastmod) })),
-    ...(articles || []).map(a => ({ loc: `${SITE_ORIGIN}/${a.dir}/`, lastmod: day(a.lastmod), image: a.image || "" }))
+    ...pages.map(p => ({ loc: `${SITE_ORIGIN}/projects/${p.slug}/`, lastmod: day(p.lastmod), images: p.images || [] })),
+    ...(articles || []).map(a => ({ loc: `${SITE_ORIGIN}/${a.dir}/`, lastmod: day(a.lastmod), images: a.image ? [a.image] : [] }))
   ];
   const x = v => String(v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-  /* Blog covers are listed as images of their post (Google Images). */
+  /* Project photos and blog covers are listed as images of their page
+     (Google Images). */
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
-${urls.map(u => `  <url>\n    <loc>${x(u.loc)}</loc>${u.lastmod ? `\n    <lastmod>${u.lastmod}</lastmod>` : ""}${u.image ? `\n    <image:image><image:loc>${x(u.image)}</image:loc></image:image>` : ""}\n  </url>`).join("\n")}
+${urls.map(u => `  <url>\n    <loc>${x(u.loc)}</loc>${u.lastmod ? `\n    <lastmod>${u.lastmod}</lastmod>` : ""}${(u.images || []).map(img => `\n    <image:image><image:loc>${x(img)}</image:loc></image:image>`).join("")}\n  </url>`).join("\n")}
 </urlset>
 `;
   fs.writeFileSync(path.join(ROOT, "sitemap.xml"), xml);
@@ -376,27 +403,22 @@ async function main(){
     return $c("div").first().html();
   };
 
-  const pages = [];
-  for(const row of rows){
+  /* Rows that get a project page. */
+  const buildable = rows.filter(row => {
     if(!row || !SLUG_RE.test(String(row.slug || ""))){
       console.warn(`  skipped  project ${row && row.id}: slug "${row && row.slug}" is not a clean URL slug`);
-      continue;
+      return false;
     }
     if(row.slug === "property-details" || row.slug === "search"){
       console.warn(`  skipped  project ${row.id}: slug "${row.slug}" is reserved`);
-      continue;
+      return false;
     }
-    const page = buildPage(template, row, config, allProjects, shareImage, similarCards);
-    const dir = path.join(ROOT, "projects", page.slug);
-    fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(path.join(dir, "index.html"), page.html);
-    pages.push(page);
-    console.log("  wrote    /projects/" + page.slug + "/");
-  }
+    return true;
+  });
 
   /* Projects with a page, normalised with links from the site root,
      for the blog pages and the hubs' "From the Keys99 Blog" lists. */
-  const builtSlugs = new Set(pages.map(p => p.slug));
+  const builtSlugs = new Set(buildable.map(r => r.slug));
   const blogProjects = goodRows.filter(r => builtSlugs.has(r.slug))
     .map(r => P.normalizeProject(r, { supabaseUrl: config.url, root: "" }));
   const postsByProject = new Map(blogProjects.map(p => [p.id, p.blogs.filter(b => b.indexable)
@@ -409,7 +431,7 @@ async function main(){
     indexHtml: fs.readFileSync(indexPath, "utf8"),
     props: goodRows.map(row => H.mapResidentialProject(row)),
     rows: goodRows,
-    reservedSlugs: new Set([...pages.map(p => p.slug), "property-details", "search"]),
+    reservedSlugs: new Set([...builtSlugs, "property-details", "search"]),
     siteOrigin: SITE_ORIGIN,
     shareImageFor: prop => shareById.get(prop.id) || null,
     defaultShareImage: DEFAULT_SHARE_IMAGE,
@@ -423,6 +445,39 @@ async function main(){
     fs.writeFileSync(path.join(dir, "index.html"), hub.html);
     console.log(`  wrote    /${hub.dir}/  (${hub.count} project${hub.count === 1 ? "" : "s"})`);
   });
+
+  /* "Explore more" on each project page: the listing pages (locality,
+     BHK, budget, status) that include the project and are in the
+     sitemap. The city page is already in the breadcrumb. */
+  const hubLinksById = new Map();
+  hubs.filter(h => h.base === "projects" && h.path.includes("/") && (h.indexable || h.count >= HUB_MIN_INDEXED))
+    .forEach(h => h.projectIds.forEach(id => {
+      if(!hubLinksById.has(id)) hubLinksById.set(id, []);
+      hubLinksById.get(id).push({ path: h.path, label: h.label, count: h.count });
+    }));
+
+  /* "<A> vs <B>" pages for each project's closest alternatives. */
+  const comparisons = buildComparisons({
+    indexHtml: fs.readFileSync(indexPath, "utf8"), projects: blogProjects,
+    siteOrigin: SITE_ORIGIN, robots: ROBOTS, indexable: INDEXABLE
+  });
+  comparisons.pages.forEach(page => {
+    const dir = path.join(ROOT, ...page.dir.split("/"));
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, "index.html"), page.html);
+    console.log(`  wrote    /${page.dir}/${page.draft ? "  (missing prices: kept out of the index)" : ""}`);
+  });
+
+  const pages = [];
+  for(const row of buildable){
+    const page = buildPage(template, row, config, allProjects, shareImage, similarCards,
+      hubLinksById.get(row.id) || [], comparisons.linksById.get(row.id) || []);
+    const dir = path.join(ROOT, "projects", page.slug);
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, "index.html"), page.html);
+    pages.push(page);
+    console.log("  wrote    /projects/" + page.slug + "/");
+  }
 
   fs.writeFileSync(path.join(ROOT, "projects", "search.html"), buildSearchPage({
     H, indexHtml: fs.readFileSync(indexPath, "utf8"), props: allProps, siteOrigin: SITE_ORIGIN
@@ -486,7 +541,8 @@ async function main(){
   ]);
   removeStalePages("developers", hubs.filter(h => h.base === "developers").map(h => h.path));
   removeStalePages("blog", blog.pages.map(p => p.slug));
-  writeSitemap(pages, hubs, [...blog.pages, ...blog.projectPages].filter(p => !p.draft));
+  removeStalePages("compare", comparisons.pages.map(p => p.slug));
+  writeSitemap(pages, hubs, [...blog.pages, ...blog.projectPages, ...comparisons.pages].filter(p => !p.draft), reels.count ? ["/reels"] : []);
 
   const home = buildHomepage(indexPath, goodRows, config.url);
   /* Homepage link preview: the brand image, from where the site is served. */
@@ -505,7 +561,7 @@ async function main(){
     path.join(ROOT, "terms.html"),
     path.join(ROOT, "saved.html"),
     path.join(ROOT, "reels.html"),
-    ...htmlFiles(ROOT, ["projects", "developers", "blog", "admin"])
+    ...htmlFiles(ROOT, ["projects", "developers", "blog", "compare", "admin"])
   ]);
   console.log(`  versioned CSS/JS links in ${stamped} page(s)`);
 

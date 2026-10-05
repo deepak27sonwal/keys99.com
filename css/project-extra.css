@@ -15,6 +15,7 @@
 .status-badge.st-completed{background:#3d5361}
 .status-badge.st-resale{background:#c2416b}
 
+.price-updated{display:block;margin-top:4px;font-size:var(--fs-label);font-weight:600;color:#00866e}
 .price-disclaimer{display:block;margin-top:6px;font-size:var(--fs-label);line-height:1.4;color:#6b7f86}
 
 .highlights{display:flex;flex-wrap:wrap;gap:9px;margin:0;padding:0;list-style:none}
@@ -175,3 +176,10 @@
 @media (max-width:560px){
   .project-blog{grid-template-columns:minmax(0,1fr);padding:12px}
 }
+
+/* "Explore More": listing pages (locality, BHK, budget, status) this
+   project appears on. */
+.explore-links{display:flex;flex-wrap:wrap;gap:10px}
+.explore-link{display:inline-flex;flex-direction:column;gap:2px;padding:10px 14px;border:1px solid #e7eeec;border-radius:12px;background:#fafcfb;color:#14343b;font-size:var(--fs-ui);font-weight:700;text-decoration:none;transition:border-color .15s}
+.explore-link:hover,.explore-link:focus-visible{border-color:#00866e;color:#00866e}
+.explore-link span{font-size:var(--fs-label);font-weight:600;color:#6b7f86}

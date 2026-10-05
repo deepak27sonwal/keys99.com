@@ -66,7 +66,8 @@
   color:var(--muted);
 }
 
-.search-summary p{ margin:0; }
+.search-summary p,
+.search-summary h2{ margin:0; font-size:inherit; font-weight:inherit; color:inherit; }
 
 .search-page .property-card[hidden]{ display:none; }
 

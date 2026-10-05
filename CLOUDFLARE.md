@@ -103,6 +103,28 @@ on Apache.
 
 ## 6. Point keys99.com at it (at launch)
 
+**Before switching: redirect the old site's URLs.** keys99.com still serves
+the old website, and Google may have its pages indexed. Every old URL that
+has visitors or links needs a permanent (301) redirect to its new page, or
+its ranking is lost and visitors land on a 404.
+
+- Already handled: `/search.html` → `/projects/search` and
+  `/property-details.html` → `/projects/property-details` (in
+  `cloudflare/_redirects`; after the switch, check that
+  `/search.html?status=sale` keeps its `?status=sale`), and `/index.html` → `/`
+  (built into Pages).
+- Find the rest: verify keys99.com in Google Search Console now (DNS TXT
+  record), then export **Indexing → Pages** (indexed URLs) and
+  **Performance → Pages** (URLs with clicks). Searching Google for
+  `site:keys99.com` gives a rough list too.
+- For each old URL, add a line to `cloudflare/_redirects`:
+  `/old-path   /new-path/   301` - an old project page to its
+  `/projects/<slug>/` page, anything with no match to the closest listing
+  page (e.g. `/projects/pune/`), never all to the homepage.
+- After the switch, open a few old URLs to check they land on the right
+  page, and watch **Indexing → Pages** in Search Console for 404s over the
+  next weeks.
+
 1. **Add the domain:** in the Pages project, open **Custom domains** and add
    `keys99.com` and `www.keys99.com`. Cloudflare walks you through the DNS
    change. Email records (MX) for `support@keys99.com` are not touched.
