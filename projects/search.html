@@ -13,7 +13,7 @@
 <link rel="stylesheet" href="../css/cards.css?v=8c79f8b3">
 <link rel="stylesheet" href="../css/hub.css?v=383a8ee1">
 <link rel="stylesheet" href="../css/custom-select.css?v=cd907343">
-<link rel="stylesheet" href="../css/search.css?v=2f1c9721">
+<link rel="stylesheet" href="../css/search.css?v=2e4bb6c3">
 </head>
 <body data-root="../">
 
@@ -97,69 +97,90 @@
         <div class="suggest-dropdown" id="sfSuggest" role="listbox" hidden=""></div>
       </label>
 
-      <label class="sf-field">
-        <span>City</span>
-        <select name="city" id="sfCity">
-          <option value="">All Cities</option>
-          <option value="pune">Pune</option><option value="indore">Indore</option><option value="ahmedabad">Ahmedabad</option><option value="hyderabad">Hyderabad</option>
-        </select>
-      </label>
-
-      <label class="sf-field">
-        <span>Locality</span>
-        <select name="locality" id="sfLocality">
-          <option value="">All Localities</option>
-          <option value="charholi" data-city="pune">Charholi</option><option value="chikhali" data-city="pune">Chikhali</option><option value="hinjewadi" data-city="pune">Hinjewadi</option><option value="moshi" data-city="pune">Moshi</option><option value="rajendra-nagar" data-city="hyderabad">Rajendra Nagar</option><option value="rau" data-city="indore">Rau</option><option value="ravet" data-city="pune">Ravet</option><option value="surat" data-city="ahmedabad">Surat</option>
-        </select>
-      </label>
-
-      <label class="sf-field">
-        <span>BHK</span>
-        <select name="bhk" id="sfBhk">
-          <option value="">Any BHK</option>
-          <option value="1 bhk">1 BHK</option><option value="2 bhk">2 BHK</option><option value="2.5 bhk">2.5 BHK</option><option value="3 bhk">3 BHK</option>
-          <option value="4+ bhk">4+ BHK</option>
-        </select>
-      </label>
-
-      <label class="sf-field">
-        <span>Type</span>
-        <select name="type" id="sfType">
-          <option value="">All Types</option>
-          <option value="residential">Residential</option><option value="commercial">Commercial</option><option value="rent">Rent</option><option value="resale">Resale</option><option value="luxury">Luxury / Villa</option><option value="plots">Plots &amp; Land</option>
-        </select>
-      </label>
-
-      <label class="sf-field">
-        <span>Min Price</span>
-        <select name="minPrice" id="sfMin">
-          <option value="">No Min</option>
-          <option value="2500000">₹ 25 Lakh</option><option value="5000000">₹ 50 Lakh</option><option value="7500000">₹ 75 Lakh</option><option value="10000000">₹ 1 Cr</option><option value="15000000">₹ 1.5 Cr</option><option value="20000000">₹ 2 Cr</option><option value="50000000">₹ 5 Cr</option><option value="100000000">₹ 10 Cr</option>
-        </select>
-      </label>
-
-      <label class="sf-field">
-        <span>Max Price</span>
-        <select name="maxPrice" id="sfMax">
-          <option value="">No Max</option>
-          <option value="2500000">₹ 25 Lakh</option><option value="5000000">₹ 50 Lakh</option><option value="7500000">₹ 75 Lakh</option><option value="10000000">₹ 1 Cr</option><option value="15000000">₹ 1.5 Cr</option><option value="20000000">₹ 2 Cr</option><option value="50000000">₹ 5 Cr</option><option value="100000000">₹ 10 Cr</option>
-        </select>
-      </label>
-
-      <label class="sf-field">
-        <span>Sort By</span>
-        <select name="sort" id="sfSort">
+      <!-- Filters and Sort, just below the search bar. The filters
+           open in a panel (a bottom sheet on phones); sort is a native
+           select styled as a button. -->
+      <div class="sf-toolbar">
+        <button type="button" class="sf-btn" id="sfFilterBtn" aria-expanded="false" aria-controls="sfPanel">
+          <span class="sf-btn-icon" aria-hidden="true">☰</span> Filters
+          <span class="sf-badge" id="sfBadge" hidden=""></span>
+        </button>
+        <label class="sf-btn sf-sort">
+          <span class="sf-btn-icon" aria-hidden="true">⇅</span>
+          <span class="sf-sort-label">Sort</span>
+          <select name="sort" id="sfSort" aria-label="Sort by" data-native="">
           <option value="newest">Newest First</option>
           <option value="price-asc">Price: Low to High</option>
           <option value="price-desc">Price: High to Low</option>
-        </select>
-      </label>
+          </select>
+        </label>
+      </div>
+
+      <div class="sf-chips" id="sfChips" hidden=""></div>
+
+      <div class="sf-backdrop" id="sfBackdrop" hidden=""></div>
+      <div class="sf-panel" id="sfPanel" role="dialog" aria-modal="false" aria-labelledby="sfPanelTitle" hidden="">
+        <div class="sf-panel-head">
+          <strong id="sfPanelTitle">Filters</strong>
+          <button type="button" class="sf-close" id="sfClose" aria-label="Close filters">✕</button>
+        </div>
+        <div class="sf-grid">
+          <label class="sf-field">
+            <span>City</span>
+            <select name="city" id="sfCity">
+              <option value="">All Cities</option>
+              <option value="pune">Pune</option><option value="indore">Indore</option><option value="ahmedabad">Ahmedabad</option><option value="hyderabad">Hyderabad</option>
+            </select>
+          </label>
+
+          <label class="sf-field">
+            <span>Locality</span>
+            <select name="locality" id="sfLocality">
+              <option value="">All Localities</option>
+              <option value="charholi" data-city="pune">Charholi</option><option value="chikhali" data-city="pune">Chikhali</option><option value="hinjewadi" data-city="pune">Hinjewadi</option><option value="moshi" data-city="pune">Moshi</option><option value="rajendra-nagar" data-city="hyderabad">Rajendra Nagar</option><option value="rau" data-city="indore">Rau</option><option value="ravet" data-city="pune">Ravet</option><option value="surat" data-city="ahmedabad">Surat</option>
+            </select>
+          </label>
+
+          <label class="sf-field">
+            <span>BHK</span>
+            <select name="bhk" id="sfBhk">
+              <option value="">Any BHK</option>
+              <option value="1 bhk">1 BHK</option><option value="2 bhk">2 BHK</option><option value="2.5 bhk">2.5 BHK</option><option value="3 bhk">3 BHK</option>
+              <option value="4+ bhk">4+ BHK</option>
+            </select>
+          </label>
+
+          <label class="sf-field">
+            <span>Type</span>
+            <select name="type" id="sfType">
+              <option value="">All Types</option>
+              <option value="residential">Residential</option><option value="commercial">Commercial</option><option value="rent">Rent</option><option value="resale">Resale</option><option value="luxury">Luxury / Villa</option><option value="plots">Plots &amp; Land</option>
+            </select>
+          </label>
+
+          <label class="sf-field">
+            <span>Min Price</span>
+            <select name="minPrice" id="sfMin">
+              <option value="">No Min</option>
+              <option value="2500000">₹ 25 Lakh</option><option value="5000000">₹ 50 Lakh</option><option value="7500000">₹ 75 Lakh</option><option value="10000000">₹ 1 Cr</option><option value="15000000">₹ 1.5 Cr</option><option value="20000000">₹ 2 Cr</option><option value="50000000">₹ 5 Cr</option><option value="100000000">₹ 10 Cr</option>
+            </select>
+          </label>
+
+          <label class="sf-field">
+            <span>Max Price</span>
+            <select name="maxPrice" id="sfMax">
+              <option value="">No Max</option>
+              <option value="2500000">₹ 25 Lakh</option><option value="5000000">₹ 50 Lakh</option><option value="7500000">₹ 75 Lakh</option><option value="10000000">₹ 1 Cr</option><option value="15000000">₹ 1.5 Cr</option><option value="20000000">₹ 2 Cr</option><option value="50000000">₹ 5 Cr</option><option value="100000000">₹ 10 Cr</option>
+            </select>
+          </label>
+        </div>
+        <div class="sf-actions">
+          <button type="reset" class="btn-ghost" id="sfClear">Clear all</button>
+          <button type="button" class="btn-primary" id="sfApply">Show results</button>
+        </div>
+      </div>
 
       <input type="hidden" name="status" id="sfStatus">
-
-      <div class="sf-actions">
-        <button type="reset" class="btn-ghost" id="sfClear">Clear</button>
-      </div>
     </form>
 
     <div class="search-summary">
@@ -989,7 +1010,7 @@ premchand bdnsjajsk a521000879365 2 bhk 1 bhk" data-type="residential" data-bhk=
 <script defer="" src="../js/nav-fx.js?v=777d5b5c"></script>
 <script defer="" src="../js/attribution.js?v=207c1e9f"></script>
 <script defer="" src="../js/compare-tray.js?v=9bd20961"></script>
-<script defer="" src="../js/search.js?v=b365e58e"></script>
+<script defer="" src="../js/search.js?v=b943fa3c"></script>
 
 
 </body></html>
