@@ -272,7 +272,13 @@ function buildPage(template, row, config, allProjects, shareImage, similarCards,
 
   rebaseLinks($);
 
-  return { slug: p.slug, html: $.html(), lastmod: p.updatedAt };
+  /* Photos, master plans and floor plans, for the image sitemap
+     (Google Images: "<project> photos", "<project> floor plan"). */
+  const images = [...p.images, ...p.masterPlans, ...p.floorPlans]
+    .map(i => i.url).filter(u => /^https?:\/\//i.test(u))
+    .filter((u, i, a) => a.indexOf(u) === i).slice(0, 30);
+
+  return { slug: p.slug, html: $.html(), lastmod: p.updatedAt, images };
 }
 
 
@@ -317,14 +323,15 @@ function writeSitemap(pages, hubs, articles){
     { loc: SITE_ORIGIN + "/home-loans", lastmod: "" },
     ...(hubs || []).filter(h => h.indexable || h.count >= HUB_MIN_INDEXED)
       .map(h => ({ loc: `${SITE_ORIGIN}/${h.dir}/`, lastmod: day(h.lastmod) })),
-    ...pages.map(p => ({ loc: `${SITE_ORIGIN}/projects/${p.slug}/`, lastmod: day(p.lastmod) })),
-    ...(articles || []).map(a => ({ loc: `${SITE_ORIGIN}/${a.dir}/`, lastmod: day(a.lastmod), image: a.image || "" }))
+    ...pages.map(p => ({ loc: `${SITE_ORIGIN}/projects/${p.slug}/`, lastmod: day(p.lastmod), images: p.images || [] })),
+    ...(articles || []).map(a => ({ loc: `${SITE_ORIGIN}/${a.dir}/`, lastmod: day(a.lastmod), images: a.image ? [a.image] : [] }))
   ];
   const x = v => String(v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-  /* Blog covers are listed as images of their post (Google Images). */
+  /* Project photos and blog covers are listed as images of their page
+     (Google Images). */
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
-${urls.map(u => `  <url>\n    <loc>${x(u.loc)}</loc>${u.lastmod ? `\n    <lastmod>${u.lastmod}</lastmod>` : ""}${u.image ? `\n    <image:image><image:loc>${x(u.image)}</image:loc></image:image>` : ""}\n  </url>`).join("\n")}
+${urls.map(u => `  <url>\n    <loc>${x(u.loc)}</loc>${u.lastmod ? `\n    <lastmod>${u.lastmod}</lastmod>` : ""}${(u.images || []).map(img => `\n    <image:image><image:loc>${x(img)}</image:loc></image:image>`).join("")}\n  </url>`).join("\n")}
 </urlset>
 `;
   fs.writeFileSync(path.join(ROOT, "sitemap.xml"), xml);
