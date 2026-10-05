@@ -197,6 +197,92 @@
 
 
 /* =========================================================
+   TESTIMONIALS PAGE (/testimonials)
+   The closing call to action reuses .home-loans-cta.
+========================================================= */
+
+.testimonial-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(240px, 1fr));
+  gap:14px;
+  margin:6px 0 16px;
+}
+
+.testimonial-card{
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  gap:16px;
+
+  margin:0;
+  padding:20px;
+
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:16px;
+}
+
+.testimonial-card blockquote{
+  position:relative;
+  margin:0;
+  padding-top:22px;
+  color:var(--ink);
+}
+
+/* Large opening quote mark above the text. */
+.testimonial-card blockquote::before{
+  content:"\201C";
+  position:absolute;
+  top:-14px;
+  left:-2px;
+  font-size:56px;
+  line-height:1;
+  color:var(--green);
+}
+
+.testimonial-card blockquote p{ margin:0; }
+
+.testimonial-card figcaption{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding-top:14px;
+  border-top:1px solid var(--line);
+  font-size:var(--fs-ui);
+  line-height:1.4;
+}
+
+.testimonial-card figcaption strong{
+  display:block;
+  color:var(--ink);
+}
+
+.testimonial-avatar{
+  flex:none;
+  display:grid;
+  place-items:center;
+
+  width:42px;
+  height:42px;
+
+  border-radius:50%;
+  background:var(--green-soft);
+  color:var(--green);
+  font-weight:800;
+}
+
+.testimonial-meta{
+  font-size:var(--fs-small);
+  color:var(--muted);
+}
+
+.testimonial-note{
+  font-size:var(--fs-small);
+  color:var(--muted);
+}
+
+
+/* =========================================================
    HOME LOANS PAGE (/home-loans)
    The partner logos reuse .loan-partner-grid from index.css.
 ========================================================= */

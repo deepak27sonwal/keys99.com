@@ -31,6 +31,13 @@ const PAGES = [
     description: "Get in touch with Keys99 about a new residential project in Pune, a site visit, or listing your project."
   },
   {
+    file: "testimonials.html",
+    title: "Testimonials | What Home Buyers Say About Keys99",
+    h1: "Testimonials",
+    kicker: "Testimonials",
+    description: "What home buyers who found their new residential project in Pune through Keys99 say about the experience."
+  },
+  {
     file: "home-loans.html",
     title: "Home Loans from SBI, HDFC, ICICI & More | EMI Calculator | Keys99",
     h1: "Home Loans",
