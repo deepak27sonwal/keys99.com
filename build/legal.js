@@ -16,6 +16,7 @@ const { homepageChrome } = require("./hubs.js");
 const PAGES = [
   {
     file: "about.html",
+    type: "AboutPage",
     title: "About Keys99 | New Residential Projects in Pune",
     h1: "About Keys99",
     kicker: "About",
@@ -23,6 +24,7 @@ const PAGES = [
   },
   {
     file: "contact.html",
+    type: "ContactPage",
     title: "Contact Keys99",
     h1: "Contact Us",
     kicker: "Contact",
@@ -49,6 +51,9 @@ const PAGES = [
   }
 ];
 
+/* Shown in the footer of every page. */
+const SUPPORT_EMAIL = "support@keys99.com";
+
 const esc = v => String(v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
 function buildLegalPages({ root, indexHtml, siteOrigin, robots }){
@@ -60,6 +65,53 @@ function buildLegalPages({ root, indexHtml, siteOrigin, robots }){
        /x), so the canonical URL and the nav links use that form. */
     const slug = page.file.replace(/\.html$/, "");
     const url = `${siteOrigin}/${slug}`;
+
+    /* Structured data: what the page is, where it sits, who runs the
+       site (the homepage defines #organisation), plus the contact
+       email on Contact and the questions on pages that have them. */
+    const $body = cheerio.load(body, null, false);
+    const faqs = $body("details").map((_, d) => ({
+      q: $body(d).find("summary").text().replace(/\s+/g, " ").trim(),
+      a: $body(d).find("summary").remove().end().text().replace(/\s+/g, " ").trim()
+    })).get().filter(f => f.q && f.a);
+    const organisation = { "@id": `${siteOrigin}/#organisation` };
+    const graph = [
+      {
+        "@type": page.type || "WebPage",
+        "@id": url + "#webpage",
+        url,
+        name: page.title,
+        description: page.description,
+        inLanguage: "en-IN",
+        isPartOf: { "@id": `${siteOrigin}/#website` },
+        publisher: organisation,
+        ...(page.type === "AboutPage" ? { about: organisation } : {}),
+        ...(page.type === "ContactPage" ? {
+          mainEntity: {
+            ...organisation,
+            "@type": "RealEstateAgent",
+            name: "Keys99",
+            url: siteOrigin,
+            email: SUPPORT_EMAIL,
+            contactPoint: { "@type": "ContactPoint", contactType: "customer support", email: SUPPORT_EMAIL, areaServed: "IN" }
+          }
+        } : {})
+      },
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Home", item: siteOrigin + "/" },
+          { "@type": "ListItem", position: 2, name: page.h1, item: url }
+        ]
+      }
+    ];
+    if(faqs.length){
+      graph.push({
+        "@type": "FAQPage",
+        mainEntity: faqs.map(f => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } }))
+      });
+    }
+    const jsonLd = JSON.stringify({ "@context": "https://schema.org", "@graph": graph }).replace(/</g, "\\u003c");
 
     const html = `<!doctype html>
 <html lang="en-IN">
@@ -81,6 +133,7 @@ ${chrome.fonts}
 <link rel="stylesheet" href="css/index.css">
 <link rel="stylesheet" href="css/hub.css">
 <link rel="stylesheet" href="css/legal.css">
+<script type="application/ld+json">${jsonLd}</script>
 </head>
 <body data-root="">
 
