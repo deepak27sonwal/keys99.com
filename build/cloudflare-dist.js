@@ -20,7 +20,7 @@ const DIST = path.join(ROOT, "dist");
 /* Everything a visitor can load. Anything not listed stays private. */
 const PUBLIC = [
   "index.html", "404.html",
-  "about.html", "contact.html", "home-loans.html", "privacy-policy.html", "terms.html",
+  "about.html", "contact.html", "home-loans.html", "testimonials.html", "privacy-policy.html", "terms.html",
   "saved.html", "reels.html",
   "favicon.ico", "robots.txt", "sitemap.xml",
   "assets", "css", "js", "projects", "developers", "admin"
