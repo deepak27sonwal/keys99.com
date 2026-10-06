@@ -287,8 +287,9 @@ function buildGuide(H, props){
   return { html, faqs: questions };
 }
 
-/* reelsHtml: the "Reels" strip from build/extra-pages.js. */
-function buildHomepage(indexPath, rows, supabaseUrl, reelsHtml){
+/* reelsHtml: the "Reels" strip from build/extra-pages.js.
+   siteOrigin: the canonical address, for the URLs in the ItemList. */
+function buildHomepage(indexPath, rows, supabaseUrl, reelsHtml, siteOrigin){
   let html = fs.readFileSync(indexPath, "utf8");
   const H = loadHomepageFunctions(html, supabaseUrl);
 
@@ -298,8 +299,8 @@ function buildHomepage(indexPath, rows, supabaseUrl, reelsHtml){
   html = replaceBetween(html, "newlaunches",
     props.filter(p => p.is_new_launch).slice(0, H.NEW_LAUNCH_COUNT)
       .map(p => H.createPropertyCard(p, "New Launch", "st-new-launch")).join(""));
-  html = replaceBetween(html, "popular",
-    props.slice(0, H.POPULAR_COUNT).map(p => H.createPropertyCard(p)).join(""));
+  const popular = props.slice(0, H.POPULAR_COUNT);
+  html = replaceBetween(html, "popular", popular.map(p => H.createPropertyCard(p)).join(""));
   html = replaceBetween(html, "cities",
     H.computeTopCities(props, H.TOP_CITY_COUNT).map(H.cityCardHtml).join(""));
   html = replaceBetween(html, "localities",
@@ -328,6 +329,20 @@ function buildHomepage(indexPath, rows, supabaseUrl, reelsHtml){
     mainEntity: guide.faqs.map(f => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } }))
   }).replace(/</g, "\\u003c")}</script>` : "";
   html = replaceBetween(html, "faqld", faqLd);
+
+  /* The Popular cards as an ItemList: tells search engines the page
+     lists these projects, each with its own page, in this order. */
+  const cities = H.computeTopCities(props, 50).map(c => H.titleCaseName(c.city));
+  const origin = String(siteOrigin || "https://keys99.com").replace(/\/+$/, "");
+  const itemListLd = popular.length ? `<script type="application/ld+json">${JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: `Popular New Projects in ${placeText(cities)}`,
+    itemListElement: popular.filter(p => p.slug).map((p, i) => ({
+      "@type": "ListItem", position: i + 1, url: `${origin}/projects/${p.slug}/`, name: p.project_name
+    }))
+  }).replace(/</g, "\\u003c")}</script>` : "";
+  html = replaceBetween(html, "itemlistld", itemListLd);
 
   fs.writeFileSync(indexPath, html);
   return { projects: props.length, stats };

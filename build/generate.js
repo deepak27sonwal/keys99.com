@@ -545,7 +545,7 @@ async function main(){
   removeStalePages("compare", comparisons.pages.map(p => p.slug));
   writeSitemap(pages, hubs, [...blog.pages, ...blog.projectPages, ...comparisons.pages].filter(p => !p.draft), reels.count ? ["/reels"] : []);
 
-  const home = buildHomepage(indexPath, goodRows, config.url, reels.home);
+  const home = buildHomepage(indexPath, goodRows, config.url, reels.home, SITE_ORIGIN);
   /* Homepage link preview: the brand image, from where the site is served. */
   fs.writeFileSync(indexPath, fs.readFileSync(indexPath, "utf8")
     .replace(/(<meta (?:property="og:image"|name="twitter:image") content=")[^"]*(")/g, `$1${DEFAULT_SHARE_IMAGE}$2`));

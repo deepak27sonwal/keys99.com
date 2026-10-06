@@ -34,6 +34,8 @@
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"RealEstateAgent","@id":"https://keys99.com/#organisation","name":"Keys99","legalName":"Keys99.com","url":"https://keys99.com","description":"Property portal listing new residential projects and flats for sale in Pune, Hyderabad, Indore & Ahmedabad.","logo":{"@type":"ImageObject","url":"https://keys99.com/assets/logo.png","width":866,"height":288},"image":"https://keys99.com/assets/og-default.jpg","address":{"@type":"PostalAddress","addressCountry":"IN"},"areaServed":{"@type":"Country","name":"India"},"sameAs":["https://www.linkedin.com/company/keys99com","https://www.facebook.com/keys99com","https://www.instagram.com/keys99com","https://www.youtube.com/@Keys99com"]}</script>
 <!--keys99:faqld:start--><script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How many new residential projects are there in Pune, Hyderabad, Indore & Ahmedabad?","acceptedAnswer":{"@type":"Answer","text":"Keys99 currently lists 10 residential projects in Pune, Hyderabad, Indore & Ahmedabad."}},{"@type":"Question","name":"What is the starting price of flats in Pune, Hyderabad, Indore & Ahmedabad?","acceptedAnswer":{"@type":"Answer","text":"Prices for projects in Pune, Hyderabad, Indore & Ahmedabad start from ₹ 31.67 Lakh and go up to ₹ 9.89 Cr, depending on the project and configuration."}},{"@type":"Question","name":"Which BHK configurations are available in Pune, Hyderabad, Indore & Ahmedabad?","acceptedAnswer":{"@type":"Answer","text":"Projects in Pune, Hyderabad, Indore & Ahmedabad offer 1 BHK, 2 BHK, 2.5 BHK and 3 BHK homes."}},{"@type":"Question","name":"Which developers have projects in Pune, Hyderabad, Indore & Ahmedabad?","acceptedAnswer":{"@type":"Answer","text":"Projects in Pune, Hyderabad, Indore & Ahmedabad are by Mangalam Landmarks, Shyadri Buildcon, Kolte Patil, Prism City, Raaj Skyheight and Spelndid Prestige Llp."}},{"@type":"Question","name":"How do I check whether a project is RERA registered?","acceptedAnswer":{"@type":"Answer","text":"Each project page shows the RERA registration number provided for that project. Before you pay a booking amount, look the number up on your state's RERA portal - MahaRERA for projects in Maharashtra - and check the project details and approvals listed there."}},{"@type":"Question","name":"What is the difference between a new launch, under-construction and ready-to-move project?","acceptedAnswer":{"@type":"Answer","text":"A new launch has just opened for booking and usually has the widest choice of units, with possession several years away. An under-construction project is being built, with a possession date set by the developer. A ready-to-move project is complete, so you can see the finished home before you buy."}},{"@type":"Question","name":"How do I enquire about a project in Pune, Hyderabad, Indore & Ahmedabad?","acceptedAnswer":{"@type":"Answer","text":"Open the project page and use the Enquire Now form. Your name, number and message go to the Keys99 team and the agent assigned to that project, who will contact you with prices, floor plans and site-visit times."}}]}</script>
   <!--keys99:faqld:end-->
+<!--keys99:itemlistld:start--><script type="application/ld+json">{"@context":"https://schema.org","@type":"ItemList","name":"Popular New Projects in Pune, Hyderabad, Indore & Ahmedabad","itemListElement":[{"@type":"ListItem","position":1,"url":"https://keys99.com/projects/manglam-momento-moshi/","name":"Manglam Life Park"},{"@type":"ListItem","position":2,"url":"https://keys99.com/projects/mangalam-midas-city/","name":"Mangala Midas City"},{"@type":"ListItem","position":3,"url":"https://keys99.com/projects/shuban-enclave/","name":"Shuban Enclave"},{"@type":"ListItem","position":4,"url":"https://keys99.com/projects/life-republic-r10-universe/","name":"Life Republic R10 Universe"},{"@type":"ListItem","position":5,"url":"https://keys99.com/projects/emerald-heights/","name":"Emerald Heights"},{"@type":"ListItem","position":6,"url":"https://keys99.com/projects/raaj-reality/","name":"Raaj Reality"},{"@type":"ListItem","position":7,"url":"https://keys99.com/projects/the-forestia-2/","name":"The Forestia"},{"@type":"ListItem","position":8,"url":"https://keys99.com/projects/the-forestia/","name":"The Forestia"}]}</script>
+  <!--keys99:itemlistld:end-->
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","@id":"https://keys99.com/#website","name":"Keys99","url":"https://keys99.com","inLanguage":"en-IN","publisher":{"@id":"https://keys99.com/#organisation"},"potentialAction":{"@type":"SearchAction","target":{"@type":"EntryPoint","urlTemplate":"https://keys99.com/projects/search?q={search_term_string}"},"query-input":"required name=search_term_string"}}</script>
 
 
@@ -513,13 +515,11 @@
 
     </div>
 
-    <!-- Hidden so a crawler does not read "Loading new launches..." as
-         this section's content. Unlike the other three lists this one
-         is not pre-rendered - it selects on a 30-day window measured at
-         run time - so there is a brief empty gap before the script
-         fills it. renderNewLaunches() still shows this for the empty
-         and error states. -->
-    <div id="newLaunchesState" class="property-state" style="display:none">Loading new launches...</div>
+    <!-- Status messages (this one and the ones in the sections below)
+         start empty: the script writes the text only when it shows one,
+         for the empty and error states, so crawlers never read a
+         placeholder as the section's content. -->
+    <div id="newLaunchesState" class="property-state" style="display:none"></div>
 
     <div class="property-scroll" id="newLaunchesList"><!--keys99:newlaunches:start-->
 
@@ -1004,17 +1004,14 @@ hdhxhdj p773783829444 1 bhk"
     </div>
 
 
-    <!-- display:none because build/generate.js pre-renders the cards
-         below. renderPopularProperties() still shows this on error. -->
-    <div id="propertyLoading" class="property-state" style="display:none">Loading properties...</div>
+    <!-- build/generate.js pre-renders the cards below, so
+         loadHomepage() shows the loading message only when there are
+         none. -->
+    <div id="propertyLoading" class="property-state" style="display:none"></div>
 
-    <div id="propertyError" class="property-state property-error" style="display:none">
-      Unable to load properties.
-    </div>
+    <div id="propertyError" class="property-state property-error" style="display:none"></div>
 
-    <div id="propertyEmpty" class="property-state" style="display:none">
-      No properties found.
-    </div>
+    <div id="propertyEmpty" class="property-state" style="display:none"></div>
 
     <!-- Filled by the generator. See the note on the city list above. -->
     <div class="property-scroll" id="propertyList"><!--keys99:popular:start-->
@@ -1895,10 +1892,10 @@ premchand bdnsjajsk a521000879365 2 bhk 1 bhk"
       </div>
     </div>
 
-    <!-- display:none because build/generate.js fills the list below at
-         build time, so there is nothing to wait for. The script still
-         sets this back to block for the empty and error states. -->
-    <div id="topCitiesState" class="property-state" style="display:none">Loading cities...</div>
+    <!-- build/generate.js fills the list below at build time, so there
+         is nothing to wait for. The script shows this, with its text,
+         only for the empty and error states. -->
+    <div id="topCitiesState" class="property-state" style="display:none"></div>
 
     <!-- Everything between the markers is rewritten by the generator.
          Edit the markup in build/templates.js, not here - a build will
@@ -1961,7 +1958,7 @@ premchand bdnsjajsk a521000879365 2 bhk 1 bhk"
       </div>
     </div>
 
-    <div id="topLocalitiesState" class="property-state" style="display:none">Loading localities...</div>
+    <div id="topLocalitiesState" class="property-state" style="display:none"></div>
 
     <div class="locality-scroll" id="topLocalitiesList"><!--keys99:localities:start-->
     <a class="locality-chip" href="projects/pune/charholi/">
