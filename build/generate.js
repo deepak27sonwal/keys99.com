@@ -179,7 +179,14 @@ function buildPage(template, row, config, allProjects, shareImage, similarCards,
   configScript.first().before(`<script>${boot}</script>\n  `);
 
   /* ---- body: same fields renderProject() fills in the browser ---- */
-  $("#loading").addClass("hidden");
+  /* The content is in the page, so the loading screen and the "Project
+     not found" box are never shown here (js/property-details.js only
+     uses them when there is no embedded project). They stay as empty
+     elements for the script, without text, so crawlers never read a
+     loading message or a "not found" heading as part of a real
+     project page - a soft-404 signal. */
+  $("#loading").addClass("hidden").empty();
+  $("#errorBox").empty();
   $("#propertyPage").removeClass("hidden");
 
   $("#propertyName").text(p.name);
