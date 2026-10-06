@@ -730,6 +730,34 @@
     return info;
   }
 
+  /* The "Property Videos" section as plain HTML, for build/generate.js:
+     each video's title, a thumbnail and a link, so crawlers that do not
+     run JavaScript still see what the videos are. In the browser,
+     renderMedia() in js/property-details.js swaps in the players.
+     Same split as renderMedia(): uploaded files vs hosted videos. */
+  function renderVideos(p){
+    const labels = { youtube: "YouTube", facebook: "Facebook", instagram: "Instagram" };
+    const uploaded = [], social = [];
+    p.videos.forEach(v => {
+      const info = videoInfo(v.url);
+      const label = labels[info.platform] || "Video";
+      const title = v.title || (v.type === "virtual_tour" ? "Virtual Tour" : info.platform === "file" ? "Project Video" : label + " Video");
+      if(info.platform === "file"){
+        uploaded.push(`
+          <div class="video-card"><video controls playsinline preload="none"><source src="${escapeHtml(v.url)}"></video>
+            <div class="media-caption">${escapeHtml(title)}</div></div>`);
+        return;
+      }
+      const thumb = info.thumb
+        ? `<a class="social-thumb" href="${escapeHtml(v.url)}" target="_blank" rel="noopener noreferrer"><img src="${escapeHtml(info.thumb)}" alt="${escapeHtml(p.name + " - " + title)}" loading="lazy" decoding="async" referrerpolicy="no-referrer"></a>`
+        : "";
+      social.push(`
+          <div class="social-card ${escapeHtml(info.platform === "other" ? "" : info.platform)}"><div class="social-head"><span>▶</span>${escapeHtml(title)}</div>${thumb}
+            <div class="social-footer"><a href="${escapeHtml(v.url)}" target="_blank" rel="noopener noreferrer">Open ${escapeHtml(label)} ↗</a></div></div>`);
+    });
+    return { uploaded: uploaded.join(""), social: social.join("") };
+  }
+
   /* ---------------- STRUCTURED DATA ---------------- */
 
   function structuredData(p, pageUrl, siteUrl){
@@ -813,6 +841,30 @@
     }
     graph.push(listing);
 
+    /* Project videos, for video results. Google needs a name, a
+       thumbnail and an upload date; a video missing one is left out.
+       Uploaded files have no thumbnail of their own, so they use the
+       project's main photo. */
+    p.videos.forEach(v => {
+      const info = videoInfo(v.url);
+      const thumb = info.thumb || (info.platform === "file" && p.images.length ? p.images[0].url : "");
+      const uploadDate = day(v.date);
+      if(!thumb || !uploadDate) return;
+      const name = v.title ? `${p.name} - ${v.title}` : `${p.name} ${v.type === "virtual_tour" ? "virtual tour" : "video"}`;
+      const video = {
+        "@type": "VideoObject",
+        name,
+        description: v.description || `${name}, ${[p.locality, p.city].filter(Boolean).join(", ")}.`,
+        thumbnailUrl: thumb,
+        uploadDate,
+        about: { "@id": pageUrl + "#project" }
+      };
+      if(info.platform === "file") video.contentUrl = v.url;
+      else if(info.platform === "youtube") video.embedUrl = info.embed.replace(/\?.*$/, "");
+      else video.url = v.url;
+      graph.push(video);
+    });
+
     /* Home > City > Locality > Project; build/hubs.js writes the
        city and locality pages these point to. */
     const citySlug = slugify(p.city), localitySlug = slugify(p.locality);
@@ -870,6 +922,7 @@
     renderThumbs,
     pickSimilar,
     videoInfo,
+    renderVideos,
     escapeHtml,
     formatPrice,
     slugify

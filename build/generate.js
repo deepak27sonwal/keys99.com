@@ -249,6 +249,14 @@ function buildPage(template, row, config, allProjects, shareImage, similarCards,
     toggle($, section, !!html.trim());
   });
 
+  /* Videos: titles, thumbnails and links in the HTML. The browser
+     swaps in the players (renderMedia() in js/property-details.js). */
+  const videos = P.renderVideos(p);
+  $("#uploadedVideos").html(videos.uploaded);
+  $("#socialVideosWrap").html(videos.social);
+  toggle($, "#uploadedVideosWrap", !!videos.uploaded);
+  toggle($, "#mediaSection", !!(videos.uploaded || videos.social));
+
   /* Compare button on the main photo (js/compare-tray.js). */
   $("#compareBtn").attr("data-compare-slug", p.slug).attr("data-compare-name", p.name).removeClass("hidden");
 
