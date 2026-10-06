@@ -399,7 +399,23 @@ ${urls.map(u => `  <url>\n    <loc>${x(u.loc)}</loc>${u.lastmod ? `\n    <lastmo
 
 /* ---------------- MAIN ---------------- */
 
+/* Sample testimonials (an element with a data-sample attribute) are
+   for reviewing the design only. Until real buyer reviews replace
+   them, the site may not be indexed - checked before anything is
+   written, so a launch build fails fast with the reason. */
+function checkSampleTestimonials(){
+  const files = ["index.html", path.join("content", "testimonials.html")];
+  const withSamples = files.filter(f => /<[a-z][^>]*\sdata-sample[\s>=]/i.test(fs.readFileSync(path.join(ROOT, f), "utf8")));
+  if(!withSamples.length) return;
+  if(INDEXABLE){
+    throw new Error(`Sample testimonials are still in ${withSamples.join(" and ")}. ` +
+      "Replace them with real buyer reviews (and remove each data-sample tag) before launch.");
+  }
+  console.log(`  note     sample testimonials shown (${withSamples.join(", ")}) - replace before launch`);
+}
+
 async function main(){
+  checkSampleTestimonials();
   const config = readConfig();
   const dataArg = process.argv.indexOf("--data");
   const rows = dataArg > -1 ? readDataFile(process.argv[dataArg + 1]) : await fetchProjects(config);

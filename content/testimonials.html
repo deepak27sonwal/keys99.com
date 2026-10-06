@@ -1,8 +1,11 @@
 <!--
   Body of /testimonials.html. build/legal.js wraps it in the site's
-  header and footer. Every testimonial must come from a real buyer
-  who agreed to have it published: replace each <span class="fill-in">
-  with their words, and delete any card you have no real quote for.
+  header and footer. The cards below are SAMPLES, shown so the design
+  can be reviewed, each with a visible "Sample" tag (data-sample).
+  Before launch, replace each with a real buyer's words, shared with
+  their permission, delete its data-sample tag, and delete any card you
+  have no real quote for. build/generate.js refuses an indexable build
+  while any data-sample remains. Then restore the real-buyer note below.
   Do not add review stars or Review structured data for these -
   Google treats reviews a business publishes about itself as
   self-serving and ignores (or penalises) them.
@@ -19,49 +22,125 @@
 </p>
 
 <div class="testimonial-grid">
-  <figure class="testimonial-card">
-    <blockquote>
-      <p><span class="fill-in">[WHAT THE BUYER SAID: TWO TO FOUR SENTENCES IN THEIR OWN WORDS]</span></p>
-    </blockquote>
-    <figcaption>
-      <span class="testimonial-avatar" aria-hidden="true">A</span>
-      <span>
-        <strong><span class="fill-in">[BUYER NAME]</span></strong>
-        <span class="testimonial-meta"><span class="fill-in">[E.G. BOUGHT A 2 BHK IN MOSHI, 2026]</span></span>
-      </span>
-    </figcaption>
-  </figure>
+        <figure class="testimonial-card">
+          <div class="testimonial-top">
+            <span class="testi-chip">✓ RERA verified</span>
+            <span class="testi-sample" data-sample title="Sample shown until real buyer reviews are added">Sample</span>
+          </div>
+          <blockquote>
+            <p>I was nervous about buying my first home, but every project page showed the RERA number and I could check it myself before paying anything. The Keys99 expert answered all my questions on WhatsApp the same evening.</p>
+          </blockquote>
+          <figcaption>
+            <span class="testimonial-avatar" aria-hidden="true">P</span>
+            <span>
+              <strong>Priya S.</strong>
+              <span class="testimonial-meta">First-time buyer</span>
+              <span class="testimonial-where">⌖ 2 BHK · Ravet, Pune</span>
+            </span>
+          </figcaption>
+        </figure>
 
-  <figure class="testimonial-card">
-    <blockquote>
-      <p><span class="fill-in">[WHAT THE BUYER SAID: TWO TO FOUR SENTENCES IN THEIR OWN WORDS]</span></p>
-    </blockquote>
-    <figcaption>
-      <span class="testimonial-avatar" aria-hidden="true">B</span>
-      <span>
-        <strong><span class="fill-in">[BUYER NAME]</span></strong>
-        <span class="testimonial-meta"><span class="fill-in">[E.G. BOUGHT A 3 BHK IN RAVET, 2026]</span></span>
-      </span>
-    </figcaption>
-  </figure>
+        <figure class="testimonial-card">
+          <div class="testimonial-top">
+            <span class="testi-chip">⚡ Site visit in 2 days</span>
+            <span class="testi-sample" data-sample title="Sample shown until real buyer reviews are added">Sample</span>
+          </div>
+          <blockquote>
+            <p>We shortlisted three projects on Keys99 and had site visits for all of them within two days. Seeing the floor plans and price per sq.ft side by side made the decision much easier for us.</p>
+          </blockquote>
+          <figcaption>
+            <span class="testimonial-avatar" aria-hidden="true">R</span>
+            <span>
+              <strong>Rahul &amp; Sneha K.</strong>
+              <span class="testimonial-meta">Young family</span>
+              <span class="testimonial-where">⌖ 3 BHK · Charholi, Pune</span>
+            </span>
+          </figcaption>
+        </figure>
 
-  <figure class="testimonial-card">
-    <blockquote>
-      <p><span class="fill-in">[WHAT THE BUYER SAID: TWO TO FOUR SENTENCES IN THEIR OWN WORDS]</span></p>
-    </blockquote>
-    <figcaption>
-      <span class="testimonial-avatar" aria-hidden="true">C</span>
-      <span>
-        <strong><span class="fill-in">[BUYER NAME]</span></strong>
-        <span class="testimonial-meta"><span class="fill-in">[E.G. BOUGHT A 1 BHK IN CHIKHALI, 2026]</span></span>
-      </span>
-    </figcaption>
-  </figure>
+        <figure class="testimonial-card">
+          <div class="testimonial-top">
+            <span class="testi-chip">₹ Clear pricing</span>
+            <span class="testi-sample" data-sample title="Sample shown until real buyer reviews are added">Sample</span>
+          </div>
+          <blockquote>
+            <p>What I liked most was the transparency - the price, carpet area and possession date were all there upfront. No surprise charges when I sat down to book.</p>
+          </blockquote>
+          <figcaption>
+            <span class="testimonial-avatar" aria-hidden="true">A</span>
+            <span>
+              <strong>Arjun M.</strong>
+              <span class="testimonial-meta">IT professional</span>
+              <span class="testimonial-where">⌖ 2 BHK · Hinjewadi, Pune</span>
+            </span>
+          </figcaption>
+        </figure>
+
+        <figure class="testimonial-card">
+          <div class="testimonial-top">
+            <span class="testi-chip">🌐 Bought from abroad</span>
+            <span class="testi-sample" data-sample title="Sample shown until real buyer reviews are added">Sample</span>
+          </div>
+          <blockquote>
+            <p>I&#x27;m based in Dubai, so I couldn&#x27;t visit every project. The construction updates and videos on each page, plus regular calls with the team, gave me the confidence to invest from here.</p>
+          </blockquote>
+          <figcaption>
+            <span class="testimonial-avatar" aria-hidden="true">N</span>
+            <span>
+              <strong>Neha D.</strong>
+              <span class="testimonial-meta">NRI investor</span>
+              <span class="testimonial-where">⌖ 1 BHK · Chikhali, Pune</span>
+            </span>
+          </figcaption>
+        </figure>
+
+        <figure class="testimonial-card">
+          <div class="testimonial-top">
+            <span class="testi-chip">🏦 Home-loan help</span>
+            <span class="testi-sample" data-sample title="Sample shown until real buyer reviews are added">Sample</span>
+          </div>
+          <blockquote>
+            <p>The EMI calculator and the bank partner list helped me plan my budget before I even called. The team connected me with a lender and the loan was sanctioned quickly.</p>
+          </blockquote>
+          <figcaption>
+            <span class="testimonial-avatar" aria-hidden="true">V</span>
+            <span>
+              <strong>Vikram R.</strong>
+              <span class="testimonial-meta">Upgrading home</span>
+              <span class="testimonial-where">⌖ 3 BHK · Rajendra Nagar, Hyderabad</span>
+            </span>
+          </figcaption>
+        </figure>
+
+        <figure class="testimonial-card">
+          <div class="testimonial-top">
+            <span class="testi-chip">🤝 No pressure</span>
+            <span class="testi-sample" data-sample title="Sample shown until real buyer reviews are added">Sample</span>
+          </div>
+          <blockquote>
+            <p>We took our time and never felt pushed. Comparing projects on Keys99 helped us find a ready-to-move home close to our children, at a price we were comfortable with.</p>
+          </blockquote>
+          <figcaption>
+            <span class="testimonial-avatar" aria-hidden="true">S</span>
+            <span>
+              <strong>Sunita &amp; Mahesh P.</strong>
+              <span class="testimonial-meta">Retired couple</span>
+              <span class="testimonial-where">⌖ 2 BHK · Rau, Indore</span>
+            </span>
+          </figcaption>
+        </figure>
 </div>
 
+<!-- At launch, once every card is a real buyer's review, replace the
+     sample notice below with:
 <p class="testimonial-note">
   Every testimonial on this page is from a real home buyer and is published with their
   permission. We do not edit what buyers say, other than to shorten it.
+</p>
+-->
+<p class="testimonial-note">
+  These are sample stories showing how buyer reviews will appear. They will be replaced with
+  reviews from real Keys99 buyers, shared with their permission.
 </p>
 
 <div class="home-loans-cta">

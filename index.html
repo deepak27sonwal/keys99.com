@@ -2156,10 +2156,13 @@ premchand bdnsjajsk a521000879365 2 bhk 1 bhk"
 <!-- =======================================================
      TESTIMONIALS
      Same buyers and words as /testimonials (content/testimonials.html).
-     Each quote must come from a real buyer who agreed to have it
-     published: replace every <span class="fill-in"> before launch.
-     No stars or Review structured data - Google ignores reviews a
-     business publishes about itself.
+     These are SAMPLE quotes, shown so the design can be reviewed; each
+     card carries a visible "Sample" tag (data-sample). Before launch,
+     replace each one with a real buyer's words, shared with their
+     permission, and delete its data-sample tag - build/generate.js
+     refuses an indexable build while any remain. No stars or Review
+     structured data - Google ignores reviews a business publishes
+     about itself.
 ======================================================= -->
 
 <section id="testimonials" class="testi" aria-labelledby="testiTitle">
@@ -2172,7 +2175,7 @@ premchand bdnsjajsk a521000879365 2 bhk 1 bhk"
         <div>
           <div class="section-kicker">Testimonials</div>
           <h2 class="section-title" id="testiTitle">Loved by Home Buyers</h2>
-          <p class="testi-intro">Real stories from buyers who found their new home through Keys99.</p>
+          <p class="testi-intro">What home buyers say about finding their home with Keys99.</p>
         </div>
 
         <a class="view-all" href="testimonials">All Testimonials →</a>
@@ -2181,40 +2184,55 @@ premchand bdnsjajsk a521000879365 2 bhk 1 bhk"
       <div class="testi-track">
 
         <figure class="testi-card">
+          <div class="testi-top">
+            <span class="testi-chip">✓ RERA verified</span>
+            <span class="testi-sample" data-sample title="Sample shown until real buyer reviews are added">Sample</span>
+          </div>
           <blockquote>
-            <p><span class="fill-in">[WHAT THE BUYER SAID: TWO TO FOUR SENTENCES IN THEIR OWN WORDS]</span></p>
+            <p>I was nervous about buying my first home, but every project page showed the RERA number and I could check it myself before paying anything. The Keys99 expert answered all my questions on WhatsApp the same evening.</p>
+          </blockquote>
+          <figcaption>
+            <span class="testi-avatar" aria-hidden="true">P</span>
+            <span>
+              <strong>Priya S.</strong>
+              <span class="testi-meta">First-time buyer</span>
+              <span class="testi-where">⌖ 2 BHK · Ravet, Pune</span>
+            </span>
+          </figcaption>
+        </figure>
+
+        <figure class="testi-card">
+          <div class="testi-top">
+            <span class="testi-chip">⚡ Site visit in 2 days</span>
+            <span class="testi-sample" data-sample title="Sample shown until real buyer reviews are added">Sample</span>
+          </div>
+          <blockquote>
+            <p>We shortlisted three projects on Keys99 and had site visits for all of them within two days. Seeing the floor plans and price per sq.ft side by side made the decision much easier for us.</p>
+          </blockquote>
+          <figcaption>
+            <span class="testi-avatar" aria-hidden="true">R</span>
+            <span>
+              <strong>Rahul &amp; Sneha K.</strong>
+              <span class="testi-meta">Young family</span>
+              <span class="testi-where">⌖ 3 BHK · Charholi, Pune</span>
+            </span>
+          </figcaption>
+        </figure>
+
+        <figure class="testi-card">
+          <div class="testi-top">
+            <span class="testi-chip">₹ Clear pricing</span>
+            <span class="testi-sample" data-sample title="Sample shown until real buyer reviews are added">Sample</span>
+          </div>
+          <blockquote>
+            <p>What I liked most was the transparency - the price, carpet area and possession date were all there upfront. No surprise charges when I sat down to book.</p>
           </blockquote>
           <figcaption>
             <span class="testi-avatar" aria-hidden="true">A</span>
             <span>
-              <strong><span class="fill-in">[BUYER NAME]</span></strong>
-              <span class="testi-meta"><span class="fill-in">[E.G. 2 BHK IN MOSHI]</span></span>
-            </span>
-          </figcaption>
-        </figure>
-
-        <figure class="testi-card">
-          <blockquote>
-            <p><span class="fill-in">[WHAT THE BUYER SAID: TWO TO FOUR SENTENCES IN THEIR OWN WORDS]</span></p>
-          </blockquote>
-          <figcaption>
-            <span class="testi-avatar" aria-hidden="true">B</span>
-            <span>
-              <strong><span class="fill-in">[BUYER NAME]</span></strong>
-              <span class="testi-meta"><span class="fill-in">[E.G. 3 BHK IN RAVET]</span></span>
-            </span>
-          </figcaption>
-        </figure>
-
-        <figure class="testi-card">
-          <blockquote>
-            <p><span class="fill-in">[WHAT THE BUYER SAID: TWO TO FOUR SENTENCES IN THEIR OWN WORDS]</span></p>
-          </blockquote>
-          <figcaption>
-            <span class="testi-avatar" aria-hidden="true">C</span>
-            <span>
-              <strong><span class="fill-in">[BUYER NAME]</span></strong>
-              <span class="testi-meta"><span class="fill-in">[E.G. 1 BHK IN CHIKHALI]</span></span>
+              <strong>Arjun M.</strong>
+              <span class="testi-meta">IT professional</span>
+              <span class="testi-where">⌖ 2 BHK · Hinjewadi, Pune</span>
             </span>
           </figcaption>
         </figure>
