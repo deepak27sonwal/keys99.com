@@ -80,6 +80,10 @@ function plannedCopies({ H, P, props, rows, supabaseUrl }){
       add(P.thumbName(b.image, 0), b.image, CARD_WIDTH, 70);
       add(P.ogName(b.image), b.image, P.OG_SIZE.width, 78, true);
     });
+    /* Construction update photos are shown small, in a strip. */
+    p.updates.flatMap(u => u.photos).filter(ph => remote(ph.url)).forEach(ph => {
+      add(P.thumbName(ph.url, P.IMAGE_WIDTHS.small), ph.url, P.IMAGE_WIDTHS.small, 65);
+    });
     /* Plans carry small print, so they get a higher quality. */
     [...p.floorPlans, ...p.masterPlans].filter(f => remote(f.url)).forEach(f => {
       add(P.thumbName(f.url, P.IMAGE_WIDTHS.large), f.url, P.IMAGE_WIDTHS.large, 85);

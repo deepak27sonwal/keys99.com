@@ -24,10 +24,13 @@
      query from breaking if another path is ever added. */
   const PROJECT_DETAIL_SELECT = `
     id, slug, project_name, project_type, status, construction_stage, possession_status,
-    launch_date, rera_number, rera_possession_date, target_possession_date,
+    launch_date, rera_number, rera_numbers, rera_possession_date, target_possession_date,
+    construction_start_date, expected_completion_date, project_phase,
     address, pincode, latitude, longitude,
     total_land_area, land_area_unit, total_towers_buildings, total_floors,
-    total_residential_units, open_green_area_value, open_green_area_unit,
+    total_residential_units, units_per_floor, number_of_phases,
+    built_up_project_area, built_up_project_area_unit,
+    open_green_area_value, open_green_area_unit,
     overview, highlights,
     starting_price, maximum_price, price_on_request, price_disclaimer,
     flooring, doors, windows, kitchen, bathroom, electrical, walls_paint, balcony,
@@ -39,8 +42,9 @@
     city:cities!residential_projects_city_id_fkey ( name, state, city_image ),
     locality:localities!residential_projects_locality_id_fkey ( name ),
     configurations:residential_configurations!residential_configurations_project_id_fkey (
-      bhk_type, variant_name, carpet_area, area_unit, starting_price, maximum_price,
-      price_type, price_on_request, availability, display_order, updated_at
+      bhk_type, variant_name, carpet_area, built_up_area, super_built_up_area, area_unit,
+      starting_price, maximum_price, price_type, price_on_request, availability,
+      parking_included, parking_type, display_order, updated_at
     ),
     media:residential_media!residential_media_project_id_fkey (
       media_type, category, title, description, media_url, media_path, storage_bucket,
@@ -69,7 +73,24 @@
     ),
     towers:residential_towers!residential_towers_project_id_fkey (
       tower_name, number_of_floors, number_of_units, configurations,
-      tower_status, display_order
+      tower_status, construction_stage, possession_status, expected_completion_date, display_order
+    ),
+    phases:residential_project_phases!residential_project_phases_project_id_fkey (
+      phase_name, construction_start_date, expected_completion_date, rera_possession_date,
+      target_possession_date, configurations, units_per_phase, display_order
+    ),
+    updates:residential_construction_updates!residential_construction_updates_project_id_fkey (
+      update_title, update_date, construction_stage, description, is_published, display_order,
+      media:residential_construction_update_media!residential_construction_update_media_update_id_fkey (
+        media_url, media_path, storage_bucket, alt_text, caption, display_order
+      )
+    ),
+    documents:residential_documents!residential_documents_project_id_fkey (
+      document_type, title, description, visibility
+    ),
+    litigation:residential_litigation!residential_litigation_project_id_fkey (
+      status, case_reference_number, case_title, court_tribunal, case_type, current_status,
+      filing_date, latest_hearing_date, next_hearing_date, source_reference_url
     )
   `;
 
@@ -139,7 +160,38 @@
     ["other_specifications","Other"]
   ];
 
+  const DOCUMENT_TYPE_LABELS = {
+    rera_certificate:"RERA Certificate",
+    price_sheet:"Price Sheet",
+    brochure:"Brochure",
+    floor_plan:"Floor Plan",
+    approval:"Approval",
+    agreement:"Agreement Draft"
+  };
+
+  const LITIGATION_LABELS = {
+    no_known_litigation:"No known litigation",
+    litigation_reported:"Litigation reported",
+    resolved:"Resolved"
+  };
+
+  const PARKING_LABELS = { included:"Included", optional:"Optional", paid:"Paid", not_available:"Not available" };
+
   /* ---------------- SMALL HELPERS ---------------- */
+
+  /* "under_construction" -> "Under Construction", for codes with no label. */
+  function codeLabel(v, labels){
+    const key = clean(v);
+    return (labels && labels[key]) || STATUS_LABELS[key] || titleCase(key.replace(/_/g, " "));
+  }
+
+  function formatDate(v){
+    if(!v) return "";
+    const d = new Date(v);
+    return Number.isFinite(d.getTime())
+      ? d.toLocaleDateString("en-IN",{ day:"numeric", month:"short", year:"numeric", timeZone:"UTC" })
+      : "";
+  }
 
   function clean(v){
     return v === undefined || v === null ? "" : String(v).trim();
@@ -347,7 +399,13 @@
         areaValue: area > 0 ? area : null,
         areaUnitCode: c.area_unit === "sq_m" ? "MTK" : "FTK",
         rate: rate ? Math.round(rate / 10) * 10 : null,
-        rateText: rate ? formatRate(rate) : ""
+        rateText: rate ? formatRate(rate) : "",
+        builtUp: Number(c.built_up_area) > 0 ? formatNumber(c.built_up_area) + " " + (c.area_unit === "sq_m" ? "Sq.M" : "Sq.Ft") : "",
+        superBuiltUp: Number(c.super_built_up_area) > 0 ? formatNumber(c.super_built_up_area) + " " + (c.area_unit === "sq_m" ? "Sq.M" : "Sq.Ft") : "",
+        /* "Included · Covered, Open"; "Not available" on its own. */
+        parking: !clean(c.parking_included) ? ""
+          : c.parking_included === "not_available" ? PARKING_LABELS.not_available
+          : [codeLabel(c.parking_included, PARKING_LABELS), (c.parking_type || []).map(t => codeLabel(t)).join(", ")].filter(Boolean).join(" · ")
       };
     });
 
@@ -434,8 +492,68 @@
       floors: t.number_of_floors || "",
       units: t.number_of_units || "",
       configurations: (t.configurations || []).map(normaliseBhk).filter(Boolean).join(", "),
-      status: STATUS_LABELS[t.tower_status] || titleCase(String(t.tower_status || "").replace(/_/g," "))
+      status: [
+        STATUS_LABELS[t.tower_status] || titleCase(String(t.tower_status || "").replace(/_/g," ")),
+        clean(t.construction_stage) && t.construction_stage !== t.tower_status ? codeLabel(t.construction_stage) : "",
+        t.expected_completion_date ? "Completion " + formatMonthYear(t.expected_completion_date) : ""
+      ].filter(Boolean).join(" · ")
     }));
+
+    const phases = list(row.phases).filter(ph => clean(ph.phase_name)).map(ph => ({
+      name: /^\d+$/.test(clean(ph.phase_name)) ? "Phase " + clean(ph.phase_name) : titleCase(ph.phase_name),
+      configurations: (ph.configurations || []).map(normaliseBhk).filter(Boolean)
+        .sort((a, b) => parseFloat(a) - parseFloat(b)).join(", "),
+      units: Number(ph.units_per_phase) > 0 ? formatNumber(ph.units_per_phase) : "",
+      start: formatMonthYear(ph.construction_start_date),
+      completion: formatMonthYear(ph.expected_completion_date),
+      possession: formatMonthYear(ph.target_possession_date),
+      reraPossession: formatMonthYear(ph.rera_possession_date)
+    }));
+
+    /* Construction progress, newest first, with its photos. */
+    const updates = (Array.isArray(row.updates) ? row.updates : [])
+      .filter(u => u.is_published !== false && clean(u.update_title))
+      .sort((a, b) => String(b.update_date || "").localeCompare(String(a.update_date || "")) || byOrder(a, b))
+      .map(u => ({
+        title: clean(u.update_title),
+        date: formatDate(u.update_date),
+        isoDate: clean(u.update_date),
+        stage: clean(u.construction_stage) ? codeLabel(u.construction_stage) : "",
+        description: clean(u.description),
+        photos: list(u.media).map(m => ({
+          url: clean(m.media_url) || storagePublicUrl(supabaseUrl, m.storage_bucket, m.media_path),
+          alt: clean(m.alt_text) || clean(m.caption) || `${titleCase(row.project_name)} construction - ${clean(u.update_title)}`,
+          caption: clean(m.caption)
+        })).filter(m => m.url).map(withCopies)
+      }));
+
+    /* Public documents only. The files sit in a private bucket, so the
+       page lists what is available and buyers request a copy. */
+    const documents = list(row.documents)
+      .filter(d => d.visibility === "public" && (clean(d.title) || clean(d.document_type)))
+      .map(d => ({ type: codeLabel(d.document_type, DOCUMENT_TYPE_LABELS), title: clean(d.title), description: clean(d.description) }));
+
+    /* Litigation as entered in the admin. "Information not available"
+       is not shown (the database policy hides it from visitors too). */
+    const litigation = list(row.litigation)
+      .filter(l => clean(l.status) && l.status !== "information_not_available")
+      .map(l => ({
+        status: codeLabel(l.status, LITIGATION_LABELS),
+        reported: l.status === "litigation_reported",
+        title: clean(l.case_title),
+        reference: clean(l.case_reference_number),
+        court: clean(l.court_tribunal),
+        type: clean(l.case_type),
+        current: clean(l.current_status),
+        filed: formatDate(l.filing_date),
+        lastHearing: formatDate(l.latest_hearing_date),
+        nextHearing: formatDate(l.next_hearing_date),
+        source: /^https?:\/\//i.test(clean(l.source_reference_url)) ? clean(l.source_reference_url) : ""
+      }));
+
+    /* Every RERA number the project lists (one per phase, often). */
+    const reraNumbers = [clean(row.rera_number), ...(row.rera_numbers || []).map(clean)]
+      .filter((v, i, a) => v && a.findIndex(x => x.toLowerCase() === v.toLowerCase()) === i);
 
     const specifications = SPEC_FIELDS.map(([key,label]) => ({ label, value: clean(row[key]) })).filter(s => s.value);
 
@@ -447,8 +565,15 @@
     addFact("Floors", row.total_floors);
     addFact("Total Units", row.total_residential_units);
     if(Number(row.open_green_area_value) > 0) addFact("Open Green Area", formatNumber(row.open_green_area_value) + " " + (UNIT_LABELS[row.open_green_area_unit] || ""));
+    if(Number(row.built_up_project_area) > 0) addFact("Built-up Area", formatNumber(row.built_up_project_area) + " " + (UNIT_LABELS[row.built_up_project_area_unit] || ""));
+    addFact("Units per Floor", Number(row.units_per_floor) > 0 ? formatNumber(row.units_per_floor) : "");
+    addFact("Phases", row.number_of_phases);
+    addFact("Current Phase", /^\d+$/.test(clean(row.project_phase)) ? "Phase " + clean(row.project_phase) : titleCase(row.project_phase));
     addFact("Launch Date", formatMonthYear(row.launch_date));
+    addFact("Construction Start", formatMonthYear(row.construction_start_date));
+    addFact("Expected Completion", formatMonthYear(row.expected_completion_date));
     addFact("RERA Possession", formatMonthYear(row.rera_possession_date));
+    if(reraNumbers.length > 1) addFact("RERA Numbers", reraNumbers.join(", "));
 
     const agent = row.agent || null;
     const developer = row.developer || null;
@@ -471,7 +596,8 @@
       developerLogo: developer ? clean(developer.logo_url) : "",
       contactPhone: agent ? clean(agent.phone).replace(/[^\d+]/g,"") : "",
       contactWhatsapp: agent ? clean(agent.whatsapp || agent.phone).replace(/\D/g,"") : "",
-      rera: clean(row.rera_number),
+      rera: reraNumbers[0] || "",
+      reraNumbers,
       possession: formatMonthYear(row.target_possession_date || row.rera_possession_date),
       overview: clean(row.overview),
       highlights: (row.highlights || []).map(clean).filter(Boolean),
@@ -491,6 +617,10 @@
       blogs,
       floorPlans,
       towers,
+      phases,
+      updates,
+      documents,
+      litigation,
       specifications,
       facts,
       seoTitle: clean(row.seo_title),
@@ -527,11 +657,21 @@
   }
 
   function pageTitle(p){
-    if(p.seoTitle) return p.seoTitle;
+    /* The admin's own title wins; the brand is added when it fits, as
+       Google shows it in results and it helps people recognise the site. */
+    if(p.seoTitle){
+      const branded = `${p.seoTitle} | Keys99`;
+      return /keys99/i.test(p.seoTitle) || branded.length > TITLE_MAX ? p.seoTitle : branded;
+    }
     const bhk = p.bhkLabels.length ? p.bhkLabels.join(", ") + " " : "";
     const where = [p.locality, p.city].filter(Boolean).join(", ");
     const head = `${p.name}${where ? " " + where : ""}`;
+    /* The starting price is what buyers scan results for, so the
+       versions with it come first. */
+    const price = p.startingPrice ? ` from ${p.startingPriceText}` : "";
     return fitText([
+      price && `${head} - ${bhk}${p.typeLabel}${price} | Keys99`,
+      price && `${head} | ${bhk ? bhk + "Flats" : p.typeLabel}${price} | Keys99`,
       `${head} - ${bhk}${p.typeLabel}${p.developer ? " by " + p.developer : ""} | Keys99`,
       `${head} - ${bhk}${p.typeLabel} | Keys99`,
       `${head} | ${bhk ? bhk + "Flats" : p.typeLabel} | Keys99`,
@@ -566,7 +706,8 @@
       <tr>
         <td>${escapeHtml(c.bhk)}${c.variant ? ` <small>${escapeHtml(c.variant)}</small>` : ""}</td>
         <td>${escapeHtml(c.price)}${c.rateText && !/\/ Sq/.test(c.price) ? `<small class="config-rate">${escapeHtml(c.rateText)}</small>` : ""}</td>
-        <td>${escapeHtml(c.area || "—")}</td>
+        <td>${escapeHtml(c.area || "—")}${c.builtUp ? `<small class="config-rate">Built-up ${escapeHtml(c.builtUp)}</small>` : ""}${c.superBuiltUp ? `<small class="config-rate">Super built-up ${escapeHtml(c.superBuiltUp)}</small>` : ""}</td>
+        <td>${escapeHtml(c.parking || "—")}</td>
         <td><span class="status-pill status-${c.availability === "Sold Out" ? "sold" : "available"}">${escapeHtml(c.availability)}</span></td>
       </tr>`).join("");
   }
@@ -606,6 +747,72 @@
         <td>${escapeHtml(t.configurations || "—")}</td>
         <td>${escapeHtml(t.status)}</td>
       </tr>`).join("");
+  }
+
+  function renderPhaseRows(p){
+    return p.phases.map(ph => `
+      <tr>
+        <td>${escapeHtml(ph.name)}${ph.units ? ` <small>${escapeHtml(ph.units)} units</small>` : ""}</td>
+        <td>${escapeHtml(ph.configurations || "—")}</td>
+        <td>${escapeHtml(ph.start || "—")}</td>
+        <td>${escapeHtml(ph.completion || "—")}</td>
+        <td>${escapeHtml(ph.possession || ph.reraPossession || "—")}${ph.reraPossession && ph.possession ? `<small>RERA ${escapeHtml(ph.reraPossession)}</small>` : ""}</td>
+      </tr>`).join("");
+  }
+
+  function renderUpdates(p){
+    return p.updates.map(u => `
+      <article class="update-item">
+        <div class="update-head">
+          ${u.date ? `<time datetime="${escapeHtml(u.isoDate)}">${escapeHtml(u.date)}</time>` : ""}
+          ${u.stage ? `<span class="update-stage">${escapeHtml(u.stage)}</span>` : ""}
+        </div>
+        <h3>${escapeHtml(u.title)}</h3>
+        ${u.description ? `<p>${escapeHtml(u.description)}</p>` : ""}
+        ${u.photos.length ? `<div class="update-photos">${u.photos.map(ph => `
+          <figure><img src="${escapeHtml(ph.small)}" data-full="${escapeHtml(ph.url)}" onerror="${IMG_FALLBACK}" alt="${escapeHtml(ph.alt)}" loading="lazy" decoding="async">${ph.caption ? `<figcaption>${escapeHtml(ph.caption)}</figcaption>` : ""}</figure>`).join("")}</div>` : ""}
+      </article>`).join("");
+  }
+
+  /* RERA numbers, public documents and litigation status: the checks a
+     buyer makes before paying a booking amount. */
+  function renderLegal(p){
+    const parts = [];
+    if(p.reraNumbers.length){
+      parts.push(`
+      <div class="legal-block">
+        <h3>RERA Registration</h3>
+        <ul class="legal-list">${p.reraNumbers.map(r => `<li><strong>${escapeHtml(r)}</strong></li>`).join("")}</ul>
+        <p class="legal-note">Check ${p.reraNumbers.length === 1 ? "this number" : "these numbers"} on your state's RERA portal before you pay a booking amount.</p>
+      </div>`);
+    }
+    if(p.documents.length){
+      parts.push(`
+      <div class="legal-block">
+        <h3>Documents</h3>
+        <ul class="legal-list">${p.documents.map(d => `
+          <li><span class="doc-type">${escapeHtml(d.type)}</span>${d.title && d.title.toLowerCase() !== d.type.toLowerCase() ? ` ${escapeHtml(d.title)}` : ""}${d.description ? `<small>${escapeHtml(d.description)}</small>` : ""}</li>`).join("")}</ul>
+        <a class="doc-request" href="#enquiryWrap">Request a copy →</a>
+      </div>`);
+    }
+    if(p.litigation.length){
+      parts.push(`
+      <div class="legal-block">
+        <h3>Litigation Status</h3>
+        ${p.litigation.map(l => {
+          const rows = [["Case", l.title], ["Reference", l.reference], ["Court / Tribunal", l.court], ["Case Type", l.type],
+            ["Current Status", l.current], ["Filed", l.filed], ["Last Hearing", l.lastHearing], ["Next Hearing", l.nextHearing]]
+            .filter(([, v]) => v);
+          return `
+        <div class="litigation-item">
+          <span class="legal-status ${l.reported ? "is-reported" : "is-clear"}">${escapeHtml(l.status)}</span>
+          ${l.reported && rows.length ? `<dl class="legal-facts">${rows.map(([k, v]) => `<div><dt>${escapeHtml(k)}</dt><dd>${escapeHtml(v)}</dd></div>`).join("")}</dl>` : ""}
+          ${l.source ? `<a class="legal-source" href="${escapeHtml(l.source)}" target="_blank" rel="noopener noreferrer nofollow">View source ↗</a>` : ""}
+        </div>`;
+        }).join("")}
+      </div>`);
+    }
+    return parts.join("");
   }
 
   function renderProsCons(p){
@@ -730,6 +937,34 @@
     return info;
   }
 
+  /* The "Property Videos" section as plain HTML, for build/generate.js:
+     each video's title, a thumbnail and a link, so crawlers that do not
+     run JavaScript still see what the videos are. In the browser,
+     renderMedia() in js/property-details.js swaps in the players.
+     Same split as renderMedia(): uploaded files vs hosted videos. */
+  function renderVideos(p){
+    const labels = { youtube: "YouTube", facebook: "Facebook", instagram: "Instagram" };
+    const uploaded = [], social = [];
+    p.videos.forEach(v => {
+      const info = videoInfo(v.url);
+      const label = labels[info.platform] || "Video";
+      const title = v.title || (v.type === "virtual_tour" ? "Virtual Tour" : info.platform === "file" ? "Project Video" : label + " Video");
+      if(info.platform === "file"){
+        uploaded.push(`
+          <div class="video-card"><video controls playsinline preload="none"><source src="${escapeHtml(v.url)}"></video>
+            <div class="media-caption">${escapeHtml(title)}</div></div>`);
+        return;
+      }
+      const thumb = info.thumb
+        ? `<a class="social-thumb" href="${escapeHtml(v.url)}" target="_blank" rel="noopener noreferrer"><img src="${escapeHtml(info.thumb)}" alt="${escapeHtml(p.name + " - " + title)}" loading="lazy" decoding="async" referrerpolicy="no-referrer"></a>`
+        : "";
+      social.push(`
+          <div class="social-card ${escapeHtml(info.platform === "other" ? "" : info.platform)}"><div class="social-head"><span>▶</span>${escapeHtml(title)}</div>${thumb}
+            <div class="social-footer"><a href="${escapeHtml(v.url)}" target="_blank" rel="noopener noreferrer">Open ${escapeHtml(label)} ↗</a></div></div>`);
+    });
+    return { uploaded: uploaded.join(""), social: social.join("") };
+  }
+
   /* ---------------- STRUCTURED DATA ---------------- */
 
   function structuredData(p, pageUrl, siteUrl){
@@ -756,7 +991,10 @@
       place.geo = { "@type":"GeoCoordinates", latitude:Number(p.latitude), longitude:Number(p.longitude) };
       place.hasMap = `https://www.google.com/maps?q=${Number(p.latitude)},${Number(p.longitude)}`;
     }
-    if(p.rera) place.identifier = { "@type":"PropertyValue", name:"RERA registration number", value:p.rera };
+    if(p.reraNumbers.length){
+      const ids = p.reraNumbers.map(value => ({ "@type":"PropertyValue", name:"RERA registration number", value }));
+      place.identifier = ids.length === 1 ? ids[0] : ids;
+    }
     /* Articles about the project (each has its own page). */
     const posts = (p.blogs || []).filter(b => b.indexable);
     if(posts.length) place.subjectOf = posts.map(b => ({ "@type":"BlogPosting", headline:b.title, url: siteUrl + "/" + b.path }));
@@ -813,6 +1051,30 @@
     }
     graph.push(listing);
 
+    /* Project videos, for video results. Google needs a name, a
+       thumbnail and an upload date; a video missing one is left out.
+       Uploaded files have no thumbnail of their own, so they use the
+       project's main photo. */
+    p.videos.forEach(v => {
+      const info = videoInfo(v.url);
+      const thumb = info.thumb || (info.platform === "file" && p.images.length ? p.images[0].url : "");
+      const uploadDate = day(v.date);
+      if(!thumb || !uploadDate) return;
+      const name = v.title ? `${p.name} - ${v.title}` : `${p.name} ${v.type === "virtual_tour" ? "virtual tour" : "video"}`;
+      const video = {
+        "@type": "VideoObject",
+        name,
+        description: v.description || `${name}, ${[p.locality, p.city].filter(Boolean).join(", ")}.`,
+        thumbnailUrl: thumb,
+        uploadDate,
+        about: { "@id": pageUrl + "#project" }
+      };
+      if(info.platform === "file") video.contentUrl = v.url;
+      else if(info.platform === "youtube") video.embedUrl = info.embed.replace(/\?.*$/, "");
+      else video.url = v.url;
+      graph.push(video);
+    });
+
     /* Home > City > Locality > Project; build/hubs.js writes the
        city and locality pages these point to. */
     const citySlug = slugify(p.city), localitySlug = slugify(p.locality);
@@ -860,6 +1122,9 @@
     renderNearbyRows,
     renderSpecificationRows,
     renderTowerRows,
+    renderPhaseRows,
+    renderUpdates,
+    renderLegal,
     renderProsCons,
     renderFaqs,
     renderBlogs,
@@ -870,6 +1135,7 @@
     renderThumbs,
     pickSimilar,
     videoInfo,
+    renderVideos,
     escapeHtml,
     formatPrice,
     slugify

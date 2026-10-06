@@ -95,12 +95,12 @@
 <main id="propertyPage" class="hidden">
   <div class="container">
 
-    <div class="breadcrumb">
+    <nav class="breadcrumb" aria-label="Breadcrumb">
       <a href="../">Home</a><span>›</span>
       <a id="crumbCity" class="hidden"></a><span id="crumbCitySep" class="hidden">›</span>
       <a id="crumbLocality" class="hidden"></a><span id="crumbLocalitySep" class="hidden">›</span>
-      <span id="crumbName">Details</span>
-    </div>
+      <span id="crumbName" aria-current="page">Details</span>
+    </nav>
 
     <!-- IMAGE GALLERY -->
     <section class="gallery-card">
@@ -197,18 +197,12 @@
           <div id="facts" class="facts-grid"></div>
         </section>
 
-        <!-- REELS -->
-        <section class="section-card hidden" id="reelsSection">
-          <h2><i></i>Reels</h2>
-          <div id="reelsGrid" class="reels-grid"></div>
-        </section>
-
         <!-- CONFIGURATION -->
         <section class="section-card" id="configurationSection">
           <h2><i></i>Available Configuration</h2>
           <div class="table-wrap">
             <table>
-              <thead><tr><th>BHK Type</th><th>Price</th><th>Carpet Area</th><th>Status</th></tr></thead>
+              <thead><tr><th>BHK Type</th><th>Price</th><th>Carpet Area</th><th>Parking</th><th>Status</th></tr></thead>
               <tbody id="configurationBody"></tbody>
             </table>
           </div>
@@ -288,6 +282,29 @@
               <tbody id="towers"></tbody>
             </table>
           </div>
+        </section>
+
+        <!-- PHASES -->
+        <section class="section-card hidden" id="phasesSection">
+          <h2><i></i>Project Phases</h2>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Phase</th><th>Configurations</th><th>Construction Start</th><th>Completion</th><th>Possession</th></tr></thead>
+              <tbody id="phases"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- CONSTRUCTION UPDATES -->
+        <section class="section-card hidden" id="updatesSection">
+          <h2><i></i>Construction Updates</h2>
+          <div id="updates" class="updates"></div>
+        </section>
+
+        <!-- RERA, DOCUMENTS & LITIGATION -->
+        <section class="section-card hidden" id="legalSection">
+          <h2><i></i>RERA &amp; Legal Status</h2>
+          <div id="legal" class="legal"></div>
         </section>
 
         <!-- LOCATION -->
@@ -503,7 +520,7 @@
   <div class="contact-gate-backdrop" data-close-gate></div>
   <form class="contact-gate-card" id="contactGateForm" novalidate>
     <button type="button" class="contact-gate-close" data-close-gate aria-label="Close">×</button>
-    <h2 id="contactGateTitle">Chat on WhatsApp</h2>
+    <p class="contact-gate-title" id="contactGateTitle">Chat on WhatsApp</p>
     <p class="contact-gate-note" id="contactGateNote">Share your details so the project expert knows who is getting in touch.</p>
     <label class="contact-gate-field">
       <span>Your Name</span>
@@ -544,7 +561,7 @@
   <div class="contact-gate-card contact-gate-done" id="gateDone" hidden>
     <button type="button" class="contact-gate-close" data-close-gate aria-label="Close">×</button>
     <div class="contact-gate-tick" aria-hidden="true">✓</div>
-    <h2>Site visit requested</h2>
+    <p class="contact-gate-title">Site visit requested</p>
     <p class="contact-gate-note" id="gateDoneText"></p>
     <button type="button" class="contact-gate-submit whatsapp" id="gateDoneWhatsapp">Continue on WhatsApp</button>
     <button type="button" class="contact-gate-secondary" data-close-gate>Done</button>

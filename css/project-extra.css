@@ -91,7 +91,7 @@
 .contact-gate-backdrop{position:absolute;inset:0;background:rgba(2,16,15,.62);backdrop-filter:blur(3px)}
 .contact-gate-card{position:relative;width:min(400px,100%);max-height:calc(100vh - 36px);overflow:auto;background:#fff;border-radius:18px;padding:24px 22px 20px;box-shadow:0 24px 60px rgba(0,0,0,.28);display:grid;gap:12px;animation:gate-in .16s ease-out}
 @keyframes gate-in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-.contact-gate-card h2{margin:0;padding-right:34px;font:800 20px Manrope,sans-serif;color:var(--text)}
+.contact-gate-title{margin:0;padding-right:34px;font:800 20px Manrope,sans-serif;color:var(--text)}
 .contact-gate-note{margin:-4px 0 2px;font-size:var(--fs-small);line-height:1.5;color:#53666d}
 .contact-gate-close{position:absolute;right:12px;top:12px;width:34px;height:34px;border:0;border-radius:50%;background:#eef3f1;color:var(--text);font-size:22px;line-height:1;cursor:pointer}
 .contact-gate-field{display:grid;gap:5px}
@@ -114,7 +114,7 @@
 .visit-card-btn{width:100%;padding:12px;border-radius:9px;border:0;background:#fff;color:var(--green);font-weight:700;font-size:var(--fs-ui);cursor:pointer}
 .contact-gate-done{text-align:center;justify-items:center}
 .contact-gate-done[hidden],.contact-gate-card[hidden]{display:none}
-.contact-gate-done h2{padding:0}
+.contact-gate-done .contact-gate-title{padding:0}
 .contact-gate-tick{width:54px;height:54px;border-radius:50%;background:#e4f5ef;color:var(--green);display:grid;place-items:center;font-size:26px;font-weight:800}
 .contact-gate-done .contact-gate-submit{width:100%}
 .contact-gate-secondary{width:100%;padding:11px;border:1px solid #d3e0dc;border-radius:10px;background:#fff;color:var(--text);font:inherit;font-size:var(--fs-ui);font-weight:700;cursor:pointer}
@@ -147,7 +147,7 @@
 .saved-count[hidden]{display:none}
 
 /* Phone headings: same scale as the rest of the site. */
-@media(max-width:620px){.contact-gate-card h2{font-size:16px}}
+@media(max-width:620px){.contact-gate-title{font-size:16px}}
 
 /* Similar Projects: the homepage project cards (css/cards.css) in a
    2-column grid beside the enquiry card; on phones the same sideways
@@ -183,3 +183,39 @@
 .explore-link{display:inline-flex;flex-direction:column;gap:2px;padding:10px 14px;border:1px solid #e7eeec;border-radius:12px;background:#fafcfb;color:#14343b;font-size:var(--fs-ui);font-weight:700;text-decoration:none;transition:border-color .15s}
 .explore-link:hover,.explore-link:focus-visible{border-color:#00866e;color:#00866e}
 .explore-link span{font-size:var(--fs-label);font-weight:600;color:#6b7f86}
+
+/* ---- Construction updates (renderUpdates in js/project-core.js) ---- */
+.updates{display:grid;gap:14px}
+.update-item{border:1px solid var(--line);border-radius:12px;padding:13px 14px;background:#fbfdfc}
+.update-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:var(--fs-label);color:var(--muted);font-weight:700}
+.update-stage{padding:3px 9px;border-radius:20px;background:var(--green-soft);color:var(--green)}
+.update-item h3{margin:6px 0 0;font-size:var(--fs-ui)}
+.update-item p{margin:6px 0 0;color:var(--muted);font-size:var(--fs-small);line-height:1.55}
+.update-photos{display:flex;gap:10px;overflow-x:auto;margin-top:10px;padding-bottom:4px}
+.update-photos figure{margin:0;flex:0 0 auto;width:180px}
+.update-photos img{display:block;width:180px;height:120px;object-fit:cover;border-radius:9px;background:#e9efed}
+.update-photos figcaption{margin-top:4px;font-size:var(--fs-label);color:var(--muted)}
+
+/* ---- RERA, documents & litigation (renderLegal) ---- */
+.legal{display:grid;gap:14px}
+.legal-block{border:1px solid var(--line);border-radius:12px;padding:13px 14px;background:#fbfdfc}
+.legal-block h3{margin:0 0 8px;font-size:var(--fs-ui)}
+.legal-list{margin:0;padding:0;list-style:none;display:grid;gap:7px;font-size:var(--fs-small)}
+.legal-list small{display:block;color:var(--muted);margin-top:2px}
+.doc-type{display:inline-block;margin-right:6px;padding:2px 8px;border-radius:6px;background:var(--gold-soft);color:var(--gold-dark);font-size:var(--fs-label);font-weight:700}
+.legal-note{margin:8px 0 0;font-size:var(--fs-label);color:var(--muted)}
+.doc-request,.legal-source{display:inline-block;margin-top:9px;font-size:var(--fs-small);font-weight:700;color:var(--green);text-decoration:none}
+.litigation-item + .litigation-item{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)}
+.legal-status{display:inline-block;padding:4px 11px;border-radius:20px;font-size:var(--fs-label);font-weight:700}
+.legal-status.is-clear{background:var(--green-soft);color:var(--green)}
+.legal-status.is-reported{background:var(--danger-soft);color:var(--danger)}
+.legal-facts{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin:10px 0 0}
+.legal-facts div{margin:0}
+.legal-facts dt{font-size:var(--fs-label);color:var(--muted)}
+.legal-facts dd{margin:2px 0 0;font-size:var(--fs-small);font-weight:700}
+
+/* Five-column tables (prices, towers, phases) keep readable columns on
+   phones and scroll sideways in .table-wrap instead of breaking words
+   letter by letter. */
+#configurationSection table,#towersSection table,#phasesSection table{min-width:560px}
+#configurationSection th,#configurationSection td,#towersSection th,#towersSection td,#phasesSection th,#phasesSection td{overflow-wrap:normal;word-break:normal}

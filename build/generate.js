@@ -220,11 +220,12 @@ function buildPage(template, row, config, allProjects, shareImage, similarCards,
   $("#carpetArea").text(p.firstArea || "—");
   $("#possession").text(p.possession || (p.status === "Ready to Move" ? "Ready" : "—"));
   $("#description").text(p.overview || "Project description will be available soon.");
-  $("#metaLine").text(p.rera ? "RERA: " + p.rera : "");
+  $("#metaLine").text(p.reraNumbers.length ? "RERA: " + p.reraNumbers.join(", ") : "");
   if(p.rera) $("#reraBadge").removeAttr("hidden");
 
   if(p.images.length){
-    $("#mainImage").attr("src", p.images[0].large).attr("data-full", p.images[0].url).attr("alt", p.images[0].alt || p.name);
+    $("#mainImage").attr("src", p.images[0].large).attr("data-full", p.images[0].url)
+      .attr("alt", p.images[0].alt || [p.name, p.locality, p.city].filter(Boolean).join(", "));
     $("#galleryThumbs").html(P.renderThumbs(p));
   }else{
     $("#mainPhoto").addClass("no-image");
@@ -241,6 +242,9 @@ function buildPage(template, row, config, allProjects, shareImage, similarCards,
     ["#amenitiesSection", "#amenities", P.renderAmenities(p)],
     ["#specsSection", "#specifications", P.renderSpecificationRows(p)],
     ["#towersSection", "#towers", P.renderTowerRows(p)],
+    ["#phasesSection", "#phases", P.renderPhaseRows(p)],
+    ["#updatesSection", "#updates", P.renderUpdates(p)],
+    ["#legalSection", "#legal", P.renderLegal(p)],
     ["#prosConsSection", "#prosCons", P.renderProsCons(p)],
     ["#faqSection", "#faqs", P.renderFaqs(p)],
     ["#blogSection", "#projectBlogs", P.renderBlogs(p)]
@@ -248,6 +252,41 @@ function buildPage(template, row, config, allProjects, shareImage, similarCards,
     $(container).html(html);
     toggle($, section, !!html.trim());
   });
+
+  /* Section headings name the project ("Amenities at Shuban Enclave"
+     rather than "Amenities"), which is how buyers search: "<project>
+     price", "<project> floor plan", "<project> amenities". The
+     template's generic headings stay for the fallback page. */
+  const name = p.name;
+  [
+    [$("#propertyType").closest("section"), `${name} Overview`],
+    [$("#aboutSection"), `About ${name}`],
+    [$("#highlightsSection"), `${name} Highlights`],
+    [$("#factsSection"), `${name} Project Details`],
+    [$("#configurationSection"), `${name} Price & Configurations`],
+    [$("#floorPlanSection"), `${name} Floor Plans & Master Plan`],
+    [$("#mediaSection"), `${name} Videos`],
+    [$("#amenitiesSection"), `Amenities at ${name}`],
+    [$("#specsSection"), `${name} Specifications`],
+    [$("#towersSection"), `${name} Tower Details`],
+    [$("#phasesSection"), `${name} Phases & Possession`],
+    [$("#updatesSection"), `${name} Construction Updates`],
+    [$("#legalSection"), `${name} RERA & Legal Status`],
+    [$("#locationSection"), `${name} Location & Connectivity`],
+    [$("#developerSection"), p.developer ? `About ${p.developer}` : ""],
+    [$("#prosConsSection"), `${name} Pros & Cons`],
+    [$("#faqSection"), `${name} FAQs`]
+  ].forEach(([section, text]) => {
+    if(text) section.children("h2").first().html(`<i></i>${P.escapeHtml(text)}`);
+  });
+
+  /* Videos: titles, thumbnails and links in the HTML. The browser
+     swaps in the players (renderMedia() in js/property-details.js). */
+  const videos = P.renderVideos(p);
+  $("#uploadedVideos").html(videos.uploaded);
+  $("#socialVideosWrap").html(videos.social);
+  toggle($, "#uploadedVideosWrap", !!videos.uploaded);
+  toggle($, "#mediaSection", !!(videos.uploaded || videos.social));
 
   /* Compare button on the main photo (js/compare-tray.js). */
   $("#compareBtn").attr("data-compare-slug", p.slug).attr("data-compare-name", p.name).removeClass("hidden");
@@ -292,7 +331,7 @@ function buildPage(template, row, config, allProjects, shareImage, similarCards,
 
   /* Photos, master plans and floor plans, for the image sitemap
      (Google Images: "<project> photos", "<project> floor plan"). */
-  const images = [...p.images, ...p.masterPlans, ...p.floorPlans]
+  const images = [...p.images, ...p.masterPlans, ...p.floorPlans, ...p.updates.flatMap(u => u.photos)]
     .map(i => i.url).filter(u => /^https?:\/\//i.test(u))
     .filter((u, i, a) => a.indexOf(u) === i).slice(0, 30);
 
