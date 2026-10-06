@@ -1655,7 +1655,7 @@ section{
   display:flex;
   flex-direction:column;
   justify-content:space-between;
-  gap:20px;
+  gap:16px;
 
   margin:0;
   padding:24px 22px 20px;
@@ -1672,23 +1672,25 @@ section{
 }
 
 .testi-card:hover{
-  transform:translateY(-4px);
-  box-shadow:0 24px 48px rgba(0,30,26,.36);
+  transform:translateY(-6px);
+  box-shadow:0 28px 56px rgba(0,30,26,.4);
 }
 
 .testi-card blockquote{
   position:relative;
+  flex:1;
   margin:0;
-  padding-top:30px;
+  padding-top:34px;
 
   font-size:var(--fs-body);
-  line-height:1.65;
+  line-height:1.7;
+  color:#22414f;
 }
 
 .testi-card blockquote:before{
   content:"\201C";
   position:absolute;
-  top:-10px;
+  top:-6px;
   left:-3px;
 
   font-family:Georgia, "Times New Roman", serif;
@@ -1728,8 +1730,9 @@ section{
   border-radius:50%;
   border:2px solid #fff;
 
-  background:linear-gradient(135deg, var(--gold), var(--gold-dark));
-  box-shadow:0 0 0 2px var(--gold);
+  background:linear-gradient(135deg, var(--gold) 0%, var(--green) 100%);
+  box-shadow:0 0 0 2px var(--gold), 0 6px 14px rgba(0,60,50,.25);
+  font-size:17px;
 
   color:#fff;
   font-weight:800;
@@ -1741,13 +1744,54 @@ section{
   color:#5b6c75;
 }
 
-/* Blanks that must be replaced with a real buyer's words before launch. */
-.testi .fill-in{
-  padding:1px 4px;
-  border-radius:4px;
-  background:#fff3c4;
-  color:#7a5600;
+/* Card top row: what the buyer valued, and the "Sample" tag. Shared
+   with the /testimonials cards (css/legal.css). */
+.testi-top,
+.testimonial-top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+
+.testi-chip{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+
+  padding:5px 11px;
+  border-radius:999px;
+
+  background:#fbf3de;
+  color:#6b4d00;
+  font-size:var(--fs-label);
+  font-weight:800;
+  letter-spacing:.01em;
+  white-space:nowrap;
+}
+
+/* Marks a sample quote until a real buyer's review replaces it.
+   build/generate.js blocks an indexable build while any remain. */
+.testi-sample{
+  flex:none;
+  padding:3px 8px;
+  border:1px dashed #b9c8c4;
+  border-radius:999px;
+
+  color:#6b7f86;
+  font-size:11px;
   font-weight:700;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+}
+
+.testi-where,
+.testimonial-where{
+  display:block;
+  margin-top:2px;
+  font-size:var(--fs-label);
+  font-weight:700;
+  color:var(--green);
 }
 
 @media (max-width:900px){
