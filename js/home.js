@@ -1033,7 +1033,12 @@ const topLocalitiesState = document.getElementById("topLocalitiesState");
 
 async function loadHomepage(){
 
-  propertyLoading.style.display = "block";
+  /* The build writes the cards into the page, so the refresh below
+     runs behind real listings. A loading message is only needed when
+     there is nothing there yet. */
+  const prebuilt = !!propertyList.querySelector(".property-card");
+  if(!prebuilt) propertyLoading.textContent = "Loading properties...";
+  propertyLoading.style.display = prebuilt ? "none" : "block";
   propertyError.style.display = "none";
   propertyEmpty.style.display = "none";
 
@@ -1057,7 +1062,7 @@ async function loadHomepage(){
     /* The build writes these sections into the HTML. If the live
        refresh fails, keep that content rather than replacing real
        listings with an error - for visitors and crawlers alike. */
-    if(propertyList.querySelector(".property-card")){
+    if(prebuilt){
       propertyLoading.style.display = "none";
       attachPropertyEvents(propertyList);
       attachPropertyEvents(newLaunchesList);
@@ -1096,6 +1101,7 @@ function renderPopularProperties(){
 
   if(!allProperties.length){
     propertyList.innerHTML = "";
+    propertyEmpty.textContent = "No properties found.";
     propertyEmpty.style.display = "block";
     propertyScrollHint.style.display = "none";
     viewAllBtn.style.display = "none";
