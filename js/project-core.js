@@ -527,11 +527,21 @@
   }
 
   function pageTitle(p){
-    if(p.seoTitle) return p.seoTitle;
+    /* The admin's own title wins; the brand is added when it fits, as
+       Google shows it in results and it helps people recognise the site. */
+    if(p.seoTitle){
+      const branded = `${p.seoTitle} | Keys99`;
+      return /keys99/i.test(p.seoTitle) || branded.length > TITLE_MAX ? p.seoTitle : branded;
+    }
     const bhk = p.bhkLabels.length ? p.bhkLabels.join(", ") + " " : "";
     const where = [p.locality, p.city].filter(Boolean).join(", ");
     const head = `${p.name}${where ? " " + where : ""}`;
+    /* The starting price is what buyers scan results for, so the
+       versions with it come first. */
+    const price = p.startingPrice ? ` from ${p.startingPriceText}` : "";
     return fitText([
+      price && `${head} - ${bhk}${p.typeLabel}${price} | Keys99`,
+      price && `${head} | ${bhk ? bhk + "Flats" : p.typeLabel}${price} | Keys99`,
       `${head} - ${bhk}${p.typeLabel}${p.developer ? " by " + p.developer : ""} | Keys99`,
       `${head} - ${bhk}${p.typeLabel} | Keys99`,
       `${head} | ${bhk ? bhk + "Flats" : p.typeLabel} | Keys99`,

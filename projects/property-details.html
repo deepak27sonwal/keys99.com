@@ -95,12 +95,12 @@
 <main id="propertyPage" class="hidden">
   <div class="container">
 
-    <div class="breadcrumb">
+    <nav class="breadcrumb" aria-label="Breadcrumb">
       <a href="../">Home</a><span>›</span>
       <a id="crumbCity" class="hidden"></a><span id="crumbCitySep" class="hidden">›</span>
       <a id="crumbLocality" class="hidden"></a><span id="crumbLocalitySep" class="hidden">›</span>
-      <span id="crumbName">Details</span>
-    </div>
+      <span id="crumbName" aria-current="page">Details</span>
+    </nav>
 
     <!-- IMAGE GALLERY -->
     <section class="gallery-card">
@@ -195,12 +195,6 @@
         <section class="section-card hidden" id="factsSection">
           <h2><i></i>Project Details</h2>
           <div id="facts" class="facts-grid"></div>
-        </section>
-
-        <!-- REELS -->
-        <section class="section-card hidden" id="reelsSection">
-          <h2><i></i>Reels</h2>
-          <div id="reelsGrid" class="reels-grid"></div>
         </section>
 
         <!-- CONFIGURATION -->
@@ -503,7 +497,7 @@
   <div class="contact-gate-backdrop" data-close-gate></div>
   <form class="contact-gate-card" id="contactGateForm" novalidate>
     <button type="button" class="contact-gate-close" data-close-gate aria-label="Close">×</button>
-    <h2 id="contactGateTitle">Chat on WhatsApp</h2>
+    <p class="contact-gate-title" id="contactGateTitle">Chat on WhatsApp</p>
     <p class="contact-gate-note" id="contactGateNote">Share your details so the project expert knows who is getting in touch.</p>
     <label class="contact-gate-field">
       <span>Your Name</span>
@@ -544,7 +538,7 @@
   <div class="contact-gate-card contact-gate-done" id="gateDone" hidden>
     <button type="button" class="contact-gate-close" data-close-gate aria-label="Close">×</button>
     <div class="contact-gate-tick" aria-hidden="true">✓</div>
-    <h2>Site visit requested</h2>
+    <p class="contact-gate-title">Site visit requested</p>
     <p class="contact-gate-note" id="gateDoneText"></p>
     <button type="button" class="contact-gate-submit whatsapp" id="gateDoneWhatsapp">Continue on WhatsApp</button>
     <button type="button" class="contact-gate-secondary" data-close-gate>Done</button>
