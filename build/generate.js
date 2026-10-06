@@ -220,7 +220,7 @@ function buildPage(template, row, config, allProjects, shareImage, similarCards,
   $("#carpetArea").text(p.firstArea || "—");
   $("#possession").text(p.possession || (p.status === "Ready to Move" ? "Ready" : "—"));
   $("#description").text(p.overview || "Project description will be available soon.");
-  $("#metaLine").text(p.rera ? "RERA: " + p.rera : "");
+  $("#metaLine").text(p.reraNumbers.length ? "RERA: " + p.reraNumbers.join(", ") : "");
   if(p.rera) $("#reraBadge").removeAttr("hidden");
 
   if(p.images.length){
@@ -242,6 +242,9 @@ function buildPage(template, row, config, allProjects, shareImage, similarCards,
     ["#amenitiesSection", "#amenities", P.renderAmenities(p)],
     ["#specsSection", "#specifications", P.renderSpecificationRows(p)],
     ["#towersSection", "#towers", P.renderTowerRows(p)],
+    ["#phasesSection", "#phases", P.renderPhaseRows(p)],
+    ["#updatesSection", "#updates", P.renderUpdates(p)],
+    ["#legalSection", "#legal", P.renderLegal(p)],
     ["#prosConsSection", "#prosCons", P.renderProsCons(p)],
     ["#faqSection", "#faqs", P.renderFaqs(p)],
     ["#blogSection", "#projectBlogs", P.renderBlogs(p)]
@@ -266,6 +269,9 @@ function buildPage(template, row, config, allProjects, shareImage, similarCards,
     [$("#amenitiesSection"), `Amenities at ${name}`],
     [$("#specsSection"), `${name} Specifications`],
     [$("#towersSection"), `${name} Tower Details`],
+    [$("#phasesSection"), `${name} Phases & Possession`],
+    [$("#updatesSection"), `${name} Construction Updates`],
+    [$("#legalSection"), `${name} RERA & Legal Status`],
     [$("#locationSection"), `${name} Location & Connectivity`],
     [$("#developerSection"), p.developer ? `About ${p.developer}` : ""],
     [$("#prosConsSection"), `${name} Pros & Cons`],
@@ -325,7 +331,7 @@ function buildPage(template, row, config, allProjects, shareImage, similarCards,
 
   /* Photos, master plans and floor plans, for the image sitemap
      (Google Images: "<project> photos", "<project> floor plan"). */
-  const images = [...p.images, ...p.masterPlans, ...p.floorPlans]
+  const images = [...p.images, ...p.masterPlans, ...p.floorPlans, ...p.updates.flatMap(u => u.photos)]
     .map(i => i.url).filter(u => /^https?:\/\//i.test(u))
     .filter((u, i, a) => a.indexOf(u) === i).slice(0, 30);
 

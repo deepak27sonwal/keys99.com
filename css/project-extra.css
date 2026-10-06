@@ -183,3 +183,39 @@
 .explore-link{display:inline-flex;flex-direction:column;gap:2px;padding:10px 14px;border:1px solid #e7eeec;border-radius:12px;background:#fafcfb;color:#14343b;font-size:var(--fs-ui);font-weight:700;text-decoration:none;transition:border-color .15s}
 .explore-link:hover,.explore-link:focus-visible{border-color:#00866e;color:#00866e}
 .explore-link span{font-size:var(--fs-label);font-weight:600;color:#6b7f86}
+
+/* ---- Construction updates (renderUpdates in js/project-core.js) ---- */
+.updates{display:grid;gap:14px}
+.update-item{border:1px solid var(--line);border-radius:12px;padding:13px 14px;background:#fbfdfc}
+.update-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:var(--fs-label);color:var(--muted);font-weight:700}
+.update-stage{padding:3px 9px;border-radius:20px;background:var(--green-soft);color:var(--green)}
+.update-item h3{margin:6px 0 0;font-size:var(--fs-ui)}
+.update-item p{margin:6px 0 0;color:var(--muted);font-size:var(--fs-small);line-height:1.55}
+.update-photos{display:flex;gap:10px;overflow-x:auto;margin-top:10px;padding-bottom:4px}
+.update-photos figure{margin:0;flex:0 0 auto;width:180px}
+.update-photos img{display:block;width:180px;height:120px;object-fit:cover;border-radius:9px;background:#e9efed}
+.update-photos figcaption{margin-top:4px;font-size:var(--fs-label);color:var(--muted)}
+
+/* ---- RERA, documents & litigation (renderLegal) ---- */
+.legal{display:grid;gap:14px}
+.legal-block{border:1px solid var(--line);border-radius:12px;padding:13px 14px;background:#fbfdfc}
+.legal-block h3{margin:0 0 8px;font-size:var(--fs-ui)}
+.legal-list{margin:0;padding:0;list-style:none;display:grid;gap:7px;font-size:var(--fs-small)}
+.legal-list small{display:block;color:var(--muted);margin-top:2px}
+.doc-type{display:inline-block;margin-right:6px;padding:2px 8px;border-radius:6px;background:var(--gold-soft);color:var(--gold-dark);font-size:var(--fs-label);font-weight:700}
+.legal-note{margin:8px 0 0;font-size:var(--fs-label);color:var(--muted)}
+.doc-request,.legal-source{display:inline-block;margin-top:9px;font-size:var(--fs-small);font-weight:700;color:var(--green);text-decoration:none}
+.litigation-item + .litigation-item{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)}
+.legal-status{display:inline-block;padding:4px 11px;border-radius:20px;font-size:var(--fs-label);font-weight:700}
+.legal-status.is-clear{background:var(--green-soft);color:var(--green)}
+.legal-status.is-reported{background:var(--danger-soft);color:var(--danger)}
+.legal-facts{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin:10px 0 0}
+.legal-facts div{margin:0}
+.legal-facts dt{font-size:var(--fs-label);color:var(--muted)}
+.legal-facts dd{margin:2px 0 0;font-size:var(--fs-small);font-weight:700}
+
+/* Five-column tables (prices, towers, phases) keep readable columns on
+   phones and scroll sideways in .table-wrap instead of breaking words
+   letter by letter. */
+#configurationSection table,#towersSection table,#phasesSection table{min-width:560px}
+#configurationSection th,#configurationSection td,#towersSection th,#towersSection td,#phasesSection th,#phasesSection td{overflow-wrap:normal;word-break:normal}

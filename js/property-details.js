@@ -184,7 +184,7 @@ function renderProject(p){
   setText("description", p.overview || "Project description will be available soon.");
 
   const meta = [];
-  if(p.rera) meta.push("RERA: " + p.rera);
+  if(p.reraNumbers.length) meta.push("RERA: " + p.reraNumbers.join(", "));
   if(p.publishedAt){
     const d = new Date(p.publishedAt);
     if(Number.isFinite(d.getTime())) meta.push("Listed on " + d.toLocaleDateString("en-IN", { day:"numeric", month:"short", year:"numeric" }));
@@ -207,6 +207,9 @@ function renderProject(p){
   fillSection("amenitiesSection", "amenities", P.renderAmenities(p));
   fillSection("specsSection", "specifications", P.renderSpecificationRows(p));
   fillSection("towersSection", "towers", P.renderTowerRows(p));
+  fillSection("phasesSection", "phases", P.renderPhaseRows(p));
+  fillSection("updatesSection", "updates", P.renderUpdates(p));
+  fillSection("legalSection", "legal", P.renderLegal(p));
   fillSection("prosConsSection", "prosCons", P.renderProsCons(p));
   fillSection("faqSection", "faqs", P.renderFaqs(p));
   fillSection("blogSection", "projectBlogs", P.renderBlogs(p));
