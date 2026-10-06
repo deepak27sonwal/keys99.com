@@ -1390,7 +1390,9 @@ function renderTopCities(){
      same listings the old search.html?city= link did. */
   topCitiesList.innerHTML = cities.map(cityCardHtml).join("");
 
-  topCitiesHint.style.display = cities.length > 1 ? "block" : "none";
+  /* Four round city icons fit across even a small phone, so the
+     swipe hint only shows when there are more than that. */
+  topCitiesHint.style.display = cities.length > 4 ? "block" : "none";
 
 }
 

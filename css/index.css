@@ -2509,14 +2509,6 @@ footer{
     font-size:36px;
   }
 
-  .type-card{
-    flex-basis:47%;
-  }
-
-  .city-card{
-    flex-basis:40%;
-  }
-
   .header-logo{
     width:165px;
   }
@@ -3145,5 +3137,142 @@ footer{
   .view-all{
     flex:none;
     white-space:nowrap;
+  }
+}
+
+
+/* =========================================================
+   APP-STYLE TILES ON PHONES AND TABLETS
+   Property types: a 3-per-row grid of rounded illustration tiles
+   with the label underneath. Top cities: a swipeable row of round
+   "story" icons. Desktop keeps the full cards above. Last in the
+   file so it overrides the earlier phone rules for these cards.
+========================================================= */
+
+@media (max-width:900px){
+
+  /* ---- Property types ---- */
+  /* Three per row on phones; tiles never grow past app size, so a
+     tablet fits all six in one row instead of stretching three. */
+  .type-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(96px, 1fr));
+    gap:14px 10px;
+    overflow:visible;
+    padding:2px 0 4px;
+    scroll-snap-type:none;
+  }
+
+  .type-card{
+    border:0;
+    border-radius:0;
+    overflow:visible;
+    background:transparent;
+    box-shadow:none;
+    transition:transform .15s ease;
+    -webkit-tap-highlight-color:transparent;
+  }
+
+  .type-card:hover,
+  .type-card[aria-disabled="true"]:hover{
+    transform:none;
+    box-shadow:none;
+  }
+
+  .type-card:not([aria-disabled="true"]):active{ transform:scale(.96); }
+
+  /* The illustrations carry their own tinted background, so they
+     fill the tile edge to edge (a 4:3 crop of the 5:3 drawing). */
+  .type-img{
+    aspect-ratio:4 / 3;
+    border-radius:16px;
+    border:1px solid #e3efeb;
+    box-shadow:0 4px 12px rgba(0, 60, 50, .07);
+  }
+
+  .type-img img{ object-fit:cover; }
+
+  .type-card:hover img{ transform:none; }
+
+  /* "Coming soon" types: dimmed tile, label still readable. */
+  .type-card[aria-disabled="true"] .type-img{ opacity:.55; }
+
+  .type-body{ padding:7px 2px 0; }
+
+  .type-body h3{
+    font-size:13px;
+    line-height:1.25;
+    margin-bottom:1px;
+  }
+
+  .type-body p{
+    font-size:11px;
+    line-height:1.3;
+  }
+
+  /* Nothing scrolls sideways any more. */
+  #typesHint{ display:none; }
+
+  /* ---- Top cities ---- */
+  .city-grid{
+    gap:14px;
+    padding:6px 4px 8px;
+    scroll-snap-type:x proximity;
+  }
+
+  .city-card{
+    flex:0 0 76px;
+    border:0;
+    border-radius:0;
+    overflow:visible;
+    background:transparent;
+    box-shadow:none;
+    transition:transform .15s ease;
+    -webkit-tap-highlight-color:transparent;
+  }
+
+  .city-card:hover,
+  .city-card:focus-visible{
+    transform:none;
+    box-shadow:none;
+  }
+
+  .city-card:focus-visible .city-img{ outline:2px solid var(--green); outline-offset:3px; }
+
+  .city-card:active{ transform:scale(.96); }
+
+  .city-img{
+    width:68px;
+    height:68px;
+    aspect-ratio:auto;
+    margin:0 auto;
+    border-radius:50%;
+    background:var(--green-soft);
+    box-shadow:0 0 0 2px #fff, 0 0 0 4px var(--gold), 0 6px 14px rgba(0, 60, 50, .12);
+  }
+
+  .city-card:hover .city-img img,
+  .city-card:focus-visible .city-img img{ transform:none; }
+
+  .city-card .city-body{ padding:9px 0 0; }
+
+  .city-card .city-body strong{
+    font-size:12.5px;
+    line-height:1.25;
+    margin:0;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+
+  /* Count as plain text under the name (the green pill is desktop only). */
+  .city-card .city-body span{
+    display:block;
+    margin-top:1px;
+    padding:0;
+    background:none;
+    color:var(--muted);
+    font-size:11px;
+    font-weight:600;
   }
 }
