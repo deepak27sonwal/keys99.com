@@ -182,7 +182,7 @@
       kind: "commercial", base: "commercial", table: "commercial_projects",
       enquiries: "commercial_enquiries", select: null,
       noun: "commercial project", nouns: "commercial projects", unitWord: "unit", unitWords: "units",
-      configWord: "Unit type"
+      configWord: "Unit Type"
     }
   };
   KINDS.residential.select = PROJECT_DETAIL_SELECT;

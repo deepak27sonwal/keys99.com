@@ -156,7 +156,7 @@ function renderProject(p){
   const citySlug = P.slugify(p.city), localitySlug = P.slugify(p.locality);
   setCrumb("crumbCity", p.city, citySlug);
   setCrumb("crumbLocality", p.locality, citySlug && localitySlug ? citySlug + "/" + localitySlug : "");
-  setText("miniBreadcrumb", p.typeLabel);
+  setText("miniBreadcrumb", [p.typeLabel, p.transactionLabel].filter(Boolean).join(" · "));
   setText("propertyType", p.typeLabel);
   /* Generated pages link the name to the developer's page; keep the
      link while the developer is the same one it points to. */
