@@ -20,10 +20,22 @@ const SITE_CONTACT = {
   whatsapp: ""
 };
 
+/* supabaseClient carries the visitor's login (js/account.js) and is
+   used for signing in and saved projects, and by the admin pages.
+   supabasePublic never signs in, so the site's project reads and
+   enquiries always run as the public (anon) role - a signed-in
+   visitor sees exactly what everyone else sees. */
 const supabaseClient =
   window.supabase.createClient(
     SUPABASE_URL,
     SUPABASE_ANON_KEY
+  );
+
+const supabasePublic =
+  window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY,
+    { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false, storageKey: "k99-public" } }
   );
 
 /* Projects live in residential_projects, with their developer,

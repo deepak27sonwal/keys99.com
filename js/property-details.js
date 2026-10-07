@@ -38,34 +38,6 @@ const $ = id => document.getElementById(id);
 const normalize = row => P.normalizeProject(row, { supabaseUrl: SUPABASE_URL, root: SITE_ROOT, kind: KIND.kind });
 
 
-/* ---------------- FAVORITES (localStorage, shared across the site) ---------------- */
-
-function getFavorites(){
-  try{
-    const favorites = JSON.parse(localStorage.getItem("keys99_favorites") || "[]");
-    return Array.isArray(favorites) ? favorites : [];
-  }catch(_){
-    return [];
-  }
-}
-
-function setFavoriteButtonState(isActive){
-  const btn = $("favoriteBtn");
-  btn.classList.toggle("saved", isActive);
-  btn.textContent = isActive ? "♥" : "♡";
-}
-
-function toggleFavorite(){
-  if(!project) return;
-  let favorites = getFavorites();
-  const isActive = favorites.includes(project.id);
-  favorites = isActive ? favorites.filter(id => id !== project.id) : [...favorites, project.id];
-  try{ localStorage.setItem("keys99_favorites", JSON.stringify(favorites)); }catch(_){}
-  setFavoriteButtonState(!isActive);
-  showToast(!isActive ? "Added to favorites" : "Removed from favorites");
-}
-
-
 /* ---------------- BOTTOM NAV ---------------- */
 
 function initBottomNav(){
@@ -97,7 +69,7 @@ async function loadProject(){
   }
 
   try{
-    const { data, error } = await supabaseClient
+    const { data, error } = await supabasePublic
       .from(KIND.table)
       .select(KIND.select)
       .eq(requestedSlug ? "slug" : "id", requestedSlug || requestedId)
@@ -229,7 +201,10 @@ function renderProject(p){
   setupContactButtons(p);
   setupMap(p);
 
-  setFavoriteButtonState(getFavorites().includes(p.id));
+  /* The heart saves to the visitor's account (js/account.js). */
+  $("favoriteBtn").dataset.propertyId = p.id;
+  $("favoriteBtn").dataset.kind = KIND.kind;
+  if(window.Keys99Account) Keys99Account.paint();
 
   $("loading").classList.add("hidden");
   $("errorBox").classList.add("hidden");
@@ -752,9 +727,9 @@ async function sendEnquiry(enquiry, optional){
      out on the retry, with the tracking, if the database lacks them. */
   const tracking = window.Keys99Attribution ? window.Keys99Attribution.get() : {};
   const extra = { ...(optional || {}), ...tracking };
-  let { error } = await supabaseClient.from(KIND.enquiries).insert({ ...enquiry, ...extra });
+  let { error } = await supabasePublic.from(KIND.enquiries).insert({ ...enquiry, ...extra });
   if(error && Object.keys(extra).length && (error.code === "PGRST204" || /column/i.test(error.message || ""))){
-    ({ error } = await supabaseClient.from(KIND.enquiries).insert(enquiry));
+    ({ error } = await supabasePublic.from(KIND.enquiries).insert(enquiry));
   }
   if(error) throw error;
 }
@@ -838,8 +813,6 @@ $("shareBtn").addEventListener("click", async () => {
     }
   }catch(_){}
 });
-
-$("favoriteBtn").addEventListener("click", toggleFavorite);
 
 $("backBtn").addEventListener("click", () => {
   if(document.referrer && new URL(document.referrer).origin === window.location.origin) history.back();

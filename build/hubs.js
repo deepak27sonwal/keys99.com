@@ -817,6 +817,7 @@ ${chrome.bottomNav}
 <script defer src="js/nav-fx.js"></script>
 <script defer src="js/attribution.js"></script>
 <script defer src="js/compare-tray.js"></script>
+<script defer src="js/account.js"></script>
 </body>
 </html>
 `;

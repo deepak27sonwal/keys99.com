@@ -3,8 +3,8 @@
 
    saved.html  The visitor's hearted projects and recently viewed
                ones. Every published project's card is in the page;
-               js/saved.js shows the ones this browser saved, so it
-               works without accounts or a database request.
+               js/saved.js shows the ones saved to the visitor's
+               account (js/account.js).
    reels.html  Every project video (YouTube, Instagram, Facebook or
                an uploaded file) with its project. A thumbnail shows
                first; js/reels.js swaps in the player on tap, so the
@@ -73,7 +73,7 @@ function buildSavedPage({ H, indexHtml, props, siteOrigin }){
     <header class="hub-head">
       <div class="section-kicker">Your shortlist</div>
       <h1>Saved Projects</h1>
-      <p class="hub-intro">Projects you tap ♡ on are kept here, on this device - no account needed.</p>
+      <p class="hub-intro">Projects you tap ♡ on are saved to your Keys99 account, so they are here on every device you log in on.</p>
     </header>
 
     <section class="hub-section" aria-labelledby="savedTitle">
@@ -104,7 +104,7 @@ function buildSavedPage({ H, indexHtml, props, siteOrigin }){
     robots: "noindex,follow",
     css: ["css/media-pages.css"],
     main,
-    scripts: ["js/cards.js", "js/hub.js", "js/nav-fx.js", "js/attribution.js", "js/compare-tray.js", "js/saved.js"]
+    scripts: ["js/cards.js", "js/hub.js", "js/nav-fx.js", "js/attribution.js", "js/compare-tray.js", "js/account.js", "js/saved.js"]
   }), "saved");
 }
 
@@ -228,7 +228,7 @@ function buildReelsPage({ H, P, indexHtml, rows, supabaseUrl, siteOrigin, robots
     css: ["css/media-pages.css"],
     main,
     jsonLd,
-    scripts: ["js/hub.js", "js/nav-fx.js", "js/attribution.js", "js/compare-tray.js", "js/reels.js"]
+    scripts: ["js/hub.js", "js/nav-fx.js", "js/attribution.js", "js/compare-tray.js", "js/account.js", "js/reels.js"]
   }), "reels") };
 }
 

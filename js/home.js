@@ -18,7 +18,7 @@ async function fetchAllProperties(){
      policies enforce the same rule for anonymous visitors; the
      filters here keep signed-in admins from seeing drafts on the
      public homepage too. */
-  const published = (table, select) => supabaseClient
+  const published = (table, select) => supabasePublic
     .from(table)
     .select(select)
     .eq("moderation_status", "published")
@@ -777,7 +777,7 @@ function createPropertyCard(property, badgeLabel, badgeClass){
 
         <span class="badge ${statusClass}">${escapeHtml(status)}</span>
 
-        <button class="fav" aria-label="Add to favorites" data-property-id="${id}" type="button">♡</button>
+        <button class="fav" aria-label="Save this project" data-property-id="${id}"${property.kind === "commercial" ? ` data-kind="commercial"` : ""} type="button">♡</button>
 
         ${slugify(property.slug) ? `<button class="compare-toggle" type="button" aria-pressed="false" data-compare-slug="${escapeHtml(slugify(property.slug))}" data-compare-name="${escapeHtml(title)}"${property.kind === "commercial" ? ` data-compare-kind="commercial"` : ""}>⇄ Compare</button>` : ""}
 
@@ -817,7 +817,7 @@ function createPropertyCard(property, badgeLabel, badgeClass){
 
 
 /* =========================================================
-   ATTACH CARD EVENTS (favorite + view details)
+   ATTACH CARD EVENTS (view details)
    Accepts a root element so it can be reused for every
    property grid on the page.
 ========================================================= */
@@ -878,22 +878,7 @@ function attachPropertyEvents(root){
 
   fitBhkScrolls(root);
 
-  root.querySelectorAll(".fav").forEach(btn => {
-
-    const propertyId = btn.dataset.propertyId;
-
-    if(getFavorites().includes(propertyId)){
-      btn.classList.add("active");
-      btn.textContent = "♥";
-    }
-
-    btn.addEventListener("click", event => {
-      event.preventDefault();
-      event.stopPropagation();
-      toggleFavorite(propertyId, btn, root);
-    });
-
-  });
+  /* The save hearts are handled by js/account.js. */
 
   root.querySelectorAll(".property-card").forEach(card => {
 
@@ -914,43 +899,6 @@ function attachPropertyEvents(root){
       }
     });
 
-  });
-
-}
-
-
-/* =========================================================
-   FAVORITES - LOCAL STORAGE
-========================================================= */
-
-function getFavorites(){
-  try{
-    const favorites = JSON.parse(localStorage.getItem("keys99_favorites") || "[]");
-    return Array.isArray(favorites) ? favorites : [];
-  }catch(error){
-    return [];
-  }
-}
-
-function toggleFavorite(propertyId, button, root){
-
-  let favorites = getFavorites();
-
-  const isActive = favorites.includes(propertyId);
-
-  if(isActive){
-    favorites = favorites.filter(id => id !== propertyId);
-  }else{
-    favorites.push(propertyId);
-  }
-
-  localStorage.setItem("keys99_favorites", JSON.stringify(favorites));
-
-  /* keep every card for this property in sync across sections/pages */
-
-  document.querySelectorAll(`.fav[data-property-id="${CSS.escape(propertyId)}"]`).forEach(favBtn => {
-    favBtn.classList.toggle("active", !isActive);
-    favBtn.textContent = !isActive ? "♥" : "♡";
   });
 
 }

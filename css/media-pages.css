@@ -15,6 +15,12 @@
 .saved-page .search-empty p,
 .reels-page .search-empty p{ margin:0 0 16px; }
 
+/* Saved: who is logged in, with a log-out link (js/saved.js) */
+.saved-account{ display:flex; flex-wrap:wrap; align-items:center; gap:8px 12px; margin:0 0 16px; color:var(--muted); font-size:var(--fs-small, .9rem); }
+.saved-account[hidden]{ display:none; }
+.saved-logout{ background:none; border:0; padding:0; color:var(--green, #006b5b); font:inherit; font-weight:700; text-decoration:underline; cursor:pointer; }
+.saved-page .search-empty button.btn-primary{ border:0; cursor:pointer; font:inherit; }
+
 /* Reels */
 .reel-grid{
   display:grid;

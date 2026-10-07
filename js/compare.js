@@ -137,7 +137,7 @@
   });
 
   async function load(){
-    if(slugs.length < 2 || typeof supabaseClient === "undefined" || !P){
+    if(slugs.length < 2 || typeof supabasePublic === "undefined" || !P){
       if(slugs.length < 2) return showEmpty();
       $("compareStatus").textContent = "Could not load projects. Please try again later.";
       return;
@@ -149,7 +149,7 @@
         const wanted = picks.filter(p => p.kind === kind).map(p => p.slug);
         if(!wanted.length) return;
         const K = P.KINDS[kind];
-        const { data, error } = await supabaseClient
+        const { data, error } = await supabasePublic
           .from(K.table)
           .select(K.select)
           .in("slug", wanted)
