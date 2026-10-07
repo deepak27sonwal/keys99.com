@@ -66,6 +66,18 @@
     return false;
   }
 
+  /* Where Supabase sends the visitor back to after Google or the email
+     link: this page, without a previous login's leftovers. It must match
+     an entry in Supabase's Authentication > URL Configuration > Redirect
+     URLs (e.g. https://keys99.com/**), or Supabase sends the visitor to
+     the project's Site URL instead. */
+  function returnUrl(){
+    const params = new URLSearchParams(location.search);
+    ["code", "error", "error_code", "error_description"].forEach(k => params.delete(k));
+    const query = params.toString();
+    return location.origin + location.pathname + (query ? "?" + query : "");
+  }
+
   function loginInUrl(){
     return /[#&](access_token|error_description)=/.test(location.hash) || /[?&]code=/.test(location.search);
   }
@@ -283,7 +295,7 @@
         const sb = await client();
         const { error } = await sb.auth.signInWithOAuth({
           provider: "google",
-          options: { redirectTo: location.href.split("#")[0] }
+          options: { redirectTo: returnUrl() }
         });
         if(error) throw error;
       }catch(ex){
@@ -302,7 +314,7 @@
         const sb = await client();
         const { error } = await sb.auth.signInWithOtp({
           email,
-          options: { shouldCreateUser: true, emailRedirectTo: location.href.split("#")[0] }
+          options: { shouldCreateUser: true, emailRedirectTo: returnUrl() }
         });
         if(error) throw error;
         $("[data-email]").textContent = email;
