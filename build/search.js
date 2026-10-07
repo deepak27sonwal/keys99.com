@@ -40,6 +40,10 @@ function buildSearchPage({ H, indexHtml, props, siteOrigin }){
     .sort((a, b) => a.label.localeCompare(b.label));
   const bhks = [...new Set(props.flatMap(p => H.getBhkOptions(p).map(o => H.normaliseBhkType(o.type))).filter(b => /bhk/i.test(b)))]
     .sort((a, b) => parseFloat(a) - parseFloat(b));
+  /* Commercial unit types (Office Space, Shop...) share the size filter:
+     cards list them in data-bhks the same way. */
+  const unitTypes = [...new Set(props.filter(p => p.kind === "commercial")
+    .flatMap(p => H.getBhkOptions(p).map(o => H.normaliseBhkType(o.type))).filter(Boolean))].sort();
 
   const option = (value, label, extra) => `<option value="${e(value)}"${extra || ""}>${e(label)}</option>`;
 
@@ -49,8 +53,8 @@ function buildSearchPage({ H, indexHtml, props, siteOrigin }){
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#006b5b">
-<title>Search New Projects &amp; Flats for Sale | Keys99</title>
-<meta name="description" content="Search new residential projects by city, locality, BHK, budget and type on Keys99.">
+<title>Search New Projects, Flats &amp; Commercial Property | Keys99</title>
+<meta name="description" content="Search new residential and commercial projects by city, locality, BHK or unit type, budget and type on Keys99.">
 <link rel="canonical" href="${e(siteOrigin)}/projects/search">
 <meta name="robots" content="noindex,follow">
 <link rel="icon" href="favicon.ico">
@@ -132,11 +136,12 @@ ${chrome.mobileMenu}
           </label>
 
           <label class="sf-field">
-            <span>BHK</span>
+            <span>${unitTypes.length ? "BHK / Unit" : "BHK"}</span>
             <select name="bhk" id="sfBhk">
-              ${option("", "Any BHK")}
+              ${option("", unitTypes.length ? "Any BHK / Unit" : "Any BHK")}
               ${bhks.map(b => option(b.toLowerCase(), b)).join("")}
               ${option("4+ bhk", "4+ BHK")}
+              ${unitTypes.length ? `<optgroup label="Commercial units">${unitTypes.map(u => option(u.toLowerCase(), u)).join("")}</optgroup>` : ""}
             </select>
           </label>
 
@@ -200,6 +205,7 @@ ${chrome.bottomNav}
 <script defer src="js/nav-fx.js"></script>
 <script defer src="js/attribution.js"></script>
 <script defer src="js/compare-tray.js"></script>
+<script defer src="js/account.js"></script>
 <script defer src="js/search.js"></script>
 </body>
 </html>

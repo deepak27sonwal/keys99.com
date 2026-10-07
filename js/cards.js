@@ -1,41 +1,14 @@
 /* =========================================================
    KEYS99 - PROJECT CARD BEHAVIOUR
    For the project cards that build/ writes into the page (hubs,
-   search, saved, and Similar Projects on project pages): the save
-   heart, tapping anywhere on a card to open it, and the one-row
+   search, saved, and Similar Projects on project pages): tapping anywhere on a card to open it, and the one-row
    BHK scroller with its counter. The homepage does the same in
    js/home.js for the cards it renders itself.
 ========================================================= */
 
 (function(){
 
-  /* ---- favourites (shared with the rest of the site) ---- */
-  function getFavorites(){
-    try{
-      const list = JSON.parse(localStorage.getItem("keys99_favorites") || "[]");
-      return Array.isArray(list) ? list : [];
-    }catch(_){
-      return [];
-    }
-  }
-
-  function setFavorites(list){
-    try{ localStorage.setItem("keys99_favorites", JSON.stringify(list)); }catch(_){}
-  }
-
-  document.querySelectorAll(".property-card .fav").forEach(btn => {
-    const id = btn.dataset.propertyId;
-    const paint = on => { btn.classList.toggle("active", on); btn.textContent = on ? "♥" : "♡"; };
-    paint(getFavorites().includes(id));
-    btn.addEventListener("click", e => {
-      e.preventDefault();
-      e.stopPropagation();
-      const list = getFavorites();
-      const on = !list.includes(id);
-      setFavorites(on ? [...list, id] : list.filter(x => x !== id));
-      paint(on);
-    });
-  });
+  /* The save heart (.fav) is handled by js/account.js. */
 
   /* ---- whole card opens the project ---- */
   document.querySelectorAll(".property-card").forEach(card => {

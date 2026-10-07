@@ -61,7 +61,7 @@ function differences(a, b){
   const onlyA = a.bhkLabels.filter(x => !b.bhkLabels.includes(x));
   const onlyB = b.bhkLabels.filter(x => !a.bhkLabels.includes(x));
   const both = a.bhkLabels.filter(x => b.bhkLabels.includes(x));
-  if(both.length) out.push(`Both offer ${both.join(", ")} homes.`);
+  if(both.length) out.push(`Both offer ${both.join(", ")}${a.kind === "commercial" ? "" : " homes"}.`);
   if(onlyA.length) out.push(`Only ${a.name} offers ${onlyA.join(", ")}.`);
   if(onlyB.length) out.push(`Only ${b.name} offers ${onlyB.join(", ")}.`);
   if(a.locality && b.locality){
@@ -83,8 +83,8 @@ function head(p){
   const img = p.images[0];
   return `
           <div class="compare-head">
-            ${img ? `<a class="compare-photo" href="projects/${p.slug}/"><img src="${e(img.card)}" data-full="${e(img.url)}" onerror="${P.IMG_FALLBACK}" alt="${e(img.alt || p.name)}" loading="lazy" decoding="async"></a>` : ""}
-            <a class="compare-name" href="projects/${p.slug}/">${e(p.name)}</a>
+            ${img ? `<a class="compare-photo" href="${p.basePath || "projects"}/${p.slug}/"><img src="${e(img.card)}" data-full="${e(img.url)}" onerror="${P.IMG_FALLBACK}" alt="${e(img.alt || p.name)}" loading="lazy" decoding="async"></a>` : ""}
+            <a class="compare-name" href="${p.basePath || "projects"}/${p.slug}/">${e(p.name)}</a>
             <span class="compare-place">${e([p.locality, p.city].filter(Boolean).join(", "))}</span>
           </div>`;
 }
@@ -138,13 +138,13 @@ function buildPage(pair, ctx){
       inLanguage: "en-IN",
       isPartOf: { "@id": `${siteOrigin}/#website` },
       dateModified: [a.updatedAt, b.updatedAt].filter(Boolean).sort().pop(),
-      about: [a, b].map(p => ({ "@type": "ApartmentComplex", "@id": `${siteOrigin}/projects/${p.slug}/#project`, name: p.name, url: `${siteOrigin}/projects/${p.slug}/` }))
+      about: [a, b].map(p => ({ "@type": p.kind === "commercial" ? "Place" : "ApartmentComplex", "@id": `${siteOrigin}/${p.basePath || "projects"}/${p.slug}/#project`, name: p.name, url: `${siteOrigin}/${p.basePath || "projects"}/${p.slug}/` }))
     },
     {
       "@type": "BreadcrumbList",
       itemListElement: [
         { "@type": "ListItem", position: 1, name: "Home", item: siteOrigin + "/" },
-        ...(city && citySlug ? [{ "@type": "ListItem", position: 2, name: city, item: `${siteOrigin}/projects/${citySlug}/` }] : []),
+        ...(city && citySlug ? [{ "@type": "ListItem", position: 2, name: city, item: `${siteOrigin}/${a.basePath || "projects"}/${citySlug}/` }] : []),
         { "@type": "ListItem", position: city && citySlug ? 3 : 2, name: `${a.name} vs ${b.name}`, item: url }
       ]
     }
@@ -157,7 +157,7 @@ function buildPage(pair, ctx){
   <div class="container">
     <nav class="hub-breadcrumb" aria-label="Breadcrumb">
       <a href="./">Home</a><span>›</span>
-      ${city && citySlug ? `<a href="projects/${citySlug}/">${e(city)}</a><span>›</span>` : ""}
+      ${city && citySlug ? `<a href="${a.basePath || "projects"}/${citySlug}/">${e(city)}</a><span>›</span>` : ""}
       <span aria-current="page">${e(a.name)} vs ${e(b.name)}</span>
     </nav>
     <header class="hub-head">
@@ -171,7 +171,7 @@ function buildPage(pair, ctx){
         <thead><tr><th scope="col" class="compare-corner"><span>Compare</span></th><th scope="col">${head(a)}</th><th scope="col">${head(b)}</th></tr></thead>
         <tbody>${rows.map(([label, x, y]) => `
           <tr><th scope="row">${e(label)}</th><td>${e(x || "—")}</td><td>${e(y || "—")}</td></tr>`).join("")}
-          <tr class="compare-actions"><th scope="row">Details</th>${[a, b].map(p => `<td><a class="btn-primary" href="projects/${p.slug}/">View ${e(p.name)}</a><a class="compare-view" href="projects/${p.slug}/#enquiryWrap">Enquire about price</a></td>`).join("")}</tr>
+          <tr class="compare-actions"><th scope="row">Details</th>${[a, b].map(p => `<td><a class="btn-primary" href="${p.basePath || "projects"}/${p.slug}/">View ${e(p.name)}</a><a class="compare-view" href="${p.basePath || "projects"}/${p.slug}/#enquiryWrap">Enquire about price</a></td>`).join("")}</tr>
         </tbody>
       </table>
     </div>

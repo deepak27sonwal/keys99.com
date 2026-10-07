@@ -28,6 +28,24 @@
     location.replace(b[1] + "projects/" + b[2] + "/#blogSection");
     return;
   }
+  /* The same for a commercial project: commercial/property-details.html
+     loads it by slug. A commercial listing page not built yet (a new
+     city or locality) goes to all commercial projects. */
+  var c = path.match(/^(.*\/)commercial\/([a-z0-9]+(?:-[a-z0-9]+)*)\/?$/);
+  if(c && c[2] !== "property-details"){
+    location.replace(c[1] + "commercial/property-details.html?slug=" + c[2] + location.hash);
+    return;
+  }
+  var cb = path.match(/^(.*\/)commercial\/([a-z0-9]+(?:-[a-z0-9]+)*)\/blog\/[a-z0-9]+(?:-[a-z0-9]+)*\/?$/);
+  if(cb){
+    location.replace(cb[1] + "commercial/" + cb[2] + "/#blogSection");
+    return;
+  }
+  var cl = path.match(/^(.*\/)commercial\/[a-z0-9]+(?:-[a-z0-9]+)*\/[a-z0-9]+(?:-[a-z0-9]+)*\/?$/);
+  if(cl){
+    location.replace(cl[1] + "commercial/");
+    return;
+  }
   /* A developer whose page has not been built yet: the list of all developers. */
   var d = path.match(/^(.*\/)developers\/[a-z0-9]+(?:-[a-z0-9]+)*\/?$/);
   if(d){

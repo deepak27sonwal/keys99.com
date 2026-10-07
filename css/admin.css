@@ -67,6 +67,7 @@ button, input, select, textarea{ font:inherit; color:inherit; }
 
 .adm-lead-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
 .adm-name{ font-size:15px; margin-right:6px; }
+.adm-kind{ display:inline-block; margin-left:6px; padding:1px 8px; border-radius:999px; font-size:11px; font-weight:700; background:#fbf3de; color:#6b4d00; vertical-align:middle; }
 .adm-type{ display:inline-block; padding:2px 9px; border-radius:999px; font-size:11px; font-weight:700; background:#eef3f1; color:var(--green-dark); vertical-align:middle; }
 .adm-type.type-whatsapp_now{ background:#e2f6ea; color:#157a3f; }
 .adm-type.type-request_callback{ background:#e7effb; color:#1f5fb4; }

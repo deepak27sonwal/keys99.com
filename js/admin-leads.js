@@ -16,8 +16,20 @@
     whatsapp_now: "WhatsApp",
     request_callback: "Call",
     schedule_site_visit: "Site visit",
-    get_price_details: "Price details"
+    get_price_details: "Price details",
+    request_lease_details: "Lease details"
   };
+
+  /* Leads come from two tables: homes (residential_enquiries) and
+     commercial projects (commercial_enquiries). Each lead remembers
+     which, so links and updates go to the right place. */
+  const SOURCES = [
+    { kind: "residential", table: "residential_enquiries", base: "projects",
+      select: "*, project:residential_projects!residential_enquiries_project_id_fkey(project_name, slug)" },
+    { kind: "commercial", table: "commercial_enquiries", base: "commercial",
+      select: "*, project:commercial_projects!commercial_enquiries_project_id_fkey(project_name, slug)" }
+  ];
+  const sourceFor = lead => SOURCES.find(src => src.kind === lead.__kind) || SOURCES[0];
   const STATUSES = {
     new: "New",
     contacted: "Contacted",
@@ -73,7 +85,7 @@
   /* ---------- lead details ---------- */
 
   const configurationOf = lead => {
-    const m = /(?:Configuration|Preferred BHK):\s*(.+)/i.exec(lead.message || "");
+    const m = /(?:Configuration|Preferred BHK|Unit type):\s*(.+)/i.exec(lead.message || "");
     return m ? m[1].trim() : "";
   };
 
@@ -136,11 +148,18 @@
 
   async function load(){
     $("admCount").textContent = "Loading leads...";
-    const { data, error } = await supabaseClient
-      .from("residential_enquiries")
-      .select("*, project:residential_projects!residential_enquiries_project_id_fkey(project_name, slug)")
+    const results = await Promise.all(SOURCES.map(src => supabaseClient
+      .from(src.table)
+      .select(src.select)
       .order("created_at", { ascending: false })
-      .limit(LIMIT);
+      .limit(LIMIT)
+      .then(res => ({ ...res, src }))));
+    /* Homes are required; commercial leads are added when readable. */
+    const error = results[0].error;
+    results.slice(1).forEach(r => { if(r.error) console.error(`Leads (${r.src.kind}) failed:`, r.error); });
+    const data = results.flatMap(r => r.error ? [] : (r.data || []).map(l => ({ ...l, __kind: r.src.kind })))
+      .sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)))
+      .slice(0, LIMIT);
     if(error){
       console.error("Leads failed:", error);
       $("admCount").textContent = "";
@@ -204,7 +223,7 @@
 
     $("admList").innerHTML = list.map(l => {
       const project = l.project ? l.project.project_name : "Unknown project";
-      const projectUrl = l.project ? `../projects/${encodeURIComponent(l.project.slug)}/` : "";
+      const projectUrl = l.project ? `../${sourceFor(l).base}/${encodeURIComponent(l.project.slug)}/` : "";
       const config = configurationOf(l);
       const source = sourceOf(l);
       const visit = visitText(l.preferred_visit_date, l.preferred_visit_time);
@@ -220,13 +239,13 @@
           <time datetime="${esc(l.created_at)}" title="${esc(new Date(l.created_at).toLocaleString("en-IN"))}">${esc(ago(l.created_at))}</time>
         </div>
         <div class="adm-lead-body">
-          <p class="adm-project">${projectUrl ? `<a href="${esc(projectUrl)}" target="_blank" rel="noopener">${esc(project)}</a>` : esc(project)}${config ? ` · <b>${esc(config)}</b>` : ""}</p>
+          <p class="adm-project">${projectUrl ? `<a href="${esc(projectUrl)}" target="_blank" rel="noopener">${esc(project)}</a>` : esc(project)}${l.__kind === "commercial" ? ` <span class="adm-kind">Commercial</span>` : ""}${config ? ` · <b>${esc(config)}</b>` : ""}</p>
           ${visit ? `<p class="adm-visit${isUpcomingVisit(l) ? " is-upcoming" : ""}">📅 ${esc(visit)}</p>` : ""}
           ${l.message ? `<p class="adm-message">${esc(l.message)}</p>` : ""}
           <p class="adm-meta">
             ${esc(l.phone || "")}${l.email ? ` · ${esc(l.email)}` : ""}
             ${source ? ` · Source: ${esc(source)}` : ""}
-            ${l.page_url ? ` · From: ${esc(l.page_url.replace(/^.*?\/projects\//, "/projects/"))}` : ""}
+            ${l.page_url ? ` · From: ${esc(l.page_url.replace(/^.*?\/(projects|commercial)\//, "/$1/"))}` : ""}
           </p>
         </div>
         <div class="adm-lead-actions">
@@ -244,7 +263,8 @@
   /* ---------- updates ---------- */
 
   async function update(id, changes){
-    const { error } = await supabaseClient.from("residential_enquiries").update(changes).eq("id", id);
+    const target = leads.find(l => l.id === id);
+    const { error } = await supabaseClient.from(sourceFor(target || {}).table).update(changes).eq("id", id);
     if(error){
       console.error("Update failed:", error);
       toast("Could not save: " + error.message);

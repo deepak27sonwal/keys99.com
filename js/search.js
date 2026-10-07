@@ -161,9 +161,13 @@
   function apply(push){
     const v = values();
 
-    /* Projects are new homes for sale; there are no rentals yet. */
+    /* Homes are new projects for sale. "Rent" shows what can be leased:
+       commercial projects offered for lease (data-deal). */
     const rentals = v.status === "rent" || v.type === "rent";
-    const visible = rentals ? [] : cards.filter(c => matches(c, v));
+    const leasable = c => c.dataset.deal === "lease" || c.dataset.deal === "sale_and_lease";
+    const visible = rentals
+      ? cards.filter(c => leasable(c) && matches(c, { ...v, type: v.type === "rent" ? "" : v.type }))
+      : cards.filter(c => matches(c, v));
 
     cards.forEach(c => { c.hidden = !visible.includes(c); });
     sortCards(visible, v.sort).forEach(c => results.appendChild(c));
@@ -171,12 +175,13 @@
     countEl.textContent = `${visible.length} ${visible.length === 1 ? "project" : "projects"} found`;
     emptyEl.hidden = visible.length > 0;
     emptyNote.textContent = rentals
-      ? "Keys99 lists new projects for sale - rental listings are coming soon."
+      ? "No properties for lease right now - homes for rent are coming soon."
       : "Try removing a filter or widening the price range.";
 
     const where = label(localitySel) || label(citySel);
     const bhk = label(document.getElementById("sfBhk"));
-    const noun = v.type === "resale" ? "Resale Homes" : rentals ? "Homes for Rent" : "Projects";
+    const noun = v.type === "resale" ? "Resale Homes" : rentals ? "Properties for Lease"
+      : v.type === "commercial" ? "Commercial Projects" : "Projects";
     heading.textContent = where
       ? `${bhk ? bhk + " " : ""}${noun} in ${where}`
       : (bhk ? `${bhk} ${noun}` : (noun === "Projects" ? "Search Projects" : noun));

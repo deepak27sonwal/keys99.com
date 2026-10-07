@@ -290,23 +290,23 @@ function projectAside(p){
   ].join("");
   return `
       <aside class="post-project" aria-label="About ${esc(p.name)}">
-        ${img ? `<a class="post-project-photo" href="projects/${p.slug}/"><img src="${esc(img.large)}" onerror="this.onerror=null;this.src='${esc(img.url)}'" alt="${esc(img.alt || p.name)}" loading="lazy" decoding="async"></a>` : ""}
+        ${img ? `<a class="post-project-photo" href="${p.basePath || "projects"}/${p.slug}/"><img src="${esc(img.large)}" onerror="this.onerror=null;this.src='${esc(img.url)}'" alt="${esc(img.alt || p.name)}" loading="lazy" decoding="async"></a>` : ""}
         <div class="post-project-body">
           ${p.status ? `<span class="post-project-status">${esc(p.status)}</span>` : ""}
-          <h2><a href="projects/${p.slug}/">${esc(p.name)}</a></h2>
+          <h2><a href="${p.basePath || "projects"}/${p.slug}/">${esc(p.name)}</a></h2>
           ${p.location ? `<p class="post-project-where">${esc(p.location)}</p>` : ""}
           ${p.developer ? `<p class="post-project-dev">by ${esc(p.developer)}</p>` : ""}
           <p class="post-project-price">${esc(p.startingPriceText)}${p.startingPrice ? " <small>onwards</small>" : ""}</p>
           ${facts ? `<div class="post-project-facts">${facts}</div>` : ""}
-          <a class="btn-primary" href="projects/${p.slug}/">View project details →</a>
-          <a class="post-project-enquire" href="projects/${p.slug}/#enquiryWrap">Enquire about price &amp; site visit</a>
+          <a class="btn-primary" href="${p.basePath || "projects"}/${p.slug}/">View project details →</a>
+          <a class="post-project-enquire" href="${p.basePath || "projects"}/${p.slug}/#enquiryWrap">Enquire about price &amp; site visit</a>
         </div>
       </aside>`;
 }
 
 function similarLinks(list){
   return list.map(o => `
-        <a class="post-similar" href="projects/${o.slug}/">
+        <a class="post-similar" href="${o.basePath || "projects"}/${o.slug}/">
           <strong>${esc(o.name)}</strong>
           <span>${esc([o.locality, o.city].filter(Boolean).join(", "))}</span>
           <span class="post-similar-price">${esc(o.startingPriceText)}${o.bhkLabels.length ? " · " + esc(o.bhkLabels.join(", ")) : ""}</span>
@@ -317,7 +317,7 @@ function buildProjectPostPage(entry, ctx){
   const { project: p, post: b } = entry;
   const { chrome, siteOrigin, robotsFor, organisation, guides, allPosts, allProjects, defaultShareImage, shareImage, copyUrl } = ctx;
   const url = `${siteOrigin}/${entry.href}`;
-  const projectUrl = `${siteOrigin}/projects/${p.slug}/`;
+  const projectUrl = `${siteOrigin}/${p.basePath || "projects"}/${p.slug}/`;
   const blogUrl = `${siteOrigin}/blog/`;
   const prefix = "../../../../";
   const citySlug = P.slugify(p.city);
@@ -337,7 +337,7 @@ function buildProjectPostPage(entry, ctx){
 
   const crumbs = [
     { name: "Home", item: siteOrigin + "/" },
-    p.city && citySlug ? { name: p.city, item: `${siteOrigin}/projects/${citySlug}/` } : null,
+    p.city && citySlug ? { name: p.city, item: `${siteOrigin}/${p.basePath || "projects"}/${citySlug}/` } : null,
     { name: p.name, item: projectUrl },
     { name: b.title, item: url }
   ].filter(Boolean);
@@ -373,13 +373,13 @@ function buildProjectPostPage(entry, ctx){
   <div class="container">
     <nav class="hub-breadcrumb" aria-label="Breadcrumb">
       <a href="./">Home</a><span>›</span>
-      ${p.city && citySlug ? `<a href="projects/${citySlug}/">${esc(p.city)}</a><span>›</span>` : ""}
-      <a href="projects/${p.slug}/">${esc(p.name)}</a><span>›</span>
+      ${p.city && citySlug ? `<a href="${p.basePath || "projects"}/${citySlug}/">${esc(p.city)}</a><span>›</span>` : ""}
+      <a href="${p.basePath || "projects"}/${p.slug}/">${esc(p.name)}</a><span>›</span>
       <span aria-current="page">${esc(b.title)}</span>
     </nav>
     <div class="post-layout">
       <article class="legal-body blog-body">
-        <div class="section-kicker"><a href="projects/${p.slug}/">${esc(p.name)}</a>${p.locality ? " · " + esc(p.locality) : ""}</div>
+        <div class="section-kicker"><a href="${p.basePath || "projects"}/${p.slug}/">${esc(p.name)}</a>${p.locality ? " · " + esc(p.locality) : ""}</div>
         <h1>${esc(b.title)}</h1>
         <p class="blog-meta">By ${esc(b.author || "Keys99 Team")} · ${dateLine} · ${entry.minutes} min read</p>
         ${b.cover ? `<figure class="post-cover"><img src="${esc(b.cover.large)}" data-full="${esc(b.image)}" alt="${esc(b.title)}" width="1280" height="720" decoding="async" fetchpriority="high" onerror="${CARD_FALLBACK}"></figure>` : ""}
@@ -393,7 +393,7 @@ function buildProjectPostPage(entry, ctx){
         <aside class="blog-cta">
           <strong>Interested in ${esc(p.name)}?</strong>
           <span>See prices, floor plans, amenities and RERA details${p.locality ? ` for this project in ${esc(p.locality)}` : ""}.</span>
-          <a class="btn-primary" href="projects/${p.slug}/">View ${esc(p.name)} →</a>
+          <a class="btn-primary" href="${p.basePath || "projects"}/${p.slug}/">View ${esc(p.name)} →</a>
         </aside>
       </article>
       ${projectAside(p)}

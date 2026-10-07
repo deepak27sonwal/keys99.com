@@ -22,7 +22,7 @@ const cheerio = require("cheerio");
 const { summarise, introText, faqs, listText, bhkSlug, bhkLabelsOf, cityFilterPages } = require("./hubs");
 
 const EXPORTS = [
-  "mapResidentialProject", "createPropertyCard", "cityCardHtml", "localityChipHtml",
+  "mapResidentialProject", "mapCommercialProject", "mergeByNewest", "createPropertyCard", "cityCardHtml", "localityChipHtml",
   "computeTopCities", "computeTopLocalities", "computeSiteStats",
   "formatStatCount", "typeCountText",
   "POPULAR_COUNT", "NEW_LAUNCH_COUNT", "TOP_CITY_COUNT", "TOP_LOCALITY_COUNT",
@@ -181,7 +181,7 @@ function generalFaqs(place){
   ];
 }
 
-function buildGuide(H, props){
+function buildGuide(H, props, commercialProps){
   const cities = H.computeTopCities(props, 50);
   if(!cities.length) return { html: "", faqs: [] };
 
@@ -228,6 +228,12 @@ function buildGuide(H, props){
       chips: filters.budgets.map(b => chip(`projects/${b.path}/`, b.label, b.count)) },
     { icon: "◷", title: `By status in ${mainName}`,
       chips: filters.statuses.map(st => chip(`projects/${st.path}/`, st.label, st.count)) },
+    /* Commercial pages (build/hubs.js), by city. */
+    { icon: "▤", title: "Commercial property",
+      chips: (commercialProps && commercialProps.length ? [
+        ...H.computeTopCities(commercialProps, 6).map(c => chip(H.cityUrl(c.city, "commercial"), `Commercial in ${H.titleCaseName(c.city)}`, c.count)),
+        `<a class="guide-chip guide-chip-more" href="commercial/">All commercial →</a>`
+      ] : []) },
     { icon: "▥", title: "Projects by developer",
       chips: [...devs.slice(0, 6).map(d => chip(`developers/${d.slug}/`, d.name, d.count)),
         `<a class="guide-chip guide-chip-more" href="developers/">All developers →</a>`] }
@@ -294,7 +300,14 @@ function buildHomepage(indexPath, rows, supabaseUrl, reelsHtml, siteOrigin){
   const H = loadHomepageFunctions(html, supabaseUrl);
 
   /* Same order and filters as the live page: newest published first. */
-  const props = rows.map(row => H.mapResidentialProject(row));
+  /* Homes and commercial projects, newest published first. The SEO
+     copy and the Buyer's Guide stay about homes (with a commercial
+     link group); the cards, counts and Commercial tile cover both. */
+  const props = H.mergeByNewest(
+    rows.filter(row => row.__kind !== "commercial").map(row => H.mapResidentialProject(row)),
+    rows.filter(row => row.__kind === "commercial").map(row => H.mapCommercialProject(row)));
+  const homes = props.filter(p => p.kind !== "commercial");
+  const commercial = props.filter(p => p.kind === "commercial");
 
   html = replaceBetween(html, "newlaunches",
     props.filter(p => p.is_new_launch).slice(0, H.NEW_LAUNCH_COUNT)
@@ -316,11 +329,12 @@ function buildHomepage(indexPath, rows, supabaseUrl, reelsHtml, siteOrigin){
      something to show - same rule as setTypeCardState() in the page. */
   html = html.replace(/<a class="type-card" data-type="(\w+)"(?: href="[^"]*"| aria-disabled="true")>/g,
     (_, key) => `<a class="type-card" data-type="${key}" ` +
-      (stats.types[key] ? `href="projects/search?type=${key}">` : `aria-disabled="true">`));
+      (!stats.types[key] ? `aria-disabled="true">`
+        : key === "commercial" ? `href="commercial/">` : `href="projects/search?type=${key}">`));
 
-  html = applyHomepageSeo(H, html, props);
+  html = applyHomepageSeo(H, html, homes.length ? homes : props);
 
-  const guide = buildGuide(H, props);
+  const guide = buildGuide(H, homes.length ? homes : props, commercial);
   html = replaceBetween(html, "guide", guide.html);
   html = replaceBetween(html, "reels", reelsHtml || "");
   const faqLd = guide.faqs.length ? `<script type="application/ld+json">${JSON.stringify({
@@ -339,7 +353,7 @@ function buildHomepage(indexPath, rows, supabaseUrl, reelsHtml, siteOrigin){
     "@type": "ItemList",
     name: `Popular New Projects in ${placeText(cities)}`,
     itemListElement: popular.filter(p => p.slug).map((p, i) => ({
-      "@type": "ListItem", position: i + 1, url: `${origin}/projects/${p.slug}/`, name: p.project_name
+      "@type": "ListItem", position: i + 1, url: `${origin}/${p.base || "projects"}/${p.slug}/`, name: p.project_name
     }))
   }).replace(/</g, "\\u003c")}</script>` : "";
   html = replaceBetween(html, "itemlistld", itemListLd);
