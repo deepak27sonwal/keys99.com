@@ -68,6 +68,12 @@ function summarise(H, props){
   };
 }
 
+/* "It is RERA registered." / "All are..." / "3 are..." */
+function reraSentence(s){
+  if(s.rera === s.count) return s.count === 1 ? "It is RERA registered." : "All are RERA registered.";
+  return `${s.rera} ${s.rera === 1 ? "is" : "are"} RERA registered.`;
+}
+
 function introText(H, s, place, extra){
   const parts = [];
   parts.push(`Explore ${plural(s.count, "residential project", "residential projects")} in ${place} on Keys99${extra ? ", " + extra : ""}.`);
@@ -79,7 +85,7 @@ function introText(H, s, place, extra){
   }
   if(s.developers.length) parts.push(`Developers include ${listText(s.developers, 5)}.`);
   if(s.statuses.length) parts.push(`Status: ${s.statuses.map(([label, n]) => `${n} ${label.toLowerCase()}`).join(", ")}.`);
-  if(s.rera) parts.push(`${s.rera === s.count ? "All" : s.rera} ${s.rera === 1 ? "is" : "are"} RERA registered.`);
+  if(s.rera) parts.push(reraSentence(s));
   return parts.join(" ");
 }
 
@@ -131,6 +137,7 @@ function bhkLabelsOf(H, p){
 const SQFT_PER_SQM = 10.7639;
 function rateRange(H, options){
   const rates = options.map(o => {
+    if(o.unit === " / month") return null;          // a monthly rent, not a rate
     if(o.unitPrice) return o.unit === " / Sq.M" ? o.unitPrice / SQFT_PER_SQM : o.unitPrice;
     const price = H.getNumericPrice(o);
     if(price === null) return null;
@@ -592,6 +599,9 @@ function hubPage(ctx, hub){
   /* Link preview: the first project on the page that has one. */
   const shareImage = shareImageFor ? hub.props.map(shareImageFor).find(Boolean) || null : null;
   const base = hub.base || "projects";                    // top-level folder
+  /* Where the chips (localities, sizes, budgets...) point: the hub's
+     own section; developer pages point into the homes section. */
+  const linkBase = hub.linkBase || (base === "developers" ? "projects" : base);
   const dirPath = [base, ...hub.path.split("/").filter(Boolean)].join("/");
   const depth = dirPath.split("/").length;                 // projects/<city>[/<locality>]/, developers/[<slug>/]
   const prefix = "../".repeat(depth);
@@ -625,7 +635,7 @@ function hubPage(ctx, hub){
           itemListElement: hub.props.map((p, i) => ({
             "@type": "ListItem",
             position: i + 1,
-            url: `${siteOrigin}/projects/${H.slugify(p.slug)}/`,
+            url: `${siteOrigin}/${p.base || "projects"}/${H.slugify(p.slug)}/`,
             name: p.project_name || p.slug
           }))
         }
@@ -729,7 +739,7 @@ ${chrome.mobileMenu}
       <h2 class="section-title" id="hubBhk">${hub.bhk ? `Other flat sizes in ${e(hub.cityName)}` : `Flats by Size in ${e(hub.cityName)}`}</h2>
       <div class="hub-localities">
         ${hub.bhkLinks.map(b => `
-        <a class="locality-chip" href="projects/${e(b.path)}/">
+        <a class="locality-chip" href="${linkBase}/${e(b.path)}/">
           <strong>${e(b.label)} Flats</strong>
           <span class="count">${plural(b.count, "Project", "Projects")}</span>
         </a>`).join("")}
@@ -741,7 +751,7 @@ ${chrome.mobileMenu}
       <h2 class="section-title" id="hubLinks${i}">${e(g.heading)}</h2>
       <div class="hub-localities">
         ${g.links.map(l => `
-        <a class="locality-chip" href="projects/${e(l.path)}/">
+        <a class="locality-chip" href="${linkBase}/${e(l.path)}/">
           <strong>${e(l.label)}</strong>
           <span class="count">${plural(l.count, "Project", "Projects")}</span>
         </a>`).join("")}
@@ -750,10 +760,10 @@ ${chrome.mobileMenu}
 
     ${hub.localities && hub.localities.length ? `
     <section class="hub-section" aria-labelledby="hubLocalities">
-      <h2 class="section-title" id="hubLocalities">Localities in ${e(hub.cityName)}</h2>
+      <h2 class="section-title" id="hubLocalities">${e(hub.localitiesHeading || "Localities in " + hub.cityName)}</h2>
       <div class="hub-localities">
         ${hub.localities.map(l => `
-        <a class="locality-chip" href="projects/${e(l.path)}/">
+        <a class="locality-chip" href="${linkBase}/${e(l.path)}/">
           <strong>${e(l.name)}</strong>
           <span class="count">${plural(l.count, "Project", "Projects")}</span>
         </a>`).join("")}
@@ -765,7 +775,7 @@ ${chrome.mobileMenu}
       <h2 class="section-title" id="hubNearby">More localities in ${e(hub.cityName)}</h2>
       <div class="hub-localities">
         ${hub.siblings.map(l => `
-        <a class="locality-chip" href="projects/${e(l.path)}/">
+        <a class="locality-chip" href="${linkBase}/${e(l.path)}/">
           <strong>${e(l.name)}</strong>
           <span class="count">${plural(l.count, "Project", "Projects")}</span>
         </a>`).join("")}
@@ -992,7 +1002,7 @@ function developerCopy(H, s, dev, place){
     : s.maxPrice > s.minPrice ? `from ${H.formatPrice(s.minPrice)} to ${H.formatPrice(s.maxPrice)}` : `from ${H.formatPrice(s.minPrice)}`;
 
   const intro = [
-    `${dev.name} has ${plural(n, "residential project", "residential projects")} listed on Keys99 in ${localities.length ? listText(localities, 5) + ", " : ""}${place}.`,
+    `${dev.name} has ${plural(n, "project", "projects")} listed on Keys99 in ${localities.length ? listText(localities, 5) + ", " : ""}${place}.`,
     s.bhks.length ? `Configurations: ${listText(s.bhks)}.` : "",
     priceRange ? `Prices ${s.maxPrice > s.minPrice ? "range" : "start"} ${priceRange}.` : "",
     s.statuses.length ? `Status: ${s.statuses.map(([label, c]) => `${c} ${label.toLowerCase()}`).join(", ")}.` : ""
@@ -1080,7 +1090,7 @@ function collectDeveloperHubs(H, props, rows){
         `Real Estate Developers & Builders in ${listText(allCities, 2)} | Keys99`,
         "Real Estate Developers & Builders | Keys99"
       ], 65),
-      intro: `Browse ${plural(devs.length, "developer", "developers")} with ${plural(devProps.length, "new residential project", "new residential projects")} in ${place} on Keys99, including ${listText(devs.map(d => d.name), 4)}. Open a developer to see all of their projects, prices and configurations.`,
+      intro: `Browse ${plural(devs.length, "developer", "developers")} with ${plural(devProps.length, "new project", "new projects")} in ${place} on Keys99, including ${listText(devs.map(d => d.name), 4)}. Open a developer to see all of their projects, prices and configurations.`,
       questions: [{
         q: `Which developers have new projects in ${place}?`,
         a: `Keys99 lists projects by ${listText(devs.map(d => d.name))}.`
@@ -1122,9 +1132,179 @@ function collectDeveloperHubs(H, props, rows){
   return pages;
 }
 
+/* ---------- Commercial pages: /commercial/, /commercial/<city>/,
+   /commercial/<city>/<locality>/, and per city the project types
+   (office-spaces, shops...), statuses and for-lease. ----------
+   Same page layout as the homes hubs (hubPage), with their own
+   wording through hub.copy. Thin pages stay out of the index by the
+   same HUB_MIN_INDEXED rule. */
+
+const COMMERCIAL_TYPE_PAGES = {
+  office: ["office-spaces", "Office Spaces"],
+  shop: ["shops", "Shops"],
+  showroom: ["showrooms", "Showrooms"],
+  warehouse: ["warehouses", "Warehouses"],
+  industrial: ["industrial-spaces", "Industrial Spaces"],
+  healthcare: ["healthcare-spaces", "Healthcare Spaces"],
+  education: ["education-spaces", "Education Spaces"],
+  hospitality: ["hospitality-spaces", "Hospitality Spaces"],
+  commercial_land: ["commercial-land", "Commercial Land"],
+  commercial_building: ["commercial-buildings", "Commercial Buildings"]
+};
+
+function commercialCopy(hub){
+  return (H, s) => {
+    const place = hub.place;
+    const what = hub.what || "commercial projects";
+    const units = s.bhks.length ? listText(s.bhks, 5) : "";
+    const priceText = s.minPrice === null ? ""
+      : s.maxPrice > s.minPrice ? `from ${H.formatPrice(s.minPrice)} to ${H.formatPrice(s.maxPrice)}` : `from ${H.formatPrice(s.minPrice)}`;
+    const intro = [
+      `Explore ${plural(s.count, what.replace(/s$/, ""), what)} in ${place} on Keys99${hub.introExtra ? ", " + hub.introExtra : ""}.`,
+      units ? `Units available: ${units}.` : "",
+      priceText ? `Prices ${s.maxPrice > s.minPrice ? "range" : "start"} ${priceText}.` : "",
+      s.developers.length ? `Developers include ${listText(s.developers, 5)}.` : "",
+      s.statuses.length ? `Status: ${s.statuses.map(([label, n]) => `${n} ${label.toLowerCase()}`).join(", ")}.` : "",
+      s.rera ? reraSentence(s) : ""
+    ].filter(Boolean).join(" ");
+    const questions = [{
+      q: `How many ${what} are there in ${place}?`,
+      a: `Keys99 currently lists ${plural(s.count, what.replace(/s$/, ""), what)} in ${place}.`
+    }];
+    if(priceText) questions.push({
+      q: `What is the price of ${what} in ${place}?`,
+      a: `Prices for ${what} in ${place} ${s.maxPrice > s.minPrice ? "range" : "start"} ${priceText}, depending on the project, unit size and floor.`
+    });
+    if(units) questions.push({
+      q: `What kind of units are available in ${place}?`,
+      a: `${hub.h1.replace(/ in .*$/, "")} in ${place} offer ${units}.`
+    });
+    if(s.developers.length) questions.push({
+      q: `Which developers have ${what} in ${place}?`,
+      a: `${what.charAt(0).toUpperCase() + what.slice(1)} in ${place} are by ${listText(s.developers)}.`
+    });
+    return {
+      title: P.fitText([
+        `${hub.h1} | ${units ? units.replace(/ and /g, " & ") + " | " : ""}Keys99`,
+        `${hub.h1}${priceText ? " " + priceText.replace(/ to .*$/, "") : ""} | Keys99`,
+        `${hub.h1} | Keys99`
+      ], 65),
+      intro,
+      questions,
+      facts: [
+        ["Projects", String(s.count)],
+        s.minPrice !== null ? ["Starting from", H.formatPrice(s.minPrice)] : null,
+        units ? ["Unit Types", s.bhks.join(", ")] : null,
+        s.developers.length ? ["Developers", String(s.developers.length)] : null
+      ].filter(Boolean)
+    };
+  };
+}
+
+function collectCommercialHubs(H, props, reservedSlugs){
+  if(!props.length) return [];
+  const latest = list => list.map(p => p.created_at).filter(Boolean).sort().pop();
+  const crumbRoot = { name: "Commercial", base: "commercial" };
+  const cities = new Map();
+  props.forEach(p => {
+    const citySlug = H.slugify(p.city);
+    if(!citySlug) return;
+    if(!cities.has(citySlug)) cities.set(citySlug, { slug: citySlug, name: H.titleCaseName(p.city), state: H.titleCaseName(p.state), props: [], localities: new Map() });
+    const city = cities.get(citySlug);
+    city.props.push(p);
+    const locSlug = H.slugify(p.locality);
+    if(!locSlug) return;
+    if(!city.localities.has(locSlug)) city.localities.set(locSlug, { slug: locSlug, name: H.titleCaseName(p.locality), props: [] });
+    city.localities.get(locSlug).props.push(p);
+  });
+
+  const cityList = [...cities.values()].filter(c => {
+    if(!reservedSlugs.has(c.slug)) return true;
+    console.warn(`  skipped  city hub /commercial/${c.slug}/: a commercial project already uses that slug`);
+    return false;
+  }).sort((a, b) => b.props.length - a.props.length || a.name.localeCompare(b.name));
+  const allPlace = listText(cityList.map(c => c.name), 3) || "India";
+  const hubs = [];
+  const push = hub => hubs.push({ base: "commercial", ...hub, copy: commercialCopy(hub) });
+
+  push({
+    path: "", place: allPlace, h1: `Commercial Projects in ${allPlace}`, kicker: "Commercial",
+    listHeading: "All Commercial Projects", crumbs: [crumbRoot], props,
+    localities: cityList.map(c => ({ path: c.slug, name: c.name, count: c.props.length })),
+    localitiesHeading: "Commercial Projects by City",
+    lastmod: latest(props)
+  });
+
+  cityList.forEach(city => {
+    const taken = new Set(city.localities.keys());
+    const localities = [...city.localities.values()]
+      .sort((a, b) => b.props.length - a.props.length || a.name.localeCompare(b.name))
+      .map(l => ({ path: `${city.slug}/${l.slug}`, name: l.name, count: l.props.length, props: l.props }));
+
+    /* Filter pages, each only when it narrows the list and its slug is free. */
+    const filters = [];
+    const addFilter = (slug, label, what, list, group) => {
+      if(!list.length || list.length === city.props.length && group !== "type") return;
+      if(taken.has(slug)){ console.warn(`  skipped  /commercial/${city.slug}/${slug}/: a locality already uses that slug`); return; }
+      taken.add(slug);
+      filters.push({ slug, path: `${city.slug}/${slug}`, label, what, props: list, group, count: list.length });
+    };
+    Object.entries(COMMERCIAL_TYPE_PAGES).forEach(([type, [slug, label]]) =>
+      addFilter(slug, label, label.toLowerCase(), city.props.filter(p => p.project_type === type), "type"));
+    [...new Set(city.props.map(p => p.status_key).filter(Boolean))].forEach(key => {
+      const label = city.props.find(p => p.status_key === key).status;
+      if(label) addFilter(`${key.replace(/_/g, "-")}-commercial-projects`, `${label} Projects`, `${label.toLowerCase()} commercial projects`,
+        city.props.filter(p => p.status_key === key), "status");
+    });
+    addFilter("for-lease", "For Lease", "commercial projects for lease",
+      city.props.filter(p => p.transaction === "lease" || p.transaction === "sale_and_lease"), "deal");
+    addFilter("for-sale", "For Sale", "commercial projects for sale",
+      city.props.filter(p => p.transaction !== "lease"), "deal");
+
+    const groups = current => [
+      { heading: `Commercial Property Types in ${city.name}`, links: filters.filter(f => f.group === "type" && f.path !== current) },
+      { heading: `By Status in ${city.name}`, links: filters.filter(f => f.group === "status" && f.path !== current) },
+      { heading: `For Sale & Lease in ${city.name}`, links: filters.filter(f => f.group === "deal" && f.path !== current) }
+    ];
+    const cityCrumb = { name: city.name, base: "commercial", path: city.slug };
+
+    push({
+      path: city.slug, place: city.name, cityName: city.name,
+      h1: `Commercial Projects in ${city.name}`,
+      kicker: city.state ? `${city.name}, ${city.state}` : city.name,
+      introExtra: localities.length ? `across ${plural(localities.length, "locality", "localities")} including ${listText(localities.map(l => l.name), 4)}` : "",
+      listHeading: `All Commercial Projects in ${city.name}`,
+      crumbs: [crumbRoot, cityCrumb], props: city.props, localities,
+      linkGroups: groups(""), lastmod: latest(city.props)
+    });
+
+    filters.forEach(f => push({
+      path: f.path, place: city.name, cityName: city.name, what: f.what,
+      h1: `${f.group === "type" ? f.label : f.group === "deal" ? "Commercial Property " + f.label : f.label} in ${city.name}`,
+      kicker: `${f.label} · ${city.name}`,
+      listHeading: `${f.label} in ${city.name}`,
+      crumbs: [crumbRoot, cityCrumb, { name: f.label, base: "commercial", path: f.path }],
+      props: f.props, localities, linkGroups: groups(f.path), lastmod: latest(f.props)
+    }));
+
+    localities.forEach(l => push({
+      path: l.path, place: `${l.name}, ${city.name}`, cityName: city.name,
+      h1: `Commercial Projects in ${l.name}, ${city.name}`,
+      kicker: `${l.name} · ${city.name}`,
+      listHeading: `Commercial Projects in ${l.name}`,
+      crumbs: [crumbRoot, cityCrumb, { name: l.name, base: "commercial", path: l.path }],
+      props: l.props, siblings: localities.filter(o => o.path !== l.path),
+      rateText: rateRange(H, l.props.flatMap(p => H.getBhkOptions(p))),
+      lastmod: latest(l.props)
+    }));
+  });
+  return hubs;
+}
+
 /* postsByProject: project id -> [{ href, title, project, date }],
    links from the site root to that project's blog posts. */
-function buildHubs({ H, indexHtml, props, rows, reservedSlugs, siteOrigin, robots, shareImageFor, defaultShareImage, guides, postsByProject }){
+function buildHubs({ H, indexHtml, props, rows, reservedSlugs, siteOrigin, robots, shareImageFor, defaultShareImage, guides, postsByProject,
+  commercialProps, commercialRows, commercialReservedSlugs }){
   const chrome = homepageChrome(indexHtml);
   const ctx = { H, chrome, siteOrigin, robots, shareImageFor, defaultShareImage, postsByProject };
   const hubs = collectHubs(H, props, reservedSlugs, guides);
@@ -1132,7 +1312,10 @@ function buildHubs({ H, indexHtml, props, rows, reservedSlugs, siteOrigin, robot
     if(!hubs.some(h => h.path === key)) console.warn(`  unused   content/localities/${key}.html: no published project in that locality`);
     else if(!guide.reviewed) console.log(`  draft    content/localities/${key}.html: shown, but the page stays out of the index until checked`);
   });
-  return [...hubs, ...collectDeveloperHubs(H, props, rows)]
+  /* Developer pages list a developer's homes and commercial projects. */
+  return [...hubs,
+    ...collectCommercialHubs(H, commercialProps || [], commercialReservedSlugs || new Set()),
+    ...collectDeveloperHubs(H, [...props, ...(commercialProps || [])], [...(rows || []), ...(commercialRows || [])])]
     .map(hub => hubPage(ctx, hub));
 }
 

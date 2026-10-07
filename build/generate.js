@@ -547,7 +547,10 @@ async function main(){
     indexHtml: fs.readFileSync(indexPath, "utf8"),
     props: goodRows.filter(r => r.__kind !== "commercial").map(mapProp),
     rows: goodRows.filter(r => r.__kind !== "commercial"),
-    reservedSlugs: new Set([...builtSlugs, "property-details", "search"]),
+    commercialProps: goodRows.filter(r => r.__kind === "commercial").map(mapProp),
+    commercialRows: goodRows.filter(r => r.__kind === "commercial"),
+    commercialReservedSlugs: new Set([...buildable.filter(r => r.__kind === "commercial").map(r => r.slug), "property-details"]),
+    reservedSlugs: new Set([...buildable.filter(r => r.__kind !== "commercial").map(r => r.slug), "property-details", "search"]),
     siteOrigin: SITE_ORIGIN,
     shareImageFor: prop => shareById.get(prop.id) || null,
     defaultShareImage: DEFAULT_SHARE_IMAGE,
@@ -566,7 +569,7 @@ async function main(){
      BHK, budget, status) that include the project and are in the
      sitemap. The city page is already in the breadcrumb. */
   const hubLinksById = new Map();
-  hubs.filter(h => h.base === "projects" && h.path.includes("/") && (h.indexable || h.count >= HUB_MIN_INDEXED))
+  hubs.filter(h => (h.base === "projects" || h.base === "commercial") && h.path.includes("/") && (h.indexable || h.count >= HUB_MIN_INDEXED))
     .forEach(h => h.projectIds.forEach(id => {
       if(!hubLinksById.has(id)) hubLinksById.set(id, []);
       hubLinksById.get(id).push({ path: h.path, label: h.label, count: h.count });
