@@ -151,7 +151,7 @@ function buildReelsPage({ H, P, indexHtml, rows, supabaseUrl, siteOrigin, robots
       <div class="reel-body">
         <span class="reel-tag">${e(typeLabel[v.type] || "Video")} · ${e(platformLabel[info.platform])}</span>
         <strong>${e(title)}</strong>
-        <a class="reel-project" href="projects/${e(p.slug)}/">${e(p.name)}${p.location ? ` · ${e([p.locality, p.city].filter(Boolean).join(", "))}` : ""} →</a>
+        <a class="reel-project" href="${e(p.basePath || "projects")}/${e(p.slug)}/">${e(p.name)}${p.location ? ` · ${e([p.locality, p.city].filter(Boolean).join(", "))}` : ""} →</a>
       </div>
     </article>`;
   }).join("");
@@ -195,7 +195,7 @@ function buildReelsPage({ H, P, indexHtml, rows, supabaseUrl, siteOrigin, robots
       thumbnailUrl: thumb,
       uploadDate: d.toISOString(),
       ...(info.platform === "file" ? { contentUrl: v.url } : { embedUrl: info.embed.replace(/[?&]autoplay=1/, "") }),
-      about: { "@type": "ApartmentComplex", name: p.name, url: `${siteOrigin}/projects/${p.slug}/` }
+      about: { "@type": p.kind === "commercial" ? "Place" : "ApartmentComplex", name: p.name, url: `${siteOrigin}/${p.basePath || "projects"}/${p.slug}/` }
     };
   }).filter(Boolean);
   const jsonLd = {

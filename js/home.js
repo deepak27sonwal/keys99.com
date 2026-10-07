@@ -758,6 +758,7 @@ function createPropertyCard(property, badgeLabel, badgeClass){
       data-price="${optionPrices.length ? Math.min(...optionPrices) : ""}"
       data-status="${escapeHtml(property.status_key || "")}"
       data-listing="${property.is_resale ? "resale" : "new"}"
+      data-deal="${escapeHtml(property.transaction || "sale")}"
       data-created="${escapeHtml(property.created_at || "")}"
     >
 
