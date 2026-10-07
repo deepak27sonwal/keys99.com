@@ -77,13 +77,18 @@ function readConfig(){
 
 /* ---------------- DATA ---------------- */
 
-async function fetchProjects(config){
-  const select = P.PROJECT_DETAIL_SELECT.replace(/\s+/g, "");
+/* Published projects of one kind: "residential" (residential_projects)
+   or "commercial" (commercial_projects). Commercial rows are stamped
+   __kind = "commercial" so every later step (normalizeProject, the
+   card mapper, page paths) can tell them apart. */
+async function fetchProjects(config, kind){
+  const K = P.kindOf(kind);
+  const select = K.select.replace(/\s+/g, "");
   const pageSize = 500;
   const rows = [];
 
   for(let from = 0; ; from += pageSize){
-    const url = `${config.url}/rest/v1/residential_projects`
+    const url = `${config.url}/rest/v1/${K.table}`
       + `?select=${encodeURIComponent(select)}`
       + `&moderation_status=eq.published&deleted_at=is.null`
       + `&order=published_at.desc.nullslast,id.asc`;
@@ -102,6 +107,11 @@ async function fetchProjects(config){
     rows.push(...batch);
     if(batch.length < pageSize) break;
   }
+  return stampKind(rows, K.kind);
+}
+
+function stampKind(rows, kind){
+  if(kind === "commercial") rows.forEach(r => { if(r) r.__kind = "commercial"; });
   return rows;
 }
 
@@ -117,14 +127,42 @@ function readDataFile(file){
 const SKIP_URL = /^(?:[a-z][a-z0-9+.-]*:|\/\/|#)/i;
 
 /* The template sits in projects/ and links relative to that;
-   a generated page sits one folder deeper. */
-function rebaseLinks($){
+   a generated page sits one folder deeper. A commercial page sits as
+   deep, but under commercial/, so its links go through ../../projects/
+   and are tidied ("../../projects/../css/x" -> "../../css/x"). */
+function rebaseLinks($, kind){
+  const commercial = kind === "commercial";
   $("[href], [src]").each((_, el) => {
     ["href", "src"].forEach(attr => {
       const v = $(el).attr(attr);
-      if(v && !SKIP_URL.test(v)) $(el).attr(attr, joinPath("../", v));
+      if(v && !SKIP_URL.test(v)) $(el).attr(attr, commercial ? fromProjects("../../projects/", v) : joinPath("../", v));
     });
   });
+}
+
+/* A link written relative to projects/, re-pointed from a page whose
+   way back to projects/ is `prefix`; query and hash kept. */
+function fromProjects(prefix, v){
+  const m = v.match(/^([^?#]*)(.*)$/);
+  let p = path.posix.normalize(prefix + m[1]);
+  if(m[1].endsWith("/") && !p.endsWith("/")) p += "/";
+  return p + m[2];
+}
+
+/* Wording that differs for commercial projects, on the generated
+   pages and the commercial fallback page alike. */
+function applyKindLabels($, kind){
+  if(kind !== "commercial") return;
+  $("#miniBreadcrumb").text("Commercial");
+  $("#bhk").prev("small").text("Unit Types");
+  $("#configurationSection thead tr").html("<th>Unit Type</th><th>Price / Rent</th><th>Carpet Area</th><th>Furnishing</th><th>Status</th>");
+  $("#configurationSection > h2").html("<i></i>Units &amp; Prices");
+  $("#floorPlanSection > h2").html("<i></i>Master Plan");
+  ["#towersSection", "#phasesSection"].forEach(sel => $(sel).find("th").each((_, th) => {
+    if($(th).text() === "Configurations") $(th).text("Unit Types");
+  }));
+  $("#enquiryBhk option[value='']").text("Select Unit Type *");
+  $("#gateBhkField > span").text("Unit Type *");
 }
 
 function setMeta($, selector, attr, value){
@@ -138,7 +176,11 @@ function toggle($, selector, show){
 
 function buildPage(template, row, config, allProjects, shareImage, similarCards, hubLinks, compareLinks){
   const p = P.normalizeProject(row, { supabaseUrl: config.url, root: "../" });   // template-relative; rebaseLinks() adds the extra ../
-  const pageUrl = `${SITE_ORIGIN}/projects/${p.slug}/`;
+  const K = P.kindOf(p.kind);
+  const commercial = K.kind === "commercial";
+  /* Template-relative (projects/) way to this kind's own pages. */
+  const own = commercial ? "../commercial/" : "";
+  const pageUrl = `${SITE_ORIGIN}/${K.base}/${p.slug}/`;
   const title = P.pageTitle(p);
   const description = P.pageDescription(p);
   const ogCopy = p.images.length && shareImage ? shareImage(p.images[0].url) : null;
@@ -172,6 +214,7 @@ function buildPage(template, row, config, allProjects, shareImage, similarCards,
   /* The page script renders from this row immediately and only
      refreshes it from Supabase. */
   const boot = `window.__KEYS99_ROOT__="../../";window.__KEYS99_SLUG__=${JSON.stringify(p.slug)};`
+    + (commercial ? `window.__KEYS99_KIND__="commercial";` : "")
     + `window.__KEYS99_PROJECT__=${JSON.stringify(row).replace(/</g, "\\u003c")};`;
   /* Prefix match: the link may carry a ?v= version (asset-versions.js). */
   const configScript = $('script[src^="../js/config.js"]');
@@ -194,11 +237,12 @@ function buildPage(template, row, config, allProjects, shareImage, similarCards,
   const citySlug = P.slugify(p.city), localitySlug = P.slugify(p.locality);
   [["#crumbCity", p.city, citySlug], ["#crumbLocality", p.locality, citySlug && localitySlug ? `${citySlug}/${localitySlug}` : ""]].forEach(([sel, text, hubPath]) => {
     $(sel).text(text);
-    if(hubPath) $(sel).attr("href", `${hubPath}/`);   // template links are relative to projects/
+    if(hubPath) $(sel).attr("href", `${own}${hubPath}/`);   // template links are relative to projects/
     toggle($, sel, !!text);
     toggle($, sel + "Sep", !!text);
   });
-  $("#miniBreadcrumb").text(p.typeLabel);
+  applyKindLabels($, K.kind);
+  $("#miniBreadcrumb").text([p.typeLabel, p.transactionLabel].filter(Boolean).join(" · "));
   $("#propertyType").text(p.typeLabel);
   $("#developer").text(p.developer || "—");
   $("#developerName").text(p.developer || "—");
@@ -263,8 +307,8 @@ function buildPage(template, row, config, allProjects, shareImage, similarCards,
     [$("#aboutSection"), `About ${name}`],
     [$("#highlightsSection"), `${name} Highlights`],
     [$("#factsSection"), `${name} Project Details`],
-    [$("#configurationSection"), `${name} Price & Configurations`],
-    [$("#floorPlanSection"), `${name} Floor Plans & Master Plan`],
+    [$("#configurationSection"), commercial ? `${name} Units & Prices` : `${name} Price & Configurations`],
+    [$("#floorPlanSection"), commercial ? `${name} Master Plan` : `${name} Floor Plans & Master Plan`],
     [$("#mediaSection"), `${name} Videos`],
     [$("#amenitiesSection"), `Amenities at ${name}`],
     [$("#specsSection"), `${name} Specifications`],
@@ -312,7 +356,7 @@ function buildPage(template, row, config, allProjects, shareImage, similarCards,
   const explore = (hubLinks || []).slice(0, 8);
   if(explore.length){
     $("#exploreList").html(explore.map(h => `
-            <a class="explore-link" href="${P.escapeHtml(h.path)}/">${P.escapeHtml(h.label)}<span>${h.count} project${h.count === 1 ? "" : "s"}</span></a>`).join(""));
+            <a class="explore-link" href="${own}${P.escapeHtml(h.path)}/">${P.escapeHtml(h.label)}<span>${h.count} project${h.count === 1 ? "" : "s"}</span></a>`).join(""));
   }
   toggle($, "#exploreSection", explore.length > 0);
 
@@ -327,7 +371,7 @@ function buildPage(template, row, config, allProjects, shareImage, similarCards,
   $("#locationAdvantages").html(P.renderNearbyRows(p));
   toggle($, "#locationSection", p.nearby.length > 0 || !!p.location);
 
-  rebaseLinks($);
+  rebaseLinks($, K.kind);
 
   /* Photos, master plans and floor plans, for the image sitemap
      (Google Images: "<project> photos", "<project> floor plan"). */
@@ -335,7 +379,7 @@ function buildPage(template, row, config, allProjects, shareImage, similarCards,
     .map(i => i.url).filter(u => /^https?:\/\//i.test(u))
     .filter((u, i, a) => a.indexOf(u) === i).slice(0, 30);
 
-  return { slug: p.slug, html: $.html(), lastmod: p.updatedAt, images };
+  return { slug: p.slug, base: K.base, html: $.html(), lastmod: p.updatedAt, images };
 }
 
 
@@ -382,7 +426,7 @@ function writeSitemap(pages, hubs, articles, extra){
     ...(extra || []).map(loc => ({ loc: SITE_ORIGIN + loc, lastmod: "" })),
     ...(hubs || []).filter(h => h.indexable || h.count >= HUB_MIN_INDEXED)
       .map(h => ({ loc: `${SITE_ORIGIN}/${h.dir}/`, lastmod: day(h.lastmod) })),
-    ...pages.map(p => ({ loc: `${SITE_ORIGIN}/projects/${p.slug}/`, lastmod: day(p.lastmod), images: p.images || [] })),
+    ...pages.map(p => ({ loc: `${SITE_ORIGIN}/${p.base || "projects"}/${p.slug}/`, lastmod: day(p.lastmod), images: p.images || [] })),
     ...(articles || []).map(a => ({ loc: `${SITE_ORIGIN}/${a.dir}/`, lastmod: day(a.lastmod), images: a.image ? [a.image] : [] }))
   ];
   const x = v => String(v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -417,8 +461,15 @@ function checkSampleTestimonials(){
 async function main(){
   checkSampleTestimonials();
   const config = readConfig();
+  /* Residential and commercial projects. --data / --commercial-data
+     read rows from files instead (local testing); with only --data,
+     there are no commercial projects. */
   const dataArg = process.argv.indexOf("--data");
-  const rows = dataArg > -1 ? readDataFile(process.argv[dataArg + 1]) : await fetchProjects(config);
+  const commercialArg = process.argv.indexOf("--commercial-data");
+  const homeRows = dataArg > -1 ? readDataFile(process.argv[dataArg + 1]) : await fetchProjects(config, "residential");
+  const commercialRows = commercialArg > -1 ? stampKind(readDataFile(process.argv[commercialArg + 1]), "commercial")
+    : dataArg > -1 ? [] : await fetchProjects(config, "commercial");
+  const rows = [...homeRows, ...commercialRows];
   const template = fs.readFileSync(TEMPLATE, "utf8");
 
   /* Every project that gets a page, for the "Similar Projects" links. */
@@ -429,7 +480,9 @@ async function main(){
   const indexPath = path.join(ROOT, "index.html");
   const goodRows = rows.filter(r => r && SLUG_RE.test(String(r.slug || "")));
   const H = loadHomepageFunctions(fs.readFileSync(indexPath, "utf8"), config.url);
-  const allProps = goodRows.map(row => H.mapResidentialProject(row));
+  /* Card data for a row of either kind. */
+  const mapProp = row => row.__kind === "commercial" ? H.mapCommercialProject(row) : H.mapResidentialProject(row);
+  const allProps = goodRows.map(mapProp);
 
   /* Resized images first, so pages only point at copies that exist. */
   const thumbs = await buildThumbs({ H, P, props: allProps, rows: goodRows, supabaseUrl: config.url, root: ROOT });
@@ -492,8 +545,8 @@ async function main(){
     postsByProject,
     H,
     indexHtml: fs.readFileSync(indexPath, "utf8"),
-    props: goodRows.map(row => H.mapResidentialProject(row)),
-    rows: goodRows,
+    props: goodRows.filter(r => r.__kind !== "commercial").map(mapProp),
+    rows: goodRows.filter(r => r.__kind !== "commercial"),
     reservedSlugs: new Set([...builtSlugs, "property-details", "search"]),
     siteOrigin: SITE_ORIGIN,
     shareImageFor: prop => shareById.get(prop.id) || null,
@@ -535,11 +588,29 @@ async function main(){
   for(const row of buildable){
     const page = buildPage(template, row, config, allProjects, shareImage, similarCards,
       hubLinksById.get(row.id) || [], comparisons.linksById.get(row.id) || []);
-    const dir = path.join(ROOT, "projects", page.slug);
+    const dir = path.join(ROOT, page.base, page.slug);
     fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(path.join(dir, "index.html"), page.html);
     pages.push(page);
-    console.log("  wrote    /projects/" + page.slug + "/");
+    console.log(`  wrote    /${page.base}/${page.slug}/`);
+  }
+
+  /* Fallback for a commercial project published since the last build
+     (404.html sends /commercial/<slug>/ here): the template with the
+     commercial wording, its links re-pointed from projects/. */
+  {
+    const $f = cheerio.load(template);
+    applyKindLabels($f, "commercial");
+    $f('script[src^="../js/config.js"]').first().before(`<script>window.__KEYS99_KIND__="commercial";</script>\n  `);
+    $f("[href], [src]").each((_, el) => {
+      ["href", "src"].forEach(attr => {
+        const v = $f(el).attr(attr);
+        if(v && !SKIP_URL.test(v)) $f(el).attr(attr, fromProjects("../projects/", v));
+      });
+    });
+    fs.mkdirSync(path.join(ROOT, "commercial"), { recursive: true });
+    fs.writeFileSync(path.join(ROOT, "commercial", "property-details.html"), $f.html());
+    console.log("  wrote    /commercial/property-details.html");
   }
 
   fs.writeFileSync(path.join(ROOT, "projects", "search.html"), buildSearchPage({
@@ -598,9 +669,14 @@ async function main(){
   else fs.rmSync(path.join(ROOT, "blog", "feed.xml"), { force: true });
 
   removeStalePages("projects", [
-    ...pages.map(p => p.slug),
+    ...pages.filter(p => p.base === "projects").map(p => p.slug),
     ...hubs.filter(h => h.base === "projects").map(h => h.path),
-    ...blog.projectPages.map(p => p.path)
+    ...blog.projectPages.filter(p => /^projects\//.test(p.dir)).map(p => p.dir.replace(/^projects\//, ""))
+  ]);
+  removeStalePages("commercial", [
+    ...pages.filter(p => p.base === "commercial").map(p => p.slug),
+    ...hubs.filter(h => h.base === "commercial").map(h => h.path),
+    ...blog.projectPages.filter(p => /^commercial\//.test(p.dir)).map(p => p.dir.replace(/^commercial\//, ""))
   ]);
   removeStalePages("developers", hubs.filter(h => h.base === "developers").map(h => h.path));
   removeStalePages("blog", blog.pages.map(p => p.slug));
@@ -625,7 +701,7 @@ async function main(){
     path.join(ROOT, "terms.html"),
     path.join(ROOT, "saved.html"),
     path.join(ROOT, "reels.html"),
-    ...htmlFiles(ROOT, ["projects", "developers", "blog", "compare", "admin"])
+    ...htmlFiles(ROOT, ["projects", "commercial", "developers", "blog", "compare", "admin"])
   ]);
   console.log(`  versioned CSS/JS links in ${stamped} page(s)`);
 

@@ -21,6 +21,10 @@ const P = window.Keys99Project;
 const SITE_ROOT = window.__KEYS99_ROOT__ || "../";
 const params = new URLSearchParams(window.location.search);
 const embeddedRow = window.__KEYS99_PROJECT__ || null;
+/* Homes (residential_projects, pages under projects/) or commercial
+   projects (commercial_projects, pages under commercial/). Set by the
+   build on commercial pages and the commercial fallback page. */
+const KIND = P.kindOf(window.__KEYS99_KIND__ || params.get("kind") || (embeddedRow && embeddedRow.__kind));
 const requestedSlug = window.__KEYS99_SLUG__ || params.get("slug") || (embeddedRow && embeddedRow.slug) || null;
 /* Older links (and projects without a slug) open the page by id. */
 const requestedId = requestedSlug ? null : (params.get("id") || null);
@@ -31,7 +35,7 @@ let currentImage = 0;
 
 const $ = id => document.getElementById(id);
 
-const normalize = row => P.normalizeProject(row, { supabaseUrl: SUPABASE_URL, root: SITE_ROOT });
+const normalize = row => P.normalizeProject(row, { supabaseUrl: SUPABASE_URL, root: SITE_ROOT, kind: KIND.kind });
 
 
 /* ---------------- FAVORITES (localStorage, shared across the site) ---------------- */
@@ -94,8 +98,8 @@ async function loadProject(){
 
   try{
     const { data, error } = await supabaseClient
-      .from("residential_projects")
-      .select(P.PROJECT_DETAIL_SELECT)
+      .from(KIND.table)
+      .select(KIND.select)
       .eq(requestedSlug ? "slug" : "id", requestedSlug || requestedId)
       .eq("moderation_status", "published")
       .is("deleted_at", null)
@@ -130,7 +134,7 @@ function fillSection(sectionId, containerId, html){
 
 function setCrumb(id, text, path){
   $(id).textContent = text;
-  if(path) $(id).href = SITE_ROOT + "projects/" + path + "/";
+  if(path) $(id).href = SITE_ROOT + KIND.base + "/" + path + "/";
   $(id).classList.toggle("hidden", !text);
   $(id + "Sep").classList.toggle("hidden", !text);
 }
@@ -475,7 +479,7 @@ function contactNumbers(p){
 function whatsappMessage(p, name, bhk){
   return [
     `Hi Keys99, ${name ? `I am ${name} and ` : ""}I am interested in ${p.name}${p.location ? ", " + p.location : ""}.`,
-    bhk ? `Preferred configuration: ${bhk}` : "",
+    bhk ? `Preferred ${KIND.configWord.toLowerCase()}: ${bhk}` : "",
     window.location.href
   ].filter(Boolean).join("\n");
 }
@@ -621,7 +625,7 @@ async function requestVisit(name, phone, bhk){
       preferred_visit_date: date,
       message: [
         `Site visit requested for ${visitDateText(date)} at ${time}.`,
-        bhk ? `Configuration: ${bhk}` : ""
+        bhk ? `${KIND.configWord}: ${bhk}` : ""
       ].filter(Boolean).join("\n"),
       source: "website"
     }, { preferred_visit_time: timeKey });
@@ -681,7 +685,7 @@ $("contactGateForm").addEventListener("submit", async event => {
     return;
   }
   if(needsConfiguration(bhk)){
-    $("gateError").textContent = "Please select a configuration.";
+    $("gateError").textContent = `Please select a ${KIND.configWord.toLowerCase()}.`;
     $("gateError").hidden = false;
     $("gateBhk").focus();
     return;
@@ -715,7 +719,7 @@ $("contactGateForm").addEventListener("submit", async event => {
       preferred_contact_method: mode === "whatsapp" ? "whatsapp" : "phone",
       message: [
         mode === "whatsapp" ? `Opened WhatsApp chat about ${project.name}.` : `Called about ${project.name}.`,
-        bhk ? `Configuration: ${bhk}` : ""
+        bhk ? `${KIND.configWord}: ${bhk}` : ""
       ].filter(Boolean).join("\n"),
       source: "website"
     });
@@ -747,9 +751,9 @@ async function sendEnquiry(enquiry, optional){
      out on the retry, with the tracking, if the database lacks them. */
   const tracking = window.Keys99Attribution ? window.Keys99Attribution.get() : {};
   const extra = { ...(optional || {}), ...tracking };
-  let { error } = await supabaseClient.from("residential_enquiries").insert({ ...enquiry, ...extra });
+  let { error } = await supabaseClient.from(KIND.enquiries).insert({ ...enquiry, ...extra });
   if(error && Object.keys(extra).length && (error.code === "PGRST204" || /column/i.test(error.message || ""))){
-    ({ error } = await supabaseClient.from("residential_enquiries").insert(enquiry));
+    ({ error } = await supabaseClient.from(KIND.enquiries).insert(enquiry));
   }
   if(error) throw error;
 }
@@ -760,7 +764,7 @@ function populateEnquiry(p){
 
   const select = $("enquiryBhk");
   const previous = select.value;
-  select.innerHTML = `<option value="">Select Configuration *</option>` +
+  select.innerHTML = `<option value="">Select ${KIND.configWord} *</option>` +
     p.bhkLabels.map(l => `<option value="${P.escapeHtml(l)}">${P.escapeHtml(l)}</option>`).join("");
   select.value = p.bhkLabels.includes(previous) ? previous : (p.bhkLabels.length === 1 ? p.bhkLabels[0] : "");
   select.closest("label").classList.toggle("hidden", !p.bhkLabels.length);
@@ -783,7 +787,7 @@ $("enquiryForm").addEventListener("submit", async event => {
     return;
   }
   if(needsConfiguration(bhk)){
-    showToast("Please select a configuration.");
+    showToast(`Please select a ${KIND.configWord.toLowerCase()}.`);
     $("enquiryBhk").focus();
     return;
   }
@@ -799,9 +803,10 @@ $("enquiryForm").addEventListener("submit", async event => {
       phone,
       whatsapp: phone,
       email: email || null,
-      enquiry_type: "enquire_now",
+      /* A lease-only commercial project asks for lease terms. */
+      enquiry_type: KIND.kind === "commercial" && !project.forSale ? "request_lease_details" : "enquire_now",
       preferred_contact_method: "whatsapp",
-      message: [message || `Interested in ${project.name}.`, bhk ? `Configuration: ${bhk}` : ""].filter(Boolean).join("\n"),
+      message: [message || `Interested in ${project.name}.`, bhk ? `${KIND.configWord}: ${bhk}` : ""].filter(Boolean).join("\n"),
       source: "website"
     });
     saveContact(name, phone);

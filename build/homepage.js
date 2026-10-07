@@ -22,7 +22,7 @@ const cheerio = require("cheerio");
 const { summarise, introText, faqs, listText, bhkSlug, bhkLabelsOf, cityFilterPages } = require("./hubs");
 
 const EXPORTS = [
-  "mapResidentialProject", "createPropertyCard", "cityCardHtml", "localityChipHtml",
+  "mapResidentialProject", "mapCommercialProject", "mergeByNewest", "createPropertyCard", "cityCardHtml", "localityChipHtml",
   "computeTopCities", "computeTopLocalities", "computeSiteStats",
   "formatStatCount", "typeCountText",
   "POPULAR_COUNT", "NEW_LAUNCH_COUNT", "TOP_CITY_COUNT", "TOP_LOCALITY_COUNT",

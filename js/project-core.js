@@ -94,6 +94,105 @@
     )
   `;
 
+  /* The same page for a commercial project (offices, shops,
+     showrooms...): commercial_projects and its commercial_* tables,
+     which mirror the residential ones. commercial_units takes the
+     place of residential_configurations; there is no floor plan
+     table. normalizeProject(row, { kind:"commercial" }) maps it to
+     the same shape, so every renderer below works for both. */
+  const COMMERCIAL_DETAIL_SELECT = `
+    id, slug, project_name, project_type, transaction_type, status,
+    launch_date, rera_number, rera_numbers,
+    address, pincode, latitude, longitude,
+    total_land_area, land_area_unit, total_towers_buildings, total_floors,
+    total_commercial_units, number_of_phases, total_leasable_area, total_saleable_area,
+    typical_floor_plate, area_unit, built_up_project_area, built_up_project_area_unit,
+    open_green_area_value, open_green_area_unit, occupancy_certificate,
+    overview, highlights,
+    starting_price, maximum_price, price_on_request, price_disclaimer,
+    maintenance_charges, security_deposit_months, lock_in_period_months, rent_escalation_percent,
+    structure, flooring, facade_glazing, lifts_elevators, hvac, power_load_backup, fire_safety,
+    floor_to_ceiling_height, washrooms_pantry, loading_docks, other_specifications,
+    main_image_path, main_image_bucket, seo_title, seo_description,
+    view_count, published_at, created_at, updated_at,
+    developer:developers!commercial_projects_developer_id_fkey ( name, description, logo_url, website ),
+    agent:agents!commercial_projects_agent_id_fkey ( full_name, phone, whatsapp ),
+    city:cities!commercial_projects_city_id_fkey ( name, state, city_image ),
+    locality:localities!commercial_projects_locality_id_fkey ( name ),
+    units:commercial_units!commercial_units_project_id_fkey (
+      unit_type, variant_name, floor_level, transaction_type, carpet_area, built_up_area,
+      super_built_up_area, area_unit, starting_price, maximum_price, price_type, expected_rent,
+      price_on_request, availability, number_of_units, furnishing, washroom, pantry,
+      parking_included, parking_type, display_order, updated_at
+    ),
+    media:commercial_media!commercial_media_project_id_fkey (
+      media_type, category, title, description, media_url, media_path, storage_bucket,
+      alt_text, platform, is_primary, is_active, display_order, created_at
+    ),
+    amenities:commercial_amenities!commercial_amenities_project_id_fkey (
+      category, amenity_name, is_available, display_order
+    ),
+    nearby:commercial_nearby_locations!commercial_nearby_locations_project_id_fkey (
+      category, location_type, name, distance, distance_unit, display_order
+    ),
+    faqs:commercial_faqs!commercial_faqs_project_id_fkey (
+      question, answer, is_published, display_order
+    ),
+    pros_cons:commercial_project_pros_cons!commercial_project_pros_cons_project_id_fkey (
+      item_type, content, is_published, display_order
+    ),
+    blogs:commercial_project_blogs!commercial_project_blogs_project_id_fkey (
+      title, slug, excerpt, body, cover_image_url, cover_image_path, storage_bucket,
+      author, tags, meta_description, is_published, published_at, created_at, updated_at,
+      display_order
+    ),
+    towers:commercial_towers!commercial_towers_project_id_fkey (
+      tower_name, number_of_floors, number_of_units, configurations,
+      tower_status, construction_stage, possession_status, expected_completion_date, display_order
+    ),
+    phases:commercial_project_phases!commercial_project_phases_project_id_fkey (
+      phase_name, construction_start_date, expected_completion_date, rera_possession_date,
+      target_possession_date, configurations, units_per_phase, display_order
+    ),
+    updates:commercial_construction_updates!commercial_construction_updates_project_id_fkey (
+      update_title, update_date, construction_stage, description, is_published, display_order,
+      media:commercial_construction_update_media!commercial_construction_update_media_update_id_fkey (
+        media_url, media_path, storage_bucket, alt_text, caption, display_order
+      )
+    ),
+    documents:commercial_documents!commercial_documents_project_id_fkey (
+      document_type, title, description, visibility
+    ),
+    litigation:commercial_litigation!commercial_litigation_project_id_fkey (
+      status, case_reference_number, case_title, court_tribunal, case_type, current_status,
+      filing_date, latest_hearing_date, next_hearing_date, source_reference_url
+    )
+  `;
+
+  /* Per kind: where its pages live, its tables, and the words used
+     about it. "residential" is the default everywhere. */
+  const KINDS = {
+    residential: {
+      kind: "residential", base: "projects", table: "residential_projects",
+      enquiries: "residential_enquiries", select: null,
+      noun: "residential project", nouns: "residential projects", unitWord: "flat", unitWords: "flats",
+      configWord: "Configuration"
+    },
+    commercial: {
+      kind: "commercial", base: "commercial", table: "commercial_projects",
+      enquiries: "commercial_enquiries", select: null,
+      noun: "commercial project", nouns: "commercial projects", unitWord: "unit", unitWords: "units",
+      configWord: "Unit type"
+    }
+  };
+  KINDS.residential.select = PROJECT_DETAIL_SELECT;
+  KINDS.commercial.select = COMMERCIAL_DETAIL_SELECT;
+
+  function kindOf(v){
+    const key = v && typeof v === "object" ? v.kind : v;
+    return KINDS[key] || KINDS.residential;
+  }
+
   /* ---------------- LABELS ---------------- */
 
   const STATUS_LABELS = {
@@ -118,9 +217,32 @@
     other:"Residential Project"
   };
 
+  const COMMERCIAL_TYPE_LABELS = {
+    office:"Office Space",
+    shop:"Shop",
+    showroom:"Showroom",
+    warehouse:"Warehouse",
+    industrial:"Industrial Space",
+    healthcare:"Healthcare Space",
+    education:"Education Space",
+    hospitality:"Hospitality Space",
+    commercial_land:"Commercial Land",
+    commercial_building:"Commercial Building"
+  };
+
+  const TRANSACTION_LABELS = { sale:"For Sale", lease:"For Lease", sale_and_lease:"For Sale & Lease" };
+
+  const FURNISHING_LABELS = {
+    bare_shell:"Bare Shell", warm_shell:"Warm Shell", semi_furnished:"Semi Furnished",
+    fully_furnished:"Fully Furnished", plug_and_play:"Plug & Play"
+  };
+
+  const OC_LABELS = { received:"Received", applied:"Applied", not_applied:"Not Applied" };
+
   const AVAILABILITY_LABELS = {
     available:"Available",
     sold_out:"Sold Out",
+    leased_out:"Leased Out",
     on_request:"On Request"
   };
 
@@ -134,7 +256,14 @@
     building_facilities:"Building Facilities",
     family_children:"Family & Children",
     lifestyle:"Lifestyle",
-    eco_friendly:"Eco Friendly"
+    eco_friendly:"Eco Friendly",
+    building_services:"Building Services",
+    business_facilities:"Business Facilities",
+    connectivity_it:"Connectivity & IT",
+    food_beverage:"Food & Beverage",
+    logistics:"Logistics",
+    power_utilities:"Power & Utilities",
+    wellness_lifestyle:"Wellness & Lifestyle"
   };
 
   const NEARBY_CATEGORY_LABELS = {
@@ -157,6 +286,20 @@
     ["electrical","Electrical"],
     ["walls_paint","Walls & Paint"],
     ["balcony","Balcony"],
+    ["other_specifications","Other"]
+  ];
+
+  const COMMERCIAL_SPEC_FIELDS = [
+    ["structure","Structure"],
+    ["flooring","Flooring"],
+    ["facade_glazing","Facade & Glazing"],
+    ["lifts_elevators","Lifts & Elevators"],
+    ["hvac","HVAC"],
+    ["power_load_backup","Power Load & Backup"],
+    ["fire_safety","Fire Safety"],
+    ["floor_to_ceiling_height","Floor-to-Ceiling Height"],
+    ["washrooms_pantry","Washrooms & Pantry"],
+    ["loading_docks","Loading Docks"],
     ["other_specifications","Other"]
   ];
 
@@ -183,6 +326,20 @@
   function codeLabel(v, labels){
     const key = clean(v);
     return (labels && labels[key]) || STATUS_LABELS[key] || titleCase(key.replace(/_/g, " "));
+  }
+
+  /* "3" -> "Floor 3"; "Ground" -> "Ground Floor"; "3rd floor" as is. */
+  function floorLabel(v){
+    const f = clean(v);
+    if(!f) return "";
+    if(/floor/i.test(f)) return titleCase(f);
+    return /^\d+$/.test(f) ? "Floor " + f : titleCase(f) + " Floor";
+  }
+
+  /* "Office Space, Shop & Showroom" - at most max items. */
+  function joinList(items, max){
+    const l = items.slice(0, max || items.length);
+    return l.length > 1 ? l.slice(0, -1).join(", ") + " & " + l[l.length - 1] : (l[0] || "");
   }
 
   function formatDate(v){
@@ -340,6 +497,10 @@
   function normalizeProject(row, opts){
     const supabaseUrl = (opts && opts.supabaseUrl) || "";
     const root = (opts && opts.root) || "";
+    /* Commercial rows say so through opts.kind (or a kind the caller
+       stamped on the row). */
+    const K = kindOf((opts && opts.kind) || row.__kind);
+    const commercial = K.kind === "commercial";
     const withCopies = item => Object.assign(item, {
       large: resized(item.url, IMAGE_WIDTHS.large, root),
       small: resized(item.url, IMAGE_WIDTHS.small, root),
@@ -367,32 +528,48 @@
 
     const priceOnRequest = row.price_on_request === true;
 
-    const configurations = list(row.configurations).map(c => {
-      const from = Number(c.starting_price), to = Number(c.maximum_price);
+    /* Residential configurations, or commercial units (same idea: one
+       row per kind of unit, with its area, price and availability). */
+    const configurations = list(commercial ? row.units : row.configurations).map(c => {
+      /* A unit offered on rent quotes a monthly figure: either the
+         price itself (price_type monthly_rent) or expected_rent. */
+      const rentOnly = commercial && (c.price_type === "monthly_rent" || (!(Number(c.starting_price) > 0) && Number(c.expected_rent) > 0));
+      const from = rentOnly ? Number(c.price_type === "monthly_rent" ? c.starting_price : c.expected_rent) : Number(c.starting_price);
+      const to = rentOnly && c.price_type !== "monthly_rent" ? 0 : Number(c.maximum_price);
       const onRequest = priceOnRequest || c.price_on_request === true;
-      const perUnit = c.price_type === "price_per_sq_ft" ? " / Sq.Ft" : c.price_type === "price_per_sq_m" ? " / Sq.M" : "";
+      const perUnit = c.price_type === "price_per_sq_ft" ? " / Sq.Ft" : c.price_type === "price_per_sq_m" ? " / Sq.M"
+        : rentOnly ? " / month" : "";
       let price = "On Request";
       if(!onRequest && from > 0){
         price = formatPrice(from) + (to > from ? " – " + formatPrice(to) : "") + perUnit;
       }
+      const rent = commercial && !rentOnly && Number(c.expected_rent) > 0 ? formatPrice(c.expected_rent) + " / month" : "";
       const area = Number(c.carpet_area);
       /* Price per sq ft: quoted directly for per-sq-ft pricing, otherwise
          the starting price over the carpet area (sq m converted). */
       const sqft = area > 0 ? (c.area_unit === "sq_m" ? area * SQFT_PER_SQM : area) : 0;
       let rate = null;
-      if(!onRequest && from > 0){
+      if(!onRequest && from > 0 && !rentOnly){
         if(c.price_type === "price_per_sq_ft") rate = from;
         else if(c.price_type === "price_per_sq_m") rate = from / SQFT_PER_SQM;
         else if(sqft > 0) rate = from / sqft;
       }
       return {
-        bhk: normaliseBhk(c.bhk_type),
-        variant: clean(c.variant_name),
+        bhk: commercial ? titleCase(c.unit_type) : normaliseBhk(c.bhk_type),
+        variant: commercial ? [clean(c.variant_name), floorLabel(c.floor_level)].filter(Boolean).join(" · ") : clean(c.variant_name),
+        rent,
+        rentOnly,
+        rentValue: rentOnly && !onRequest && from > 0 ? from : null,
+        /* Only worth saying when it differs from the whole project's. */
+        transaction: commercial && clean(c.transaction_type) && c.transaction_type !== row.transaction_type ? codeLabel(c.transaction_type, TRANSACTION_LABELS) : "",
+        furnishing: commercial && clean(c.furnishing) ? codeLabel(c.furnishing, FURNISHING_LABELS) : "",
+        washroom: commercial && clean(c.washroom) && c.washroom !== "none" ? titleCase(c.washroom) + " washroom" : "",
+        pantry: commercial && c.pantry === true ? "Pantry" : "",
         price,
         priceValue: !onRequest && from > 0 && !perUnit ? from : null,
         area: area > 0 ? formatNumber(area) + " " + (c.area_unit === "sq_m" ? "Sq.M" : "Sq.Ft") : "",
         availability: AVAILABILITY_LABELS[c.availability] || "Available",
-        soldOut: c.availability === "sold_out",
+        soldOut: c.availability === "sold_out" || c.availability === "leased_out",
         /* For structured data: the top of the price range, and the
            carpet area as a number with its UN/CEFACT unit code. */
         priceMaxValue: !onRequest && from > 0 && !perUnit ? (to > from ? to : from) : null,
@@ -420,13 +597,17 @@
     const projectFrom = Number(row.starting_price);
     const startingPrice = priceOnRequest ? null
       : (prices.length ? Math.min(...prices) : (projectFrom > 0 ? projectFrom : null));
+    const rents = configurations.map(c => c.rentValue).filter(Boolean);
+    const startingRent = priceOnRequest || startingPrice || !rents.length ? null : Math.min(...rents);
 
     const statusKey = row.status;
     const city = row.city ? titleCase(row.city.name) : "";
     const locality = row.locality ? titleCase(row.locality.name) : "";
     const state = row.city ? titleCase(row.city.state) : "";
-    const name = titleCase(row.project_name) || "Residential Project";
-    const typeLabel = PROJECT_TYPE_LABELS[row.project_type] || "Residential Project";
+    const name = titleCase(row.project_name) || (commercial ? "Commercial Project" : "Residential Project");
+    const typeLabel = commercial
+      ? COMMERCIAL_TYPE_LABELS[row.project_type] || "Commercial Project"
+      : PROJECT_TYPE_LABELS[row.project_type] || "Residential Project";
 
     const amenities = list(row.amenities)
       .filter(a => a.is_available !== false && clean(a.amenity_name))
@@ -457,7 +638,7 @@
       let slug = POST_SLUG_RE.test(clean(b.slug)) ? clean(b.slug) : slugify(b.title) || "post";
       for(let n = 2; postSlugs.has(slug); n++) slug = slug.replace(/-\d+$/, "") + "-" + n;
       postSlugs.add(slug);
-      const path = "projects/" + row.slug + "/blog/" + slug + "/";
+      const path = K.base + "/" + row.slug + "/blog/" + slug + "/";
       return {
         title: clean(b.title),
         slug,
@@ -555,7 +736,8 @@
     const reraNumbers = [clean(row.rera_number), ...(row.rera_numbers || []).map(clean)]
       .filter((v, i, a) => v && a.findIndex(x => x.toLowerCase() === v.toLowerCase()) === i);
 
-    const specifications = SPEC_FIELDS.map(([key,label]) => ({ label, value: clean(row[key]) })).filter(s => s.value);
+    const specifications = (commercial ? COMMERCIAL_SPEC_FIELDS : SPEC_FIELDS)
+      .map(([key,label]) => ({ label, value: clean(row[key]) })).filter(s => s.value);
 
     const facts = [];
     const addFact = (label, value) => { if(clean(value)) facts.push({ label, value: clean(value) }); };
@@ -563,7 +745,19 @@
     if(Number(row.total_land_area) > 0) addFact("Land Area", formatNumber(row.total_land_area) + " " + (UNIT_LABELS[row.land_area_unit] || ""));
     addFact("Towers", row.total_towers_buildings);
     addFact("Floors", row.total_floors);
-    addFact("Total Units", row.total_residential_units);
+    addFact("Total Units", commercial ? row.total_commercial_units : row.total_residential_units);
+    if(commercial){
+      const areaUnit = UNIT_LABELS[row.area_unit] || "Sq.Ft";
+      const area = v => Number(v) > 0 ? formatNumber(v) + " " + areaUnit : "";
+      addFact("Leasable Area", area(row.total_leasable_area));
+      addFact("Saleable Area", area(row.total_saleable_area));
+      addFact("Typical Floor Plate", area(row.typical_floor_plate));
+      addFact("Occupancy Certificate", clean(row.occupancy_certificate) ? codeLabel(row.occupancy_certificate, OC_LABELS) : "");
+      addFact("Maintenance Charges", Number(row.maintenance_charges) > 0 ? "₹ " + formatNumber(row.maintenance_charges) : "");
+      addFact("Security Deposit", Number(row.security_deposit_months) > 0 ? formatNumber(row.security_deposit_months) + " months' rent" : "");
+      addFact("Lock-in Period", Number(row.lock_in_period_months) > 0 ? row.lock_in_period_months + " months" : "");
+      addFact("Rent Escalation", Number(row.rent_escalation_percent) > 0 ? formatNumber(row.rent_escalation_percent) + "% a year" : "");
+    }
     if(Number(row.open_green_area_value) > 0) addFact("Open Green Area", formatNumber(row.open_green_area_value) + " " + (UNIT_LABELS[row.open_green_area_unit] || ""));
     if(Number(row.built_up_project_area) > 0) addFact("Built-up Area", formatNumber(row.built_up_project_area) + " " + (UNIT_LABELS[row.built_up_project_area_unit] || ""));
     addFact("Units per Floor", Number(row.units_per_floor) > 0 ? formatNumber(row.units_per_floor) : "");
@@ -581,8 +775,12 @@
     return {
       id: row.id,
       slug: row.slug,
+      kind: K.kind,
+      basePath: K.base,
       name,
       typeLabel,
+      transactionLabel: commercial && clean(row.transaction_type) ? codeLabel(row.transaction_type, TRANSACTION_LABELS) : "",
+      forSale: !commercial || row.transaction_type !== "lease",
       statusKey: statusKey || "",
       status: STATUS_LABELS[statusKey] || "",
       statusClass: statusKey ? "st-" + String(statusKey).replace(/_/g, "-") : "",
@@ -602,9 +800,15 @@
       overview: clean(row.overview),
       highlights: (row.highlights || []).map(clean).filter(Boolean),
       startingPrice,
-      startingPriceText: startingPrice ? formatPrice(startingPrice) : "Price on Request",
+      /* Lease-only commercial projects quote a monthly rent instead. */
+      startingRent,
+      startingPriceText: startingPrice ? formatPrice(startingPrice)
+        : startingRent ? formatPrice(startingRent) + " / month" : "Price on Request",
       priceDisclaimer: clean(row.price_disclaimer),
       bhkLabels,
+      /* The same list under a kind-neutral name: BHK sizes for homes,
+         unit types (Office Space, Shop...) for commercial. */
+      configLabels: bhkLabels,
       firstArea: (configurations.find(c => c.area) || {}).area || "",
       configurations,
       images,
@@ -663,12 +867,25 @@
       const branded = `${p.seoTitle} | Keys99`;
       return /keys99/i.test(p.seoTitle) || branded.length > TITLE_MAX ? p.seoTitle : branded;
     }
-    const bhk = p.bhkLabels.length ? p.bhkLabels.join(", ") + " " : "";
     const where = [p.locality, p.city].filter(Boolean).join(", ");
     const head = `${p.name}${where ? " " + where : ""}`;
     /* The starting price is what buyers scan results for, so the
        versions with it come first. */
-    const price = p.startingPrice ? ` from ${p.startingPriceText}` : "";
+    const price = p.startingPrice || p.startingRent ? ` from ${p.startingPriceText}` : "";
+    if(p.kind === "commercial"){
+      /* "Office Space & Shop for Sale from ₹ 1.2 Cr" */
+      const units = p.configLabels.length ? joinList(p.configLabels, 3) : p.typeLabel;
+      const deal = p.transactionLabel ? " " + p.transactionLabel.replace(/^For /, "for ") : "";
+      return fitText([
+        price && `${head} | ${units}${deal}${price} | Keys99`,
+        price && `${head} | ${p.typeLabel}${deal}${price} | Keys99`,
+        `${head} | ${units}${deal}${p.developer ? " by " + p.developer : ""} | Keys99`,
+        `${head} | ${p.typeLabel}${deal} | Keys99`,
+        `${head} | Keys99`,
+        `${p.name}${p.city ? " " + p.city : ""} | Keys99`
+      ], TITLE_MAX);
+    }
+    const bhk = p.bhkLabels.length ? p.bhkLabels.join(", ") + " " : "";
     return fitText([
       price && `${head} - ${bhk}${p.typeLabel}${price} | Keys99`,
       price && `${head} | ${bhk ? bhk + "Flats" : p.typeLabel}${price} | Keys99`,
@@ -682,14 +899,19 @@
 
   function pageDescription(p){
     if(p.seoDescription) return p.seoDescription;
+    const commercial = p.kind === "commercial";
+    const offers = !p.configLabels.length ? ""
+      : commercial ? `offers ${joinList(p.configLabels, 4)}${p.transactionLabel ? " " + p.transactionLabel.toLowerCase() : ""}`
+      : `offers ${p.bhkLabels.join(", ")} ${p.typeLabel.toLowerCase()}s`;
     const parts = [
       `${p.name}${p.locality ? " in " + p.locality : ""}${p.city ? ", " + p.city : ""}`,
       p.developer ? `by ${p.developer}` : "",
-      p.bhkLabels.length ? `offers ${p.bhkLabels.join(", ")} ${p.typeLabel.toLowerCase()}s` : "",
-      p.startingPrice ? `from ${p.startingPriceText}` : "",
+      offers,
+      p.startingPrice || p.startingRent ? `from ${p.startingPriceText}` : "",
     ].filter(Boolean).join(" ");
     const tail = [p.status, p.possession ? "possession " + p.possession : "", p.rera ? "RERA " + p.rera : ""].filter(Boolean).join(", ");
-    const close = " Photos, floor plans, amenities and price on Keys99.";
+    const close = commercial ? " Photos, unit sizes, amenities and price on Keys99."
+      : " Photos, floor plans, amenities and price on Keys99.";
     /* Longest version that fits in Google's snippet. */
     return fitText([
       parts + "." + (tail ? " " + tail + "." : "") + close,
@@ -705,10 +927,12 @@
     return p.configurations.map(c => `
       <tr>
         <td>${escapeHtml(c.bhk)}${c.variant ? ` <small>${escapeHtml(c.variant)}</small>` : ""}</td>
-        <td>${escapeHtml(c.price)}${c.rateText && !/\/ Sq/.test(c.price) ? `<small class="config-rate">${escapeHtml(c.rateText)}</small>` : ""}</td>
+        <td>${escapeHtml(c.price)}${c.rateText && !/\/ Sq/.test(c.price) ? `<small class="config-rate">${escapeHtml(c.rateText)}</small>` : ""}${c.rent ? `<small class="config-rate">Rent ${escapeHtml(c.rent)}</small>` : ""}${c.transaction ? `<small>${escapeHtml(c.transaction)}</small>` : ""}</td>
         <td>${escapeHtml(c.area || "—")}${c.builtUp ? `<small class="config-rate">Built-up ${escapeHtml(c.builtUp)}</small>` : ""}${c.superBuiltUp ? `<small class="config-rate">Super built-up ${escapeHtml(c.superBuiltUp)}</small>` : ""}</td>
-        <td>${escapeHtml(c.parking || "—")}</td>
-        <td><span class="status-pill status-${c.availability === "Sold Out" ? "sold" : "available"}">${escapeHtml(c.availability)}</span></td>
+        <td>${p.kind === "commercial"
+          ? escapeHtml(c.furnishing || "—") + [c.washroom, c.pantry, c.parking ? "Parking: " + c.parking : ""].filter(Boolean).map(x => `<small>${escapeHtml(x)}</small>`).join("")
+          : escapeHtml(c.parking || "—")}</td>
+        <td><span class="status-pill status-${c.soldOut ? "sold" : "available"}">${escapeHtml(c.availability)}</span></td>
       </tr>`).join("");
   }
 
@@ -887,6 +1111,9 @@
     const lower = v => clean(v).toLowerCase();
     const bhks = new Set(p.bhkLabels);
     return all
+      /* Like for like: homes are compared with homes, offices and
+         shops with commercial projects. */
+      .filter(o => (o.kind || "residential") === (p.kind || "residential"))
       .filter(o => o.slug !== p.slug && lower(o.name) !== lower(p.name))
       .map(o => {
         let score = 0;
@@ -971,7 +1198,9 @@
     const graph = [];
 
     const place = {
-      "@type": "ApartmentComplex",
+      /* Homes: an apartment complex. Offices, shops and the like have
+         no closer schema.org type than a place. */
+      "@type": p.kind === "commercial" ? "Place" : "ApartmentComplex",
       "@id": pageUrl + "#project",
       name: p.name,
       url: pageUrl,
@@ -1028,9 +1257,10 @@
         offerCount: priced.length,
         availability: schemaAvailability(priced.every(c => c.soldOut)),
         offers: priced.map(c => {
-          const label = [c.bhk, c.variant].filter(Boolean).join(" ") || "Apartment";
-          const flat = { "@type":"Apartment", name: `${label} in ${p.name}` };
-          const rooms = parseFloat(c.bhk);
+          const commercialUnit = p.kind === "commercial";
+          const label = [c.bhk, c.variant].filter(Boolean).join(" ") || (commercialUnit ? "Commercial Unit" : "Apartment");
+          const flat = { "@type": commercialUnit ? "Place" : "Apartment", name: `${label} in ${p.name}` };
+          const rooms = commercialUnit ? 0 : parseFloat(c.bhk);
           if(rooms > 0) flat.numberOfBedrooms = Math.floor(rooms);
           if(c.areaValue) flat.floorSize = { "@type":"QuantitativeValue", value:c.areaValue, unitCode:c.areaUnitCode };
           const offer = {
@@ -1080,8 +1310,8 @@
     const citySlug = slugify(p.city), localitySlug = slugify(p.locality);
     const crumbs = [
       { name:"Home", item: siteUrl + "/" },
-      citySlug ? { name:p.city, item: `${siteUrl}/projects/${citySlug}/` } : null,
-      citySlug && localitySlug ? { name:p.locality, item: `${siteUrl}/projects/${citySlug}/${localitySlug}/` } : null,
+      citySlug ? { name:p.city, item: `${siteUrl}/${p.basePath || "projects"}/${citySlug}/` } : null,
+      citySlug && localitySlug ? { name:p.locality, item: `${siteUrl}/${p.basePath || "projects"}/${citySlug}/${localitySlug}/` } : null,
       { name:p.name, item: pageUrl }
     ].filter(Boolean);
     graph.push({
@@ -1101,6 +1331,9 @@
 
   return {
     PROJECT_DETAIL_SELECT,
+    COMMERCIAL_DETAIL_SELECT,
+    KINDS,
+    kindOf,
     normalizeProject,
     THUMB_DIR,
     IMAGE_WIDTHS,

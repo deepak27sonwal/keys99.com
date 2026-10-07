@@ -67,3 +67,40 @@ const PROJECT_SELECT = `
     is_primary, is_active, display_order
   )
 `;
+
+/* Commercial projects (offices, shops, showrooms...) live in
+   commercial_projects, with commercial_units in place of
+   configurations. Same idea: one request for the homepage cards. */
+const COMMERCIAL_TABLE = "commercial_projects";
+
+const COMMERCIAL_SELECT = `
+  id,
+  slug,
+  project_name,
+  project_type,
+  transaction_type,
+  status,
+  rera_number,
+  address,
+  pincode,
+  overview,
+  starting_price,
+  maximum_price,
+  price_on_request,
+  main_image_path,
+  main_image_bucket,
+  view_count,
+  published_at,
+  created_at,
+  developer:developers!commercial_projects_developer_id_fkey ( name ),
+  city:cities!commercial_projects_city_id_fkey ( name, state, city_image ),
+  locality:localities!commercial_projects_locality_id_fkey ( name ),
+  units:commercial_units!commercial_units_project_id_fkey (
+    unit_type, carpet_area, area_unit, starting_price, maximum_price, price_type,
+    expected_rent, price_on_request, availability, display_order
+  ),
+  media:commercial_media!commercial_media_project_id_fkey (
+    media_type, media_url, media_path, storage_bucket,
+    is_primary, is_active, display_order
+  )
+`;

@@ -18,19 +18,29 @@ async function fetchAllProperties(){
      policies enforce the same rule for anonymous visitors; the
      filters here keep signed-in admins from seeing drafts on the
      public homepage too. */
-  const { data, error } = await supabaseClient
-    .from(PROJECTS_TABLE)
-    .select(PROJECT_SELECT)
+  const published = (table, select) => supabaseClient
+    .from(table)
+    .select(select)
     .eq("moderation_status", "published")
     .is("deleted_at", null)
     .order("published_at", { ascending:false, nullsFirst:false });
 
-  if(error){
-    console.error("Supabase error:", error);
-    throw error;
-  }
+  const [homes, commercial] = await Promise.all([
+    published(PROJECTS_TABLE, PROJECT_SELECT),
+    typeof COMMERCIAL_TABLE === "string" ? published(COMMERCIAL_TABLE, COMMERCIAL_SELECT) : Promise.resolve({ data: [] })
+  ]);
 
-  return Array.isArray(data) ? data.map(mapResidentialProject) : [];
+  if(homes.error){
+    console.error("Supabase error:", homes.error);
+    throw homes.error;
+  }
+  /* Commercial is extra: if it fails, the homes still show. */
+  if(commercial.error) console.error("Supabase error (commercial):", commercial.error);
+
+  return mergeByNewest(
+    (homes.data || []).map(mapResidentialProject),
+    (!commercial.error && commercial.data || []).map(mapCommercialProject)
+  );
 
 }
 
@@ -76,7 +86,21 @@ const PROJECT_TYPE_CATEGORY = {
 const AVAILABILITY_LABELS = {
   available:"Available",
   sold_out:"Sold Out",
+  leased_out:"Leased Out",
   on_request:"On Request"
+};
+
+const COMMERCIAL_TYPE_LABELS = {
+  office:"Office Space",
+  shop:"Shop",
+  showroom:"Showroom",
+  warehouse:"Warehouse",
+  industrial:"Industrial Space",
+  healthcare:"Healthcare Space",
+  education:"Education Space",
+  hospitality:"Hospitality Space",
+  commercial_land:"Commercial Land",
+  commercial_building:"Commercial Building"
 };
 
 function storagePublicUrl(bucket, path){
@@ -182,6 +206,79 @@ function mapResidentialProject(row){
     views: row.view_count,
     created_at: row.published_at || row.created_at
   };
+}
+
+
+/* =========================================================
+   COMMERCIAL PROJECT -> THE SAME CARD SHAPE
+   Units (Office Space, Shop...) fill the card's configuration
+   chips. A unit quoted as a monthly rent shows "/ month" and, like
+   a per-sq-ft rate, stays out of price totals and filters.
+========================================================= */
+
+function mapCommercialProject(row){
+  const units = (Array.isArray(row.units) ? row.units : [])
+    .slice()
+    .sort((a, b) => (a.display_order || 0) - (b.display_order || 0))
+    .map(unit => {
+      const rentOnly = unit.price_type === "monthly_rent" || (!(Number(unit.starting_price) > 0) && Number(unit.expected_rent) > 0);
+      const option = mapConfiguration({
+        bhk_type: unit.unit_type,
+        carpet_area: unit.carpet_area,
+        area_unit: unit.area_unit,
+        starting_price: rentOnly && unit.price_type !== "monthly_rent" ? unit.expected_rent : unit.starting_price,
+        maximum_price: rentOnly && unit.price_type !== "monthly_rent" ? null : unit.maximum_price,
+        price_type: rentOnly ? "price_per_sq_ft" : unit.price_type,
+        price_on_request: unit.price_on_request,
+        availability: unit.availability
+      }, row.price_on_request);
+      if(rentOnly){
+        option.unit = " / month";
+        if(option.unitPrice !== null) option.price_words = formatUnitPrice(option.unitPrice, option.unit);
+        option.priceType = "monthly_rent";
+      }
+      return option;
+    });
+
+  return {
+    id: row.id,
+    slug: row.slug,
+    kind: "commercial",
+    base: "commercial",
+    project_name: titleCaseName(row.project_name),
+    project_type: row.project_type,
+    type_label: COMMERCIAL_TYPE_LABELS[row.project_type] || "Commercial",
+    category: "commercial",
+    transaction: row.transaction_type || "",
+    is_new_launch: row.status === "new_launch",
+    is_resale: row.status === "resale",
+    status_key: row.status,
+
+    developer: row.developer ? row.developer.name : "",
+    city: row.city ? row.city.name : "",
+    state: row.city ? row.city.state : "",
+    city_image: row.city && /^https?:\/\//i.test(row.city.city_image || "") ? row.city.city_image : "",
+    locality: row.locality ? row.locality.name : "",
+    address: row.address,
+    pincode: row.pincode,
+
+    status: STATUS_LABELS[row.status] || "",
+    possession: "",
+    overview: row.overview,
+    rera_id: row.rera_number,
+
+    main_image: pickMainImage(row),
+    bhk_options: units,
+
+    views: row.view_count,
+    created_at: row.published_at || row.created_at
+  };
+}
+
+/* Two lists of cards, newest first, as one list. */
+function mergeByNewest(a, b){
+  const time = p => new Date(p.created_at || 0).getTime() || 0;
+  return a.concat(b).sort((x, y) => time(y) - time(x));
 }
 
 
@@ -540,25 +637,27 @@ function slugify(value){
 }
 
 function propertyUrl(property){
+  /* Homes live under projects/, commercial projects under commercial/. */
+  const base = (property && property.base) || "projects";
   const slug = slugify(property && property.slug);
   if(slug){
-    return "projects/" + slug + "/";
+    return base + "/" + slug + "/";
   }
   /* ".html" spelled out: hosts differ on whether an extensionless
      address finds the file (Cloudflare redirects it away anyway). */
-  return "projects/property-details.html?id=" + encodeURIComponent(property && property.id);
+  return base + "/property-details.html?id=" + encodeURIComponent(property && property.id);
 }
 
-function cityUrl(city){
+function cityUrl(city, base){
   const slug = slugify(city);
-  return slug ? "projects/" + slug + "/" : "projects/search";
+  return slug ? (base || "projects") + "/" + slug + "/" : "projects/search";
 }
 
-function localityUrl(city, locality){
+function localityUrl(city, locality, base){
   const citySlug = slugify(city);
   const localitySlug = slugify(locality);
   if(citySlug && localitySlug){
-    return "projects/" + citySlug + "/" + localitySlug + "/";
+    return (base || "projects") + "/" + citySlug + "/" + localitySlug + "/";
   }
   return "projects/search";
 }
@@ -617,7 +716,7 @@ function createPropertyCard(property, badgeLabel, badgeClass){
         return `
         <div class="bhk-chip">
           <div class="bhk-stat">
-            <span>Config</span>
+            <span>${property.kind === "commercial" ? "Unit" : "Config"}</span>
             <strong>${escapeHtml(option.type || "—")}</strong>
           </div>
           <div class="bhk-stat">
@@ -1273,7 +1372,7 @@ function cityCardHtml(item){
     ? ` data-full="${escapeHtml(image.full)}" data-fallback="${escapeHtml(image.fallback)}" onerror="if(this.dataset.full){this.src=this.dataset.full;this.dataset.full=''}else if(this.dataset.fallback){this.src=this.dataset.fallback;this.dataset.fallback=''}"`
     : "";
   return `
-    <a class="city-card" href="${escapeHtml(cityUrl(item.city))}">
+    <a class="city-card" href="${escapeHtml(cityUrl(item.city, item.base))}">
       <span class="city-img"><img src="${escapeHtml(image.src)}"${fallback} alt="${escapeHtml(image.alt)}" loading="lazy" width="400" height="250"></span>
       <span class="city-body">
         <strong>${escapeHtml(titleCaseName(item.city))}</strong>
@@ -1285,7 +1384,7 @@ function cityCardHtml(item){
 
 function localityChipHtml(item){
   return `
-    <a class="locality-chip" href="${escapeHtml(localityUrl(item.city, item.locality))}">
+    <a class="locality-chip" href="${escapeHtml(localityUrl(item.city, item.locality, item.base))}">
       <strong>${escapeHtml(titleCaseName(item.locality))}</strong>
       <span>${escapeHtml(titleCaseName(item.city) || "—")}</span>
       <span class="count">${item.count} ${item.count === 1 ? "Project" : "Projects"}</span>
@@ -1328,7 +1427,9 @@ function typeCountText(n){
    the same change in the pre-rendered HTML. */
 function setTypeCardState(card, count){
   if(count){
-    card.setAttribute("href", "projects/search?type=" + encodeURIComponent(card.dataset.type));
+    /* Commercial has its own section; the other types are search filters. */
+    card.setAttribute("href", card.dataset.type === "commercial" ? "commercial/"
+      : "projects/search?type=" + encodeURIComponent(card.dataset.type));
     card.removeAttribute("aria-disabled");
   }else{
     card.removeAttribute("href");
@@ -1353,6 +1454,7 @@ function computeTopCities(properties, limit){
 
   const counts = {};
   const images = {};
+  const homes = {};
 
   properties.forEach(property => {
     const city = String(property.city || "").trim();
@@ -1360,13 +1462,16 @@ function computeTopCities(properties, limit){
       return;
     }
     counts[city] = (counts[city] || 0) + 1;
+    if((property.base || "projects") === "projects") homes[city] = true;
     if(property.city_image && !images[city]) images[city] = property.city_image;
   });
 
+  /* The card links to the city's homes page, or to its commercial
+     page when the city only has commercial projects. */
   return Object.entries(counts)
     .sort((a,b) => b[1] - a[1])
     .slice(0, limit)
-    .map(([city, count]) => ({ city, count, image: images[city] || "" }));
+    .map(([city, count]) => ({ city, count, image: images[city] || "", base: homes[city] ? "projects" : "commercial" }));
 
 }
 
@@ -1425,10 +1530,11 @@ function computeTopLocalities(properties, limit){
     const key = locality + "|" + city;
 
     if(!counts[key]){
-      counts[key] = { locality, city, count:0 };
+      counts[key] = { locality, city, count:0, base:"commercial" };
     }
 
     counts[key].count++;
+    if((property.base || "projects") === "projects") counts[key].base = "projects";
 
   });
 
