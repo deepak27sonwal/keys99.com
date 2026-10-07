@@ -23,6 +23,12 @@
       return Array.isArray(list) ? list.filter(function(p){ return p && /^[a-z0-9-]+$/.test(p.slug); }).slice(0, MAX) : [];
     }catch(_){ return []; }
   }
+  /* A project is its slug plus its kind: commercial projects are
+     written "commercial:<slug>" (in the compare link too), homes as
+     the bare slug, as before. */
+  function idOf(p){ return (p.kind === "commercial" ? "commercial:" : "") + p.slug; }
+  function btnId(btn){ return (btn.dataset.compareKind === "commercial" ? "commercial:" : "") + btn.dataset.compareSlug; }
+
   function write(list){
     try{ localStorage.setItem(KEY, JSON.stringify(list)); }catch(_){}
   }
@@ -92,7 +98,7 @@
   function render(){
     var list = read();
     document.querySelectorAll("[data-compare-slug]").forEach(function(btn){
-      var on = list.some(function(p){ return p.slug === btn.dataset.compareSlug; });
+      var on = list.some(function(p){ return idOf(p) === btnId(btn); });
       var label = on ? "✓ Comparing" : "⇄ Compare";
       /* Only touch what changed: the observer below would otherwise
          see every rewrite as new content and render forever. */
@@ -105,25 +111,26 @@
     document.documentElement.classList.toggle("has-compare-tray", !tray.hidden);
     tray.querySelector(".compare-tray-items").innerHTML = list.map(function(p){
       return '<span class="compare-tray-chip"><span>' + esc(p.name || p.slug) + '</span>' +
-        '<button type="button" data-remove="' + esc(p.slug) + '" aria-label="Remove ' + esc(p.name || p.slug) + '">×</button></span>';
+        '<button type="button" data-remove="' + esc(idOf(p)) + '" aria-label="Remove ' + esc(p.name || p.slug) + '">×</button></span>';
     }).join("");
     var go = tray.querySelector(".compare-tray-go");
-    go.href = ROOT + "projects/compare?p=" + list.map(function(p){ return p.slug; }).join(",");
+    go.href = ROOT + "projects/compare?p=" + list.map(idOf).join(",");
     go.textContent = list.length < 2 ? "Add one more" : "Compare (" + list.length + ") →";
     go.setAttribute("aria-disabled", list.length < 2 ? "true" : "false");
     if(!tray.hidden) placeTray();
   }
 
-  function toggle(slug, name){
+  function toggle(slug, name, kind){
     var list = read();
-    var i = list.findIndex(function(p){ return p.slug === slug; });
+    var entry = { slug: slug, name: name || slug, kind: kind === "commercial" ? "commercial" : "residential" };
+    var i = list.findIndex(function(p){ return idOf(p) === idOf(entry); });
     if(i > -1){
       list.splice(i, 1);
     }else if(list.length >= MAX){
       note("You can compare up to " + MAX + " projects. Remove one first.");
       return;
     }else{
-      list.push({ slug: slug, name: name || slug });
+      list.push(entry);
     }
     write(list);
     render();
@@ -136,13 +143,13 @@
     if(!btn || !btn.dataset.compareSlug) return;
     e.preventDefault();
     e.stopPropagation();
-    toggle(btn.dataset.compareSlug, btn.dataset.compareName);
+    toggle(btn.dataset.compareSlug, btn.dataset.compareName, btn.dataset.compareKind);
   }, true);
 
   tray.addEventListener("click", function(e){
     var remove = e.target.closest("[data-remove]");
     if(remove){
-      write(read().filter(function(p){ return p.slug !== remove.dataset.remove; }));
+      write(read().filter(function(p){ return idOf(p) !== remove.dataset.remove; }));
       render();
     }else if(e.target.closest(".compare-tray-clear")){
       write([]);

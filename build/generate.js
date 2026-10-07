@@ -334,6 +334,7 @@ function buildPage(template, row, config, allProjects, shareImage, similarCards,
 
   /* Compare button on the main photo (js/compare-tray.js). */
   $("#compareBtn").attr("data-compare-slug", p.slug).attr("data-compare-name", p.name).removeClass("hidden");
+  if(commercial) $("#compareBtn").attr("data-compare-kind", "commercial");
 
   /* Developer page (build/hubs.js writes /developers/<slug>/ for every
      developer with a published project). Template-relative path. */

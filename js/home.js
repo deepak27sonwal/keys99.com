@@ -779,7 +779,7 @@ function createPropertyCard(property, badgeLabel, badgeClass){
 
         <button class="fav" aria-label="Add to favorites" data-property-id="${id}" type="button">♡</button>
 
-        ${slugify(property.slug) ? `<button class="compare-toggle" type="button" aria-pressed="false" data-compare-slug="${escapeHtml(slugify(property.slug))}" data-compare-name="${escapeHtml(title)}">⇄ Compare</button>` : ""}
+        ${slugify(property.slug) ? `<button class="compare-toggle" type="button" aria-pressed="false" data-compare-slug="${escapeHtml(slugify(property.slug))}" data-compare-name="${escapeHtml(title)}"${property.kind === "commercial" ? ` data-compare-kind="commercial"` : ""}>⇄ Compare</button>` : ""}
 
       </div>
 

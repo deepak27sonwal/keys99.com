@@ -145,6 +145,7 @@ function renderProject(p){
   if(p.slug){
     $("compareBtn").dataset.compareSlug = p.slug;
     $("compareBtn").dataset.compareName = p.name;
+    if(KIND.kind === "commercial") $("compareBtn").dataset.compareKind = "commercial";
     $("compareBtn").classList.remove("hidden");
     if(window.Keys99Compare) window.Keys99Compare.refresh();
   }
