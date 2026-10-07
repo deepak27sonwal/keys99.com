@@ -28,8 +28,9 @@ const PUBLIC = [
 
 /* Published when they exist: /blog/ is only built once there is an
    article in content/blog/ or a project post, /compare/ once two
-   projects in a city can be compared. */
-const OPTIONAL = ["blog", "compare"];
+   projects in a city can be compared, /commercial/ once there is a
+   published commercial project. */
+const OPTIONAL = ["blog", "compare", "commercial"];
 
 const CLOUDFLARE_FILES = ["_headers", "_redirects"];
 
