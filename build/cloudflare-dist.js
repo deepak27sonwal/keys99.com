@@ -21,7 +21,7 @@ const DIST = path.join(ROOT, "dist");
 const PUBLIC = [
   "index.html", "404.html",
   "about.html", "contact.html", "home-loans.html", "testimonials.html", "privacy-policy.html", "terms.html",
-  "saved.html", "reels.html",
+  "saved.html", "profile.html", "reels.html",
   "favicon.ico", "robots.txt", "sitemap.xml",
   "assets", "css", "js", "projects", "developers", "admin"
 ];

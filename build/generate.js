@@ -31,7 +31,7 @@ const { buildLegalPages } = require("./legal.js");
 const { buildBlog } = require("./blog.js");
 const { buildComparePage } = require("./compare.js");
 const { buildComparisons } = require("./compare-pages.js");
-const { buildSavedPage, buildReelsPage } = require("./extra-pages.js");
+const { buildSavedPage, buildProfilePage, buildReelsPage } = require("./extra-pages.js");
 const { stampAssetVersions, htmlFiles } = require("./asset-versions.js");
 
 /* City/locality hubs with a single project are thin; they are built
@@ -632,6 +632,11 @@ async function main(){
   }));
   console.log("  wrote    /saved.html");
 
+  fs.writeFileSync(path.join(ROOT, "profile.html"), buildProfilePage({
+    indexHtml: fs.readFileSync(indexPath, "utf8"), siteOrigin: SITE_ORIGIN
+  }));
+  console.log("  wrote    /profile.html");
+
   const reels = buildReelsPage({
     H, P, indexHtml: fs.readFileSync(indexPath, "utf8"), rows: goodRows,
     supabaseUrl: config.url, siteOrigin: SITE_ORIGIN, robots: ROBOTS
@@ -704,6 +709,7 @@ async function main(){
     path.join(ROOT, "privacy-policy.html"),
     path.join(ROOT, "terms.html"),
     path.join(ROOT, "saved.html"),
+    path.join(ROOT, "profile.html"),
     path.join(ROOT, "reels.html"),
     ...htmlFiles(ROOT, ["projects", "commercial", "developers", "blog", "compare", "admin"])
   ]);

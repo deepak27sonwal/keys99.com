@@ -179,8 +179,40 @@
     });
   }
 
+  /* The bottom bar's Profile tab shows the visitor's photo or initial
+     while they are logged in, and its person icon otherwise. */
+  let tabIcon;
+  function paintProfileTab(){
+    const icon = document.querySelector('#bottomNav [data-target="profile"] .bn-icon');
+    if(!icon) return;
+    if(tabIcon === undefined) tabIcon = icon.innerHTML;
+    if(!user){
+      icon.classList.remove("has-avatar");
+      if(icon.innerHTML !== tabIcon) icon.innerHTML = tabIcon;
+      return;
+    }
+    const meta = user.user_metadata || {};
+    const name = meta.full_name || meta.name || user.email || "?";
+    const photo = meta.avatar_url || meta.picture;
+    const avatar = document.createElement("span");
+    avatar.className = "bn-avatar";
+    if(photo){
+      const img = document.createElement("img");
+      img.src = photo;
+      img.alt = "";
+      img.referrerPolicy = "no-referrer";
+      img.onerror = () => { img.remove(); avatar.textContent = name.charAt(0).toUpperCase(); };
+      avatar.appendChild(img);
+    }else{
+      avatar.textContent = name.charAt(0).toUpperCase();
+    }
+    icon.classList.add("has-avatar");
+    icon.replaceChildren(avatar);
+  }
+
   function changed(){
     paint();
+    paintProfileTab();
     document.dispatchEvent(new CustomEvent("keys99:saved"));
   }
 

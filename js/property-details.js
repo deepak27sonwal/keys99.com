@@ -50,7 +50,8 @@ function initBottomNav(){
     if(target === "home") window.location.href = SITE_ROOT;
     else if(target === "search") window.location.href = SITE_ROOT + "projects/search";
     else if(target === "reels") window.location.href = SITE_ROOT + "reels";
-    else if(target === "saved" || target === "profile") window.location.href = SITE_ROOT + "saved";
+    else if(target === "profile") window.location.href = SITE_ROOT + "profile";
+    else if(target === "saved") window.location.href = SITE_ROOT + "saved";
   });
 }
 
