@@ -12,6 +12,13 @@ const SUPABASE_URL =
 const SUPABASE_ANON_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxqeXl3ZGd3amllZGVpdXFjaGR0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAwODU5MTksImV4cCI6MjEwNTY2MTkxOX0.d6YMR0MO_MgOaD4DzknBYT4Udmy5xS_B6TntcQ7IYA8";
 
+/* Google sign-in on keys99.com itself (js/account.js), so Google's
+   account chooser says "continue to Keys99" rather than the Supabase
+   project address. The Web client ID from Google Cloud - the same one
+   in Supabase > Authentication > Providers > Google. It is public (not
+   a secret). Leave empty to use the redirect through Supabase. */
+const GOOGLE_CLIENT_ID = "";
+
 /* Site-wide contact for the Call / WhatsApp buttons on a project
    page whose agent is missing or not verified. Digits with country
    code, e.g. "919876543210". Leave empty to hide those buttons. */

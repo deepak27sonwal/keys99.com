@@ -336,6 +336,9 @@
 .k99-resend .k99-link{margin-top:0}
 .k99-resend .k99-link:disabled{color:#9aa8ae;text-decoration:none;cursor:default}
 .k99-resend [data-timer]{font-variant-numeric:tabular-nums;font-weight:700}
+.k99-gsi{display:flex;justify-content:center;min-height:44px}
+.k99-gsi[hidden]{display:none}
+.k99-login button.k99-btn[hidden]{display:none}
 .k99-small{margin:14px 0 0 !important;font-size:.8rem !important;color:#6b7c82 !important}
 .k99-toast{position:fixed;left:50%;bottom:90px;z-index:10001;transform:translate(-50%,20px);opacity:0;pointer-events:none;max-width:calc(100% - 32px);background:#082d38;color:#fff;padding:12px 18px;border-radius:12px;font-size:.95rem;transition:.25s}
 .k99-toast.show{opacity:1;transform:translate(-50%,0)}`;
@@ -359,6 +362,7 @@
   <div data-step="start">
     <h2 id="k99LoginTitle">Log in to save projects</h2>
     <p>Your saved projects stay in your Keys99 account, on every device.</p>
+    <div class="k99-gsi" data-gsi hidden></div>
     <button class="k99-btn" type="button" data-google>${GOOGLE_ICON}<span>Continue with Google</span></button>
     <div class="k99-or">or</div>
     <form data-email-form novalidate>
@@ -533,6 +537,65 @@
     });
   }
 
+  /* ---------- Google sign-in on this site ----------
+     With GOOGLE_CLIENT_ID set (js/config.js), Google's own button (Google
+     Identity Services) signs the visitor in here, so Google names Keys99
+     rather than the Supabase project address, and Supabase checks the
+     token it returns (signInWithIdToken). Without it, or if Google's
+     script cannot load, the button above redirects through Supabase. */
+  function loadGis(){
+    if(window.google && google.accounts && google.accounts.id) return Promise.resolve();
+    return loadScript("https://accounts.google.com/gsi/client");
+  }
+
+  async function sha256Hex(text){
+    const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+    return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, "0")).join("");
+  }
+
+  async function setupGoogleButton(){
+    const box = modal.querySelector("[data-gsi]");
+    const fallback = modal.querySelector("[data-google]");
+    try{
+      const sb = await client();
+      if(typeof GOOGLE_CLIENT_ID !== "string" || !GOOGLE_CLIENT_ID) return;
+      await loadGis();
+      /* A fresh nonce for each opening: Google signs its hash into the
+         token, and Supabase checks it against the original. */
+      const raw = Array.from(crypto.getRandomValues(new Uint8Array(16)), b => b.toString(16).padStart(2, "0")).join("");
+      google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        nonce: await sha256Hex(raw),
+        context: "signin",
+        ux_mode: "popup",
+        use_fedcm_for_prompt: true,
+        callback: async response => {
+          const errEl = modal.querySelector(".k99-err");
+          errEl.textContent = "";
+          try{
+            const { error } = await sb.auth.signInWithIdToken({ provider: "google", token: response.credential, nonce: raw });
+            if(error) throw error;
+            closeLogin(true);
+            toast("You are logged in");
+          }catch(ex){
+            errEl.textContent = "Google login did not work. Please try again, or use your email.";
+          }
+        }
+      });
+      box.textContent = "";
+      google.accounts.id.renderButton(box, {
+        type: "standard", theme: "outline", size: "large", shape: "rectangular",
+        text: "continue_with", logo_alignment: "center",
+        width: Math.min(400, Math.max(200, modal.querySelector("[data-step=start]").offsetWidth || 300))
+      });
+      box.hidden = false;
+      fallback.hidden = true;
+    }catch(_){
+      box.hidden = true;
+      fallback.hidden = false;
+    }
+  }
+
   function openLogin(){
     if(!modal) buildModal();
     client().catch(() => {});                /* start loading while they choose */
@@ -543,6 +606,7 @@
     modal.hidden = false;
     document.documentElement.style.overflow = "hidden";
     modal.querySelector("[data-google]").disabled = false;
+    setupGoogleButton();
     modal.querySelector("input[type=email]").focus();
   }
 
