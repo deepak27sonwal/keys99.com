@@ -634,7 +634,7 @@ async function main(){
   console.log("  wrote    /saved.html");
 
   fs.writeFileSync(path.join(ROOT, "profile.html"), buildProfilePage({
-    indexHtml: fs.readFileSync(indexPath, "utf8"), siteOrigin: SITE_ORIGIN
+    H, indexHtml: fs.readFileSync(indexPath, "utf8"), props: allProps, siteOrigin: SITE_ORIGIN
   }));
   console.log("  wrote    /profile.html");
 
