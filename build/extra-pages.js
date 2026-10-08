@@ -169,12 +169,12 @@ function buildProfilePage({ indexHtml, siteOrigin }){
             <span>Full name</span>
             <input id="pfName" name="name" type="text" maxlength="80" autocomplete="name" placeholder="Your name">
           </label>
-          <label>
+          <div class="profile-field">
             <span>Mobile (WhatsApp)</span>
             <div class="profile-phone">
               <input id="pfPhone" name="phone" type="tel" inputmode="numeric" maxlength="10" autocomplete="tel-national" placeholder="10-digit number">
             </div>
-          </label>
+          </div>
           <label>
             <span>Email</span>
             <input id="pfEmail" name="email" type="email" autocomplete="email">

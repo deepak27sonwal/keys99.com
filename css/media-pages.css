@@ -184,7 +184,8 @@
 .profile-pending{ display:block; margin-top:4px; font-size:12px; font-weight:600; color:#bd8300; }
 
 .profile-form{ display:grid; gap:14px; margin-top:6px; }
-.profile-form label{ display:grid; gap:6px; }
+.profile-form label, .profile-form .profile-field{ display:grid; gap:6px; }
+.profile-form .profile-field > span,
 .profile-form label > span{ font-size:13px; font-weight:700; color:var(--ink, #092c3d); }
 .profile-form input{
   width:100%; box-sizing:border-box; height:48px; padding:0 14px; border:1px solid #c9d4d8; border-radius:12px;

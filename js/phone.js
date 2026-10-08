@@ -3,9 +3,9 @@
    window.Keys99Phone, used by the login popup's "Welcome" step
    (js/account.js) and Profile settings (js/profile.js).
 
-   picker(input): puts a country picker before a phone input - the
-   flag and code show ("🇮🇳 +91"), a native <select> listing every
-   country sits on top (easy on phones), India first by default.
+   picker(input): puts a country picker before a phone input - a
+   button with the flag and code ("🇮🇳 +91") that opens a searchable
+   list of every country, India first and chosen by default.
    read(input): "+<code><digits>", or an error message.
    set(input, "+9715..."): picks the country and fills the number.
    pretty("+919876543210"): "+91 98765 43210".
@@ -83,13 +83,32 @@
     return `+${country.dial} ${local}`;
   }
 
-  /* ---------- the picker ---------- */
+  /* ---------- the picker ----------
+     A button with the flag and code; it opens a panel with a search
+     box (country name, code or "+971") and the list. Arrow keys move,
+     Enter picks, Escape or a tap outside closes. */
   const STYLE = `
-.k99-cc{position:relative;display:flex;align-items:center;gap:4px;flex:none;padding:0 10px 0 12px;border:1px solid #c9d4d8;border-right:0;border-radius:12px 0 0 12px;background:#f6fbf9;color:#082d38;font-weight:700;font-size:15px;white-space:nowrap}
-.k99-cc::after{content:"";width:0;height:0;margin-left:2px;border:4px solid transparent;border-top:5px solid #6b7c82;transform:translateY(2px)}
-.k99-cc select{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:16px}
-.k99-cc:focus-within{outline:2px solid #006b5b;outline-offset:1px}
-.k99-cc-flag{font-size:18px;line-height:1}`;
+.k99-cc-wrap{position:relative;display:flex;flex:none}
+.k99-cc{display:flex;align-items:center;gap:5px;height:100%;min-height:46px;padding:0 10px 0 12px;border:1px solid #c9d4d8;border-right:0;border-radius:12px 0 0 12px;background:#f6fbf9;color:#082d38;font:inherit;font-weight:700;font-size:15px;white-space:nowrap;cursor:pointer}
+.k99-cc:focus-visible{outline:2px solid #006b5b;outline-offset:1px}
+.k99-cc::after{content:"";width:0;height:0;margin-left:2px;border:4px solid transparent;border-top:5px solid #6b7c82;transform:translateY(2px);transition:transform .15s}
+.k99-cc[aria-expanded="true"]::after{transform:translateY(-2px) rotate(180deg)}
+.k99-cc-flag{font-size:18px;line-height:1}
+.k99-cc-panel{position:absolute;left:0;top:calc(100% + 6px);z-index:30;width:min(320px,calc(100vw - 48px));background:#fff;border:1px solid #dfe7e9;border-radius:14px;box-shadow:0 16px 40px rgba(8,45,56,.18);overflow:hidden;text-align:left}
+.k99-cc-panel[hidden]{display:none}
+.k99-cc-search{position:relative;padding:10px;border-bottom:1px solid #eef2f3}
+.k99-cc-search input{width:100%;box-sizing:border-box;height:40px !important;padding:0 12px 0 34px !important;border:1px solid #c9d4d8 !important;border-radius:10px !important;font:inherit;font-size:15px !important;text-align:left !important;background:#fff}
+.k99-cc-search input:focus{outline:2px solid #006b5b;outline-offset:0}
+.k99-cc-search svg{position:absolute;left:21px;top:50%;width:16px;height:16px;transform:translateY(-50%);color:#6b7c82}
+.k99-cc-list{list-style:none;margin:0;padding:4px 0;max-height:240px;overflow-y:auto;overscroll-behavior:contain}
+.k99-cc-list li{display:flex;align-items:center;gap:10px;padding:9px 14px;font-size:14px;color:#082d38;cursor:pointer}
+.k99-cc-list li .n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.k99-cc-list li .d{color:#6b7c82;font-variant-numeric:tabular-nums}
+.k99-cc-list li .f{font-size:18px;line-height:1}
+.k99-cc-list li.on{background:#eaf7f3}
+.k99-cc-list li[aria-selected="true"]{font-weight:700}
+.k99-cc-list li[aria-selected="true"] .d{color:#006b5b}
+.k99-cc-empty{padding:14px;font-size:14px;color:#6b7c82;text-align:center}`;
 
   function addStyle(){
     if(document.getElementById("k99-cc-style")) return;
@@ -99,48 +118,137 @@
     document.head.appendChild(s);
   }
 
+  const norm = t => String(t || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+  let uid = 0;
+
   function picker(input){
     if(input._cc) return input._cc;
     addStyle();
-    const box = document.createElement("span");
-    box.className = "k99-cc";
-    box.innerHTML = `<span class="k99-cc-flag"></span><span class="k99-cc-code"></span><select aria-label="Country code" data-native></select>`;
-    const select = box.querySelector("select");
-    LIST.forEach(c => {
-      const o = document.createElement("option");
-      o.value = c.iso;
-      o.textContent = `${flag(c.iso)} ${c.name} (+${c.dial})`;
-      select.appendChild(o);
-    });
-    const paint = () => {
-      const c = byIso.get(select.value) || byIso.get("IN");
-      box.querySelector(".k99-cc-flag").textContent = flag(c.iso);
-      box.querySelector(".k99-cc-code").textContent = "+" + c.dial;
+    const id = "k99cc" + (++uid);
+    const wrap = document.createElement("span");
+    wrap.className = "k99-cc-wrap";
+    wrap.innerHTML = `
+<button type="button" class="k99-cc" aria-haspopup="listbox" aria-expanded="false" aria-controls="${id}-list" aria-label="Country code">
+  <span class="k99-cc-flag"></span><span class="k99-cc-code"></span>
+</button>
+<div class="k99-cc-panel" hidden>
+  <div class="k99-cc-search">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-3.6-3.6"/></svg>
+    <input type="search" placeholder="Search country or code" aria-label="Search country" autocomplete="off" enterkeyhint="search">
+  </div>
+  <ul class="k99-cc-list" id="${id}-list" role="listbox" aria-label="Countries"></ul>
+</div>`;
+    input.parentNode.insertBefore(wrap, input);
+
+    const btn = wrap.querySelector(".k99-cc");
+    const panel = wrap.querySelector(".k99-cc-panel");
+    const search = wrap.querySelector(".k99-cc-search input");
+    const list = wrap.querySelector(".k99-cc-list");
+    const state = { value: "IN" };
+    let shown = [], active = 0;
+
+    function paint(){
+      const c = byIso.get(state.value) || byIso.get("IN");
+      btn.querySelector(".k99-cc-flag").textContent = flag(c.iso);
+      btn.querySelector(".k99-cc-code").textContent = "+" + c.dial;
+      btn.setAttribute("aria-label", `Country code: ${c.name} +${c.dial}`);
       const india = c.iso === "IN";
       input.maxLength = india ? 10 : 14;
       input.placeholder = india ? "10-digit mobile number" : "Mobile number";
-    };
-    select.value = "IN";
-    select.addEventListener("change", () => { paint(); input.focus(); });
+    }
+
+    function render(){
+      const q = norm(search.value.trim()).replace(/^\+/, "");
+      shown = !q ? LIST : LIST.filter(c => norm(c.name).includes(q) || c.dial.startsWith(q) || c.iso.toLowerCase() === q);
+      /* Names that start with the search first ("in" -> India before Argentina). */
+      if(q && !/^\d+$/.test(q)) shown = [...shown].sort((a, b) => (norm(b.name).startsWith(q)) - (norm(a.name).startsWith(q)));
+      list.innerHTML = shown.length ? shown.map((c, i) =>
+        `<li role="option" id="${id}-${c.iso}" data-iso="${c.iso}" aria-selected="${c.iso === state.value}"${i === active ? ' class="on"' : ""}><span class="f">${flag(c.iso)}</span><span class="n">${c.name}</span><span class="d">+${c.dial}</span></li>`
+      ).join("") : `<li class="k99-cc-empty" role="presentation">No country found</li>`;
+      if(shown[active]) search.setAttribute("aria-activedescendant", `${id}-${shown[active].iso}`);
+    }
+
+    function move(to){
+      if(!shown.length) return;
+      active = Math.max(0, Math.min(shown.length - 1, to));
+      list.querySelectorAll("li.on").forEach(li => li.classList.remove("on"));
+      const li = list.children[active];
+      if(li){ li.classList.add("on"); li.scrollIntoView({ block: "nearest" }); }
+      search.setAttribute("aria-activedescendant", `${id}-${shown[active].iso}`);
+    }
+
+    function open(){
+      search.value = "";
+      active = Math.max(0, LIST.findIndex(c => c.iso === state.value));
+      render();
+      panel.hidden = false;
+      btn.setAttribute("aria-expanded", "true");
+      move(active);
+      search.focus();
+      document.addEventListener("pointerdown", outside, true);
+    }
+
+    function close(focusBtn){
+      if(panel.hidden) return;
+      panel.hidden = true;
+      btn.setAttribute("aria-expanded", "false");
+      document.removeEventListener("pointerdown", outside, true);
+      if(focusBtn) btn.focus();
+    }
+
+    function outside(e){ if(!wrap.contains(e.target)) close(false); }
+
+    function choose(iso){
+      state.value = iso;
+      paint();
+      close(false);
+      input.focus();
+      wrap.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+
+    btn.addEventListener("click", () => panel.hidden ? open() : close(true));
+    search.addEventListener("input", () => { active = 0; render(); list.scrollTop = 0; });
+    search.addEventListener("keydown", e => {
+      if(e.key === "ArrowDown"){ e.preventDefault(); move(active + 1); }
+      else if(e.key === "ArrowUp"){ e.preventDefault(); move(active - 1); }
+      else if(e.key === "Enter"){ e.preventDefault(); if(shown[active]) choose(shown[active].iso); }
+      else if(e.key === "Escape"){ e.preventDefault(); e.stopPropagation(); close(true); }
+      else if(e.key === "Tab") close(false);
+    });
+    /* Inside a <label>, a click would also "click" the label's first
+       control (the button) and close the list again. */
+    panel.addEventListener("click", e => { if(e.target !== search) e.preventDefault(); });
+    list.addEventListener("click", e => {
+      const li = e.target.closest("li[data-iso]");
+      if(li) choose(li.dataset.iso);
+    });
+    list.addEventListener("pointermove", e => {
+      const li = e.target.closest("li[data-iso]");
+      if(li) move([...list.children].indexOf(li));
+    });
+
     input.addEventListener("input", () => { input.value = input.value.replace(/\D/g, "").slice(0, input.maxLength); });
-    input.parentNode.insertBefore(box, input);
     paint();
-    input._cc = { select, paint };
+
+    input._cc = {
+      get value(){ return state.value; },
+      set value(iso){ if(byIso.has(iso)){ state.value = iso; paint(); } },
+      paint, open, close
+    };
     return input._cc;
   }
 
   function set(input, number){
     const cc = picker(input);
     const { country, local } = split(number);
-    cc.select.value = country.iso;
-    cc.paint();
+    cc.value = country.iso;
     input.value = local;
   }
 
   /* { number: "+<code><digits>" } or { error } ; empty gives { number: "" }. */
   function read(input){
     const cc = picker(input);
-    const c = byIso.get(cc.select.value) || byIso.get("IN");
+    const c = byIso.get(cc.value) || byIso.get("IN");
     const digits = input.value.replace(/\D/g, "").replace(/^0+/, "");
     if(!digits) return { number: "" };
     if(c.iso === "IN" ? !/^[6-9]\d{9}$/.test(digits) : (digits.length < 5 || digits.length + c.dial.length > 15)){
