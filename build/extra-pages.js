@@ -6,7 +6,8 @@
                js/saved.js shows the ones saved to the visitor's
                account (js/account.js).
    profile.html The visitor's account: log in, or their name, email,
-               counts and shortcuts (js/profile.js). The Profile tab in
+               settings (name, mobile, email), counts and shortcuts
+               (js/profile.js). The Profile tab in
                the bottom bar opens it; Saved lives inside it.
    reels.html  Every project video (YouTube, Instagram, Facebook or
                an uploaded file) with its project. A thumbnail shows
@@ -149,6 +150,44 @@ function buildProfilePage({ indexHtml, siteOrigin }){
           <h2 id="profileName"></h2>
           <p id="profileEmail"></p>
         </div>
+      </section>
+
+      <section class="profile-card profile-settings" aria-labelledby="settingsTitle">
+        <div class="profile-settings-head">
+          <h3 id="settingsTitle">Profile settings</h3>
+          <button type="button" class="profile-edit" id="profileEdit">Edit</button>
+        </div>
+
+        <dl class="profile-details" id="profileDetails">
+          <div><dt>Full name</dt><dd id="pdName"></dd></div>
+          <div><dt>Mobile (WhatsApp)</dt><dd id="pdPhone"></dd></div>
+          <div><dt>Email</dt><dd id="pdEmail"></dd></div>
+        </dl>
+
+        <form class="profile-form" id="profileForm" novalidate hidden>
+          <label>
+            <span>Full name</span>
+            <input id="pfName" name="name" type="text" maxlength="80" autocomplete="name" placeholder="Your name">
+          </label>
+          <label>
+            <span>Mobile (WhatsApp)</span>
+            <div class="profile-phone">
+              <b>+91</b>
+              <input id="pfPhone" name="phone" type="tel" inputmode="numeric" maxlength="10" autocomplete="tel-national" placeholder="10-digit number">
+            </div>
+          </label>
+          <label>
+            <span>Email</span>
+            <input id="pfEmail" name="email" type="email" autocomplete="email">
+            <small>Changing it sends a confirmation link to the new address.</small>
+          </label>
+          <p class="profile-form-msg" id="pfMsg" role="status"></p>
+          <div class="profile-form-actions">
+            <button type="submit" class="btn-primary" id="pfSave">Save changes</button>
+            <button type="button" class="profile-cancel" id="pfCancel">Cancel</button>
+          </div>
+          <p class="profile-form-note">Your number is used to pre-fill enquiry forms, so experts can reach you on WhatsApp. It is never shown publicly.</p>
+        </form>
       </section>
 
       <section class="profile-stats" aria-label="Your activity">

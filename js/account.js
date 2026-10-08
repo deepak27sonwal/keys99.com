@@ -24,6 +24,7 @@
   const PENDING_KEY = "keys99_pending_save";
 
   let user = null;
+  let profile = null;                        /* this account's row in profiles */
   let ready = false;                         /* login state known */
   let saved = new Map();                     /* project id -> kind, newest first */
   let clientPromise = null;
@@ -104,8 +105,10 @@
         saved = new Map((data || []).map(r => [r.project_id, r.project_kind]));
         store.set("localStorage", CACHE_KEY, { uid: user.id, items: [...saved] });
       }
+      await loadProfile(sb);
     }else{
       saved = new Map();
+      profile = null;
       store.del("localStorage", CACHE_KEY);
     }
     ready = true;
@@ -113,6 +116,67 @@
     if(user) runPendingSave();
     /* Google's return leaves an empty "#" once Supabase has read the login from it. */
     if(location.href.endsWith("#")) history.replaceState(null, "", location.pathname + location.search);
+  }
+
+  /* ---------- profile (name, phone) ---------- */
+  async function loadProfile(sb){
+    const { data } = await sb.from("profiles").select("full_name, phone, avatar_url").eq("id", user.id).maybeSingle();
+    profile = data || null;
+    prefillContact();
+  }
+
+  function displayName(){
+    if(!user) return "";
+    const meta = user.user_metadata || {};
+    return (profile && profile.full_name) || meta.full_name || meta.name || (user.email || "").split("@")[0] || "Keys99 member";
+  }
+
+  /* The enquiry forms on project pages remember the last name and number
+     sent (k99_contact). A logged-in visitor's profile fills them when
+     they are still empty. */
+  function prefillContact(){
+    if(!profile) return;
+    const name = profile.full_name || "";
+    const phone = (profile.phone || "").replace(/^\+91/, "");
+    try{
+      if(!localStorage.getItem("k99_contact") && (name || phone)){
+        localStorage.setItem("k99_contact", JSON.stringify({ name, phone }));
+      }
+    }catch(_){}
+    const fill = (id, value) => {
+      const el = document.getElementById(id);
+      if(el && value && !el.value) el.value = value;
+    };
+    fill("enquiryName", name);
+    fill("enquiryPhone", phone);
+  }
+
+  async function updateProfile({ fullName, phone }){
+    const sb = await client();
+    const { data, error } = await sb.from("profiles")
+      .update({ full_name: fullName || null, phone: phone || null })
+      .eq("id", user.id)
+      .select("full_name, phone, avatar_url")
+      .maybeSingle();
+    if(error) throw error;
+    if(!data) throw new Error("Your profile could not be found. Please log out and in again.");
+    profile = data;
+    /* Keep the login's own copy of the name in step (shown before the profile loads). */
+    const { data: updated } = await sb.auth.updateUser({ data: { full_name: fullName || null } });
+    if(updated && updated.user) user = updated.user;
+    try{ localStorage.setItem("k99_contact", JSON.stringify({ name: fullName || "", phone: (phone || "").replace(/^\+91/, "") })); }catch(_){}
+    changed();
+  }
+
+  /* Supabase emails a confirmation link to the new address (and to the
+     current one too, when "Secure email change" is on); the address
+     changes once it is confirmed. */
+  async function changeEmail(email){
+    const sb = await client();
+    const { data, error } = await sb.auth.updateUser({ email }, { emailRedirectTo: location.origin + location.pathname });
+    if(error) throw error;
+    if(data && data.user) user = data.user;
+    changed();
   }
 
   /* ---------- saving ---------- */
@@ -192,8 +256,8 @@
       return;
     }
     const meta = user.user_metadata || {};
-    const name = meta.full_name || meta.name || user.email || "?";
-    const photo = meta.avatar_url || meta.picture;
+    const name = displayName() || "?";
+    const photo = (profile && profile.avatar_url) || meta.avatar_url || meta.picture;
     const avatar = document.createElement("span");
     avatar.className = "bn-avatar";
     if(photo){
@@ -511,6 +575,11 @@
   window.Keys99Account = {
     isReady: () => ready,
     user: () => user,
+    profile: () => profile,
+    displayName,
+    updateProfile,
+    changeEmail,
+    toast,
     ids: () => [...saved.keys()],
     has: id => saved.has(id),
     toggle,
