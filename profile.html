@@ -2,22 +2,17 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#006b5b">
-<title>Contact Keys99</title>
-<meta name="description" content="Get in touch with Keys99 about a new residential project in Pune, a site visit, or listing your project.">
-<link rel="canonical" href="https://keys99.com/contact">
-<meta name="robots" content="noindex,nofollow">
-<meta property="og:type" content="website">
-<meta property="og:site_name" content="Keys99">
-<meta property="og:title" content="Contact Keys99">
-<meta property="og:description" content="Get in touch with Keys99 about a new residential project in Pune, a site visit, or listing your project.">
-<meta property="og:url" content="https://keys99.com/contact">
+<title>My Profile | Keys99</title>
+<meta name="description" content="Your Keys99 account: saved projects, recently viewed and shortcuts.">
+<link rel="canonical" href="https://keys99.com/profile">
+<meta name="robots" content="noindex,follow">
 <link rel="icon" href="favicon.ico">
 <link rel="preload" href="assets/fonts/dm-sans-latin.woff2" as="font" type="font/woff2" crossorigin="">
 <link rel="stylesheet" href="css/fonts.css?v=dea9b3bc">
 <link rel="stylesheet" href="css/index.css?v=74bdee60">
+<link rel="stylesheet" href="css/cards.css?v=8c79f8b3">
 <link rel="stylesheet" href="css/hub.css?v=383a8ee1">
-<link rel="stylesheet" href="css/legal.css?v=ac3b3d3d">
-<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"ContactPage","@id":"https://keys99.com/contact#webpage","url":"https://keys99.com/contact","name":"Contact Keys99","description":"Get in touch with Keys99 about a new residential project in Pune, a site visit, or listing your project.","inLanguage":"en-IN","isPartOf":{"@id":"https://keys99.com/#website"},"publisher":{"@id":"https://keys99.com/#organisation"},"mainEntity":{"@id":"https://keys99.com/#organisation","@type":"RealEstateAgent","name":"Keys99","url":"https://keys99.com","email":"support@keys99.com","contactPoint":{"@type":"ContactPoint","contactType":"customer support","email":"support@keys99.com","areaServed":"IN"}}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://keys99.com/"},{"@type":"ListItem","position":2,"name":"Contact Us","item":"https://keys99.com/contact"}]}]}</script>
+<link rel="stylesheet" href="css/media-pages.css?v=0c5781d4">
 </head>
 <body data-root="">
 
@@ -48,7 +43,7 @@
       <a href="commercial/">Commercial</a>
       <a href="./#types">Projects</a>
       <a href="about">About</a>
-      <a href="contact" class="active">Contact</a>
+      <a href="contact">Contact</a>
 
     </nav>
 
@@ -80,57 +75,67 @@
   <a href="./#types">Projects</a>
   <a href="./#why">Why Keys99</a>
   <a href="blog/">Blog</a>
-  <a href="contact" class="active">Contact</a>
+  <a href="contact">Contact</a>
 
 </div>
 
-<main class="hub legal">
+
+<main class="hub profile-page">
   <div class="container">
     <nav class="hub-breadcrumb" aria-label="Breadcrumb">
-      <a href="./">Home</a><span>›</span>
-      <span aria-current="page">Contact Us</span>
+      <a href="./">Home</a><span>›</span><span aria-current="page">Profile</span>
     </nav>
-    <article class="legal-body">
-      <div class="section-kicker">Contact</div>
-      <h1>Contact Us</h1>
-      <aside class="legal-draft" role="note">
-  <strong>This page is a working draft.</strong>
-  Every highlighted field must be completed with real details before Keys99 goes live.
-</aside>
 
-<p>
-  For a question about a specific project, the quickest way is the enquiry form or
-  <strong>Schedule Site Visit</strong> button on that project's page: it goes straight to the
-  person who handles that project. For anything else, reach us here.
-</p>
+    <h1 class="profile-title">My Profile</h1>
 
-<dl class="legal-contact">
-  <div><dt>Email</dt><dd><a href="mailto:support@keys99.com">support@keys99.com</a></dd></div>
-  <div><dt>Phone</dt><dd><span class="fill-in">[CONTACT NUMBER]</span></dd></div>
-  <div><dt>WhatsApp</dt><dd><span class="fill-in">[WHATSAPP NUMBER]</span></dd></div>
-  <div><dt>Office</dt><dd><span class="fill-in">[OFFICE ADDRESS, PUNE]</span></dd></div>
-  <div><dt>Hours</dt><dd><span class="fill-in">[e.g. MONDAY TO SATURDAY, 10 AM TO 7 PM]</span></dd></div>
-</dl>
+    <!-- js/profile.js shows one of the three states. -->
+    <div class="profile-skeleton" id="profileLoading" aria-hidden="true">
+      <span></span><span></span><span></span>
+    </div>
 
-<h2 id="follow">Follow Keys99</h2>
-<ul>
-  <li><a href="https://www.instagram.com/keys99com" target="_blank" rel="noopener">Instagram</a></li>
-  <li><a href="https://www.youtube.com/@Keys99com" target="_blank" rel="noopener">YouTube</a></li>
-  <li><a href="https://www.facebook.com/keys99com" target="_blank" rel="noopener">Facebook</a></li>
-  <li><a href="https://www.linkedin.com/company/keys99com" target="_blank" rel="noopener">LinkedIn</a></li>
-</ul>
+    <section class="profile-card profile-guest" id="profileGuest" hidden="">
+      <div class="profile-guest-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.8"></circle><path d="M4.5 20c.8-3.8 3.9-6 7.5-6s6.7 2.2 7.5 6"></path></svg>
+      </div>
+      <h2>Log in to Keys99</h2>
+      <p>One account for your property search, on every device.</p>
+      <ul class="profile-perks">
+        <li><span>♥</span>Save projects and find them on your phone and laptop</li>
+        <li><span>⇄</span>Compare projects side by side</li>
+        <li><span>✓</span>Shortlist verified, RERA-registered new projects</li>
+      </ul>
+      <button class="btn-primary profile-login" type="button" id="profileLogin">Log in or sign up</button>
+      <p class="profile-note">Continue with Google, or get a code by email. No password needed.</p>
+    </section>
 
-<h2 id="list-a-project">List a project</h2>
-<p>
-  Developers and agents who want a project listed on Keys99 can email us at
-  <a href="mailto:support@keys99.com">support@keys99.com</a> with the project name, location
-  and RERA registration number.
-</p>
+    <div id="profileUser" hidden="">
+      <section class="profile-card profile-head">
+        <div class="profile-avatar" id="profileAvatar" aria-hidden="true"></div>
+        <div class="profile-who">
+          <h2 id="profileName"></h2>
+          <p id="profileEmail"></p>
+        </div>
+      </section>
 
-<p>
-  For anything about your personal data, see our <a href="privacy-policy">Privacy Policy</a>.
-</p>
-    </article>
+      <section class="profile-stats" aria-label="Your activity">
+        <a class="profile-stat" href="saved"><strong id="statSaved">0</strong><span>Saved</span></a>
+        <a class="profile-stat" href="saved#recentSection"><strong id="statRecent">0</strong><span>Recently viewed</span></a>
+        <a class="profile-stat" href="projects/compare"><strong id="statCompare">0</strong><span>To compare</span></a>
+      </section>
+
+      <nav class="profile-card profile-links" aria-label="Shortcuts">
+        <a href="saved"><span>♥</span>Saved projects<i>›</i></a>
+        <a href="projects/compare"><span>⇄</span>Compare projects<i>›</i></a>
+        <a href="projects/search"><span>⌕</span>Browse projects<i>›</i></a>
+        <a href="home-loans"><span>₹</span>Home loans &amp; EMI<i>›</i></a>
+        <a href="contact"><span>✆</span>Contact Keys99<i>›</i></a>
+        <a href="about"><span>ⓘ</span>About Keys99<i>›</i></a>
+        <a href="privacy-policy"><span>🔒</span>Privacy policy<i>›</i></a>
+        <a href="terms"><span>≡</span>Terms of use<i>›</i></a>
+      </nav>
+
+      <button class="profile-logout" type="button" id="profileLogout">Log out</button>
+    </div>
   </div>
 </main>
 
@@ -231,7 +236,7 @@
     <span class="bn-label">Reels</span>
   </button>
 
-  <button type="button" data-target="profile">
+  <button type="button" data-target="profile" class="bn-active">
     <span class="bn-icon">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="12" cy="8.5" r="3.8"></circle>
@@ -246,6 +251,9 @@
 <script defer="" src="js/hub.js?v=ed7b1663"></script>
 <script defer="" src="js/nav-fx.js?v=777d5b5c"></script>
 <script defer="" src="js/attribution.js?v=207c1e9f"></script>
+<script defer="" src="js/compare-tray.js?v=6f49cf7f"></script>
+<script defer="" src="js/account.js?v=e739a234"></script>
+<script defer="" src="js/profile.js?v=62ea6b60"></script>
 
 
 </body></html>
