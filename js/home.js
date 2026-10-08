@@ -1023,7 +1023,11 @@ function initBottomNav(activeTarget){
 
       window.location.href = "reels";
 
-    }else if(target === "saved" || target === "profile"){
+    }else if(target === "profile"){
+
+      window.location.href = "profile";
+
+    }else if(target === "saved"){
 
       window.location.href = "saved";
 

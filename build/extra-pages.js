@@ -5,6 +5,9 @@
                ones. Every published project's card is in the page;
                js/saved.js shows the ones saved to the visitor's
                account (js/account.js).
+   profile.html The visitor's account: log in, or their name, email,
+               counts and shortcuts (js/profile.js). The Profile tab in
+               the bottom bar opens it; Saved lives inside it.
    reels.html  Every project video (YouTube, Instagram, Facebook or
                an uploaded file) with its project. A thumbnail shows
                first; js/reels.js swaps in the player on tap, so the
@@ -105,7 +108,80 @@ function buildSavedPage({ H, indexHtml, props, siteOrigin }){
     css: ["css/media-pages.css"],
     main,
     scripts: ["js/cards.js", "js/hub.js", "js/nav-fx.js", "js/attribution.js", "js/compare-tray.js", "js/account.js", "js/saved.js"]
-  }), "saved");
+  }), "profile");
+}
+
+function buildProfilePage({ indexHtml, siteOrigin }){
+  const chrome = homepageChrome(indexHtml);
+  const main = `
+<main class="hub profile-page">
+  <div class="container">
+    <nav class="hub-breadcrumb" aria-label="Breadcrumb">
+      <a href="./">Home</a><span>›</span><span aria-current="page">Profile</span>
+    </nav>
+
+    <h1 class="profile-title">My Profile</h1>
+
+    <!-- js/profile.js shows one of the three states. -->
+    <div class="profile-skeleton" id="profileLoading" aria-hidden="true">
+      <span></span><span></span><span></span>
+    </div>
+
+    <section class="profile-card profile-guest" id="profileGuest" hidden>
+      <div class="profile-guest-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20c.8-3.8 3.9-6 7.5-6s6.7 2.2 7.5 6"/></svg>
+      </div>
+      <h2>Log in to Keys99</h2>
+      <p>One account for your property search, on every device.</p>
+      <ul class="profile-perks">
+        <li><span>♥</span>Save projects and find them on your phone and laptop</li>
+        <li><span>⇄</span>Compare projects side by side</li>
+        <li><span>✓</span>Shortlist verified, RERA-registered new projects</li>
+      </ul>
+      <button class="btn-primary profile-login" type="button" id="profileLogin">Log in or sign up</button>
+      <p class="profile-note">Continue with Google, or get a code by email. No password needed.</p>
+    </section>
+
+    <div id="profileUser" hidden>
+      <section class="profile-card profile-head">
+        <div class="profile-avatar" id="profileAvatar" aria-hidden="true"></div>
+        <div class="profile-who">
+          <h2 id="profileName"></h2>
+          <p id="profileEmail"></p>
+        </div>
+      </section>
+
+      <section class="profile-stats" aria-label="Your activity">
+        <a class="profile-stat" href="saved"><strong id="statSaved">0</strong><span>Saved</span></a>
+        <a class="profile-stat" href="saved#recentSection"><strong id="statRecent">0</strong><span>Recently viewed</span></a>
+        <a class="profile-stat" href="projects/compare"><strong id="statCompare">0</strong><span>To compare</span></a>
+      </section>
+
+      <nav class="profile-card profile-links" aria-label="Shortcuts">
+        <a href="saved"><span>♥</span>Saved projects<i>›</i></a>
+        <a href="projects/compare"><span>⇄</span>Compare projects<i>›</i></a>
+        <a href="projects/search"><span>⌕</span>Browse projects<i>›</i></a>
+        <a href="home-loans"><span>₹</span>Home loans &amp; EMI<i>›</i></a>
+        <a href="contact"><span>✆</span>Contact Keys99<i>›</i></a>
+        <a href="about"><span>ⓘ</span>About Keys99<i>›</i></a>
+        <a href="privacy-policy"><span>🔒</span>Privacy policy<i>›</i></a>
+        <a href="terms"><span>≡</span>Terms of use<i>›</i></a>
+      </nav>
+
+      <button class="profile-logout" type="button" id="profileLogout">Log out</button>
+    </div>
+  </div>
+</main>`;
+  return finish(shell({
+    chrome,
+    title: "My Profile | Keys99",
+    description: "Your Keys99 account: saved projects, recently viewed and shortcuts.",
+    canonical: `${siteOrigin}/profile`,
+    robots: "noindex,follow",
+    css: ["css/media-pages.css"],
+    main,
+    scripts: ["js/hub.js", "js/nav-fx.js", "js/attribution.js", "js/compare-tray.js", "js/account.js", "js/profile.js"]
+  }), "profile");
 }
 
 /* Alt text for a video thumbnail: the video's title with the project
@@ -278,4 +354,4 @@ function homeReelsHtml(videos, e, typeLabel, platformLabel){
 </section>`;
 }
 
-module.exports = { buildSavedPage, buildReelsPage };
+module.exports = { buildSavedPage, buildProfilePage, buildReelsPage };

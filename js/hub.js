@@ -25,7 +25,7 @@
   /* ---- bottom navigation ---- */
   const bottomNav = document.getElementById("bottomNav");
   if(bottomNav){
-    const targets = { home:"./", search:"projects/search", reels:"reels", saved:"saved", profile:"saved" };
+    const targets = { home:"./", search:"projects/search", reels:"reels", saved:"saved", profile:"profile" };
     bottomNav.addEventListener("click", e => {
       const btn = e.target.closest("button");
       if(btn && targets[btn.dataset.target]) window.location.href = ROOT + targets[btn.dataset.target];
