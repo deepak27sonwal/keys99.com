@@ -253,15 +253,15 @@
   const STYLE = `
 .k99-login{position:fixed;inset:0;z-index:10000;display:grid;place-items:center;padding:16px;background:rgba(8,45,56,.55)}
 .k99-login[hidden]{display:none}
-.k99-login-box{position:relative;width:100%;max-width:380px;background:#fff;color:#082d38;border-radius:18px;padding:26px 22px 22px;box-shadow:0 20px 60px rgba(0,0,0,.25);font-family:inherit}
-.k99-login h2{margin:0 0 6px;font-size:1.3rem;line-height:1.25}
+.k99-login-box{position:relative;width:100%;max-width:380px;background:#fff;color:#082d38;border-radius:18px;padding:26px 22px 22px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.25);font-family:inherit}
+.k99-login h2{margin:0 0 6px;padding:0 30px;font-size:1.3rem;line-height:1.25}
 .k99-login p{margin:0 0 16px;color:#4b5f66;font-size:.95rem;line-height:1.45}
 .k99-login-close{position:absolute;top:10px;right:10px;width:36px;height:36px;border:0;border-radius:50%;background:#f1f4f5;color:#082d38;font-size:20px;cursor:pointer}
 .k99-login button.k99-btn,.k99-login input{width:100%;box-sizing:border-box;height:48px;border-radius:12px;font:inherit;font-size:1rem}
 .k99-login button.k99-btn{cursor:pointer;font-weight:700;border:1px solid #d5dee1;background:#fff;color:#082d38;display:flex;align-items:center;justify-content:center;gap:10px}
 .k99-login button.k99-primary{background:#006b5b;border-color:#006b5b;color:#fff;margin-top:10px}
 .k99-login button.k99-btn:disabled{opacity:.6;cursor:wait}
-.k99-login input{border:1px solid #c9d4d8;padding:0 14px;color:#082d38;background:#fff}
+.k99-login input{border:1px solid #c9d4d8;padding:0 14px;color:#082d38;background:#fff;text-align:center}
 .k99-login input:focus{outline:2px solid #006b5b;outline-offset:1px}
 .k99-login input.k99-code{letter-spacing:.4em;text-align:center;font-weight:700;font-size:1.2rem}
 .k99-or{display:flex;align-items:center;gap:10px;margin:16px 0;color:#6b7c82;font-size:.85rem}
