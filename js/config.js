@@ -17,7 +17,7 @@ const SUPABASE_ANON_KEY =
    project address. The Web client ID from Google Cloud - the same one
    in Supabase > Authentication > Providers > Google. It is public (not
    a secret). Leave empty to use the redirect through Supabase. */
-const GOOGLE_CLIENT_ID = "";
+const GOOGLE_CLIENT_ID = "720260864457-1qtgp5blen9oie4sb6f37fc6gl3k2f5l.apps.googleusercontent.com";
 
 /* Site-wide contact for the Call / WhatsApp buttons on a project
    page whose agent is missing or not verified. Digits with country
