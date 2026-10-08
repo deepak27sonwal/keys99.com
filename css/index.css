@@ -3280,3 +3280,47 @@ footer{
 /* Profile tab: the logged-in visitor's photo or initial (js/account.js). */
 .bottom-nav .bn-avatar{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;overflow:hidden;background:#e1a400;color:#082d38;font-size:12px;font-weight:800;line-height:1;box-shadow:0 0 0 2px #fff,0 0 0 3px rgba(0,107,91,.35)}
 .bottom-nav .bn-avatar img{width:100%;height:100%;object-fit:cover;display:block}
+
+
+/* =========================================================
+   FOOTER LINK DIRECTORY "Explore Real Estate" (build/footer-links.js)
+   Tabs are radio buttons; every link is in the HTML whichever tab
+   shows. Up to 9 tabs (8 cities + Developers).
+========================================================= */
+.footer-links{margin-top:28px;padding-top:22px;border-top:1px solid var(--line)}
+.footer-links-title{margin:0 0 12px;font-size:var(--fs-lead);color:var(--ink)}
+.fl-tabs{display:flex;flex-wrap:wrap;gap:8px}
+.fl-tabs input{position:absolute;opacity:0;pointer-events:none}
+.fl-tabs label{padding:7px 14px;border:1px solid var(--line);border-radius:999px;font-size:var(--fs-small);font-weight:700;color:#5b6c75;cursor:pointer;background:#fff;white-space:nowrap;transition:background .15s,color .15s,border-color .15s}
+.fl-tabs label:hover{border-color:var(--green);color:var(--green)}
+.fl-tabs input:focus-visible + label{outline:2px solid var(--green);outline-offset:2px}
+.fl-tabs input:nth-of-type(1):checked + label,
+.fl-tabs input:nth-of-type(2):checked + label,
+.fl-tabs input:nth-of-type(3):checked + label,
+.fl-tabs input:nth-of-type(4):checked + label,
+.fl-tabs input:nth-of-type(5):checked + label,
+.fl-tabs input:nth-of-type(6):checked + label,
+.fl-tabs input:nth-of-type(7):checked + label,
+.fl-tabs input:nth-of-type(8):checked + label,
+.fl-tabs input:nth-of-type(9):checked + label{background:var(--green);border-color:var(--green);color:#fff}
+.fl-panels{flex-basis:100%;margin-top:8px}
+.fl-panel{display:none;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:6px 28px}
+.fl-tabs input:nth-of-type(1):checked ~ .fl-panels .fl-panel:nth-child(1),
+.fl-tabs input:nth-of-type(2):checked ~ .fl-panels .fl-panel:nth-child(2),
+.fl-tabs input:nth-of-type(3):checked ~ .fl-panels .fl-panel:nth-child(3),
+.fl-tabs input:nth-of-type(4):checked ~ .fl-panels .fl-panel:nth-child(4),
+.fl-tabs input:nth-of-type(5):checked ~ .fl-panels .fl-panel:nth-child(5),
+.fl-tabs input:nth-of-type(6):checked ~ .fl-panels .fl-panel:nth-child(6),
+.fl-tabs input:nth-of-type(7):checked ~ .fl-panels .fl-panel:nth-child(7),
+.fl-tabs input:nth-of-type(8):checked ~ .fl-panels .fl-panel:nth-child(8),
+.fl-tabs input:nth-of-type(9):checked ~ .fl-panels .fl-panel:nth-child(9){display:grid}
+.fl-group h3{margin:10px 0 6px;font-size:var(--fs-small);font-weight:800;color:var(--ink);text-transform:uppercase;letter-spacing:.04em}
+.fl-group ul{list-style:none;margin:0;padding:0}
+.fl-group li a{display:block;padding:4px 0;color:#5b6c75;font-size:var(--fs-small);line-height:1.45;text-decoration:none}
+.fl-group li a:hover,.fl-group li a:focus-visible{color:var(--green);text-decoration:underline}
+@media(max-width:600px){
+  .fl-tabs{gap:6px}
+  .fl-tabs label{padding:6px 12px}
+  .fl-panel{grid-template-columns:1fr 1fr;gap:4px 16px}
+  .fl-group li a{padding:5px 0}
+}

@@ -828,8 +828,26 @@ ${chrome.bottomNav}
     base, path: hub.path, dir: dirPath, html: $.html(), lastmod: hub.lastmod,
     count: hub.indexCount || hub.props.length, indexable: !!hub.indexable,
     /* For the "Explore more" links on project pages. */
-    label: hub.h1, projectIds: hub.props.map(p => p.id)
+    label: hub.h1, projectIds: hub.props.map(p => p.id),
+    /* For the footer link directory (build/footer-links.js). */
+    footer: footerInfo(hub, base)
   };
+}
+
+/* What kind of listing page this is, for the footer link directory:
+   the city it belongs to, and the short name from its breadcrumb
+   ("2 BHK Flats", "Hinjewadi", "Office Spaces"...). */
+function footerInfo(hub, base){
+  const last = hub.crumbs && hub.crumbs.length ? hub.crumbs[hub.crumbs.length - 1].name : "";
+  const kind = base === "developers" ? (hub.path ? "developer" : "")
+    : !hub.path ? ""
+    : !hub.path.includes("/") ? "city"
+    : hub.bhk ? "bhk"
+    : hub.budget ? "budget"
+    : hub.statusSlug ? "status"
+    : hub.what ? "filter"
+    : "locality";
+  return { kind, city: hub.cityName || "", name: last, h1: hub.h1 };
 }
 
 /* Group mapped projects into city and locality hubs. */
