@@ -12,7 +12,7 @@
 <link rel="stylesheet" href="css/index.css?v=74bdee60">
 <link rel="stylesheet" href="css/cards.css?v=8c79f8b3">
 <link rel="stylesheet" href="css/hub.css?v=383a8ee1">
-<link rel="stylesheet" href="css/media-pages.css?v=0c5781d4">
+<link rel="stylesheet" href="css/media-pages.css?v=7a350995">
 </head>
 <body data-root="">
 
@@ -115,6 +115,44 @@
           <h2 id="profileName"></h2>
           <p id="profileEmail"></p>
         </div>
+      </section>
+
+      <section class="profile-card profile-settings" aria-labelledby="settingsTitle">
+        <div class="profile-settings-head">
+          <h3 id="settingsTitle">Profile settings</h3>
+          <button type="button" class="profile-edit" id="profileEdit">Edit</button>
+        </div>
+
+        <dl class="profile-details" id="profileDetails">
+          <div><dt>Full name</dt><dd id="pdName"></dd></div>
+          <div><dt>Mobile (WhatsApp)</dt><dd id="pdPhone"></dd></div>
+          <div><dt>Email</dt><dd id="pdEmail"></dd></div>
+        </dl>
+
+        <form class="profile-form" id="profileForm" novalidate="" hidden="">
+          <label>
+            <span>Full name</span>
+            <input id="pfName" name="name" type="text" maxlength="80" autocomplete="name" placeholder="Your name">
+          </label>
+          <label>
+            <span>Mobile (WhatsApp)</span>
+            <div class="profile-phone">
+              <b>+91</b>
+              <input id="pfPhone" name="phone" type="tel" inputmode="numeric" maxlength="10" autocomplete="tel-national" placeholder="10-digit number">
+            </div>
+          </label>
+          <label>
+            <span>Email</span>
+            <input id="pfEmail" name="email" type="email" autocomplete="email">
+            <small>Changing it sends a confirmation link to the new address.</small>
+          </label>
+          <p class="profile-form-msg" id="pfMsg" role="status"></p>
+          <div class="profile-form-actions">
+            <button type="submit" class="btn-primary" id="pfSave">Save changes</button>
+            <button type="button" class="profile-cancel" id="pfCancel">Cancel</button>
+          </div>
+          <p class="profile-form-note">Your number is used to pre-fill enquiry forms, so experts can reach you on WhatsApp. It is never shown publicly.</p>
+        </form>
       </section>
 
       <section class="profile-stats" aria-label="Your activity">
@@ -252,8 +290,8 @@
 <script defer="" src="js/nav-fx.js?v=777d5b5c"></script>
 <script defer="" src="js/attribution.js?v=207c1e9f"></script>
 <script defer="" src="js/compare-tray.js?v=6f49cf7f"></script>
-<script defer="" src="js/account.js?v=96ff4442"></script>
-<script defer="" src="js/profile.js?v=62ea6b60"></script>
+<script defer="" src="js/account.js?v=53261af2"></script>
+<script defer="" src="js/profile.js?v=bce712c7"></script>
 
 
 </body></html>
