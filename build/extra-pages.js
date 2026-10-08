@@ -172,7 +172,6 @@ function buildProfilePage({ indexHtml, siteOrigin }){
           <label>
             <span>Mobile (WhatsApp)</span>
             <div class="profile-phone">
-              <b>+91</b>
               <input id="pfPhone" name="phone" type="tel" inputmode="numeric" maxlength="10" autocomplete="tel-national" placeholder="10-digit number">
             </div>
           </label>
@@ -219,7 +218,7 @@ function buildProfilePage({ indexHtml, siteOrigin }){
     robots: "noindex,follow",
     css: ["css/media-pages.css"],
     main,
-    scripts: ["js/hub.js", "js/nav-fx.js", "js/attribution.js", "js/compare-tray.js", "js/account.js", "js/profile.js"]
+    scripts: ["js/hub.js", "js/nav-fx.js", "js/attribution.js", "js/compare-tray.js", "js/account.js", "js/phone.js", "js/profile.js"]
   }), "profile");
 }
 

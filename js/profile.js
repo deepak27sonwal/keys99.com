@@ -69,7 +69,7 @@
     $("pdName").innerHTML = "";
     if(prof.full_name) $("pdName").textContent = prof.full_name; else $("pdName").innerHTML = empty("Add your name");
     $("pdPhone").innerHTML = "";
-    if(prof.phone) $("pdPhone").textContent = prettyPhone(prof.phone); else $("pdPhone").innerHTML = empty("Add your number");
+    if(prof.phone) $("pdPhone").textContent = window.Keys99Phone ? Keys99Phone.pretty(prof.phone) : prettyPhone(prof.phone); else $("pdPhone").innerHTML = empty("Add your number");
     $("pdEmail").textContent = user.email || "";
     if(user.new_email){
       const pending = document.createElement("span");
@@ -97,7 +97,7 @@
     const user = account.user();
     const prof = account.profile() || {};
     $("pfName").value = prof.full_name || account.displayName() || "";
-    $("pfPhone").value = String(prof.phone || "").replace(/\D/g, "").replace(/^91(?=\d{10}$)/, "");
+    if(window.Keys99Phone) Keys99Phone.set($("pfPhone"), prof.phone || "");
     $("pfEmail").value = user.email || "";
     msg("");
     editing = true;
@@ -113,21 +113,20 @@
 
   $("profileEdit").addEventListener("click", openForm);
   $("pfCancel").addEventListener("click", closeForm);
-  $("pfPhone").addEventListener("input", e => { e.target.value = e.target.value.replace(/\D/g, "").slice(0, 10); });
 
   $("profileForm").addEventListener("submit", async e => {
     e.preventDefault();
     const user = account.user();
     const prof = account.profile() || {};
     const name = $("pfName").value.trim().replace(/\s+/g, " ");
-    const digits = $("pfPhone").value.replace(/\D/g, "");
+    const phoneRead = window.Keys99Phone ? Keys99Phone.read($("pfPhone")) : { number: "" };
     const email = $("pfEmail").value.trim().toLowerCase();
 
     if(name && name.length < 2){ msg("Please enter your full name."); $("pfName").focus(); return; }
-    if(digits && !/^[6-9]\d{9}$/.test(digits)){ msg("Please enter a valid 10-digit mobile number."); $("pfPhone").focus(); return; }
+    if(phoneRead.error){ msg(phoneRead.error); $("pfPhone").focus(); return; }
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ msg("Please enter a valid email address."); $("pfEmail").focus(); return; }
 
-    const phone = digits ? "+91" + digits : "";
+    const phone = phoneRead.number;
     const profileChanged = name !== (prof.full_name || "") || phone !== (prof.phone || "");
     const emailChanged = email !== (user.email || "").toLowerCase();
     if(!profileChanged && !emailChanged){ closeForm(); return; }

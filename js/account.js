@@ -348,7 +348,6 @@
 .k99-login button.k99-btn[hidden]{display:none}
 .k99-login form > input + .k99-phone,.k99-login form > input + input{margin-top:10px}
 .k99-phone{display:flex;margin-top:10px}
-.k99-phone b{display:grid;place-items:center;padding:0 12px;border:1px solid #c9d4d8;border-right:0;border-radius:12px 0 0 12px;background:#f6fbf9;font-size:1rem}
 .k99-phone input{border-radius:0 12px 12px 0 !important}
 .k99-small{margin:14px 0 0 !important;font-size:.8rem !important;color:#6b7c82 !important}
 .k99-toast{position:fixed;left:50%;bottom:90px;z-index:10001;transform:translate(-50%,20px);opacity:0;pointer-events:none;max-width:calc(100% - 32px);background:#082d38;color:#fff;padding:12px 18px;border-radius:12px;font-size:.95rem;transition:.25s}
@@ -396,7 +395,7 @@
     <p>Add your mobile number so our property experts can reach you on WhatsApp.</p>
     <form data-phone-form novalidate>
       <input name="name" type="text" maxlength="80" autocomplete="name" placeholder="Your name">
-      <div class="k99-phone"><b>+91</b><input name="phone" type="tel" inputmode="numeric" maxlength="10" autocomplete="tel-national" placeholder="10-digit mobile number"></div>
+      <div class="k99-phone"><input name="phone" type="tel" inputmode="numeric" maxlength="10" autocomplete="tel-national" placeholder="10-digit mobile number"></div>
       <button class="k99-btn k99-primary" type="submit">Continue</button>
     </form>
     <button class="k99-link" type="button" data-skip>Skip for now</button>
@@ -557,17 +556,18 @@
     });
 
     const phoneInput = $("[data-phone-form] input[name=phone]");
-    phoneInput.addEventListener("input", () => { phoneInput.value = phoneInput.value.replace(/\D/g, "").slice(0, 10); });
+    $("[data-phone-form]").addEventListener("input", () => err());
+    $("[data-phone-form]").addEventListener("change", () => err());
 
     $("[data-phone-form]").addEventListener("submit", async e => {
       e.preventDefault();
-      const btn = e.currentTarget.querySelector("button");
+      const btn = e.currentTarget.querySelector("button[type=submit]");
       const name = $("[data-phone-form] input[name=name]").value.trim().replace(/\s+/g, " ");
-      const digits = phoneInput.value.replace(/\D/g, "");
-      if(!/^[6-9]\d{9}$/.test(digits)){ err("Please enter a valid 10-digit mobile number."); phoneInput.focus(); return; }
+      const phone = await loadPhone().then(P => P.read(phoneInput)).catch(() => ({ error: "Please try again." }));
+      if(phone.error || !phone.number){ err(phone.error || "Please enter your mobile number."); phoneInput.focus(); return; }
       busy(btn, true); err();
       try{
-        await updateProfile({ fullName: name || (profile && profile.full_name) || "", phone: "+91" + digits });
+        await updateProfile({ fullName: name || (profile && profile.full_name) || "", phone: phone.number });
         closeLogin(true);
         toast("Welcome to Keys99!");
       }catch(ex){
@@ -601,8 +601,18 @@
     toast("You are logged in");
   }
 
+  /* Country codes for phone numbers (js/phone.js), loaded when needed. */
+  let phonePromise = null;
+  function loadPhone(){
+    if(window.Keys99Phone) return Promise.resolve(window.Keys99Phone);
+    if(!phonePromise) phonePromise = loadScript(JS_BASE + "phone.js").then(() => window.Keys99Phone).catch(e => { phonePromise = null; throw e; });
+    return phonePromise;
+  }
+
   function showPhoneStep(){
     if(!modal) buildModal();
+    const phoneField = modal.querySelector("[data-phone-form] input[name=phone]");
+    loadPhone().then(P => P.set(phoneField, (profile && profile.phone) || "")).catch(() => {});
     if(modal.hidden){
       lastFocus = document.activeElement;
       modal.hidden = false;
