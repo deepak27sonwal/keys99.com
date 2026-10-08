@@ -112,8 +112,11 @@ function buildSavedPage({ H, indexHtml, props, siteOrigin }){
   }), "profile");
 }
 
-function buildProfilePage({ indexHtml, siteOrigin }){
+function buildProfilePage({ H, indexHtml, props, siteOrigin }){
   const chrome = homepageChrome(indexHtml);
+  /* Every project's card; js/profile.js moves the ones that match the
+     visitor's requirements into "Recommended for you". */
+  const cards = (props || []).map(p => H.createPropertyCard(p)).join("");
   const main = `
 <main class="hub profile-page">
   <div class="container">
@@ -149,6 +152,43 @@ function buildProfilePage({ indexHtml, siteOrigin }){
         <div class="profile-who">
           <h2 id="profileName"></h2>
           <p id="profileEmail"></p>
+        </div>
+      </section>
+
+      <section class="profile-card req-prompt" id="reqPrompt" hidden>
+        <div class="req-prompt-icon" aria-hidden="true">🎯</div>
+        <div>
+          <h3>Tell us what you're looking for</h3>
+          <p>Share your requirement and we'll recommend matching projects - homes, offices or shops.</p>
+          <div class="req-prompt-actions">
+            <button type="button" class="btn-primary" data-req-open="residential">🏠 Residential</button>
+            <button type="button" class="req-ghost" data-req-open="commercial">🏢 Commercial</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="profile-card req-card" id="reqCard" aria-labelledby="reqTitle">
+        <div class="profile-settings-head">
+          <h3 id="reqTitle">My Requirements</h3>
+        </div>
+        <div class="req-tabs" role="tablist" aria-label="Requirement type">
+          <button type="button" role="tab" id="reqTabResidential" data-req-tab="residential" aria-selected="true">🏠 Residential</button>
+          <button type="button" role="tab" id="reqTabCommercial" data-req-tab="commercial" aria-selected="false">🏢 Commercial</button>
+        </div>
+        <div class="req-body" id="reqBody" role="tabpanel"></div>
+      </section>
+
+      <section class="reco" id="recoSection" aria-labelledby="recoTitle" hidden>
+        <h2 class="reco-title" id="recoTitle">Recommended for you</h2>
+        <div class="reco-block" id="recoResidential" hidden>
+          <div class="reco-head"><h3>🏠 Homes for you</h3><a class="reco-all" href="projects/search">See all</a></div>
+          <div class="hub-grid reco-grid"></div>
+          <p class="reco-empty" hidden>No exact matches yet - our property experts will share options with you.</p>
+        </div>
+        <div class="reco-block" id="recoCommercial" hidden>
+          <div class="reco-head"><h3>🏢 Commercial for you</h3><a class="reco-all" href="commercial/">See all</a></div>
+          <div class="hub-grid reco-grid"></div>
+          <p class="reco-empty" hidden>No exact matches yet - our property experts will share options with you.</p>
         </div>
       </section>
 
@@ -208,6 +248,8 @@ function buildProfilePage({ indexHtml, siteOrigin }){
 
       <button class="profile-logout" type="button" id="profileLogout">Log out</button>
     </div>
+
+    <div id="recoPool" hidden>${cards}</div>
   </div>
 </main>`;
   return finish(shell({
@@ -218,7 +260,7 @@ function buildProfilePage({ indexHtml, siteOrigin }){
     robots: "noindex,follow",
     css: ["css/media-pages.css"],
     main,
-    scripts: ["js/hub.js", "js/nav-fx.js", "js/attribution.js", "js/compare-tray.js", "js/account.js", "js/phone.js", "js/profile.js"]
+    scripts: ["js/hub.js", "js/nav-fx.js", "js/attribution.js", "js/compare-tray.js", "js/cards.js", "js/account.js", "js/phone.js", "js/profile.js", "js/requirements.js"]
   }), "profile");
 }
 

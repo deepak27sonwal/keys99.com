@@ -125,9 +125,25 @@
   }
 
   /* ---------- profile (name, phone) ---------- */
+  /* The requirement columns (supabase/13-profile-requirements.sql) are
+     read when they exist; before that SQL is run, the rest still loads. */
+  const PROFILE_COLS = "full_name, phone, avatar_url";
+  const REQ_COLS = ", req_residential, req_commercial, req_updated_at";
+  let hasReqCols = true;
+
+  async function selectProfile(sb){
+    if(hasReqCols){
+      const res = await sb.from("profiles").select(PROFILE_COLS + REQ_COLS).eq("id", user.id).maybeSingle();
+      if(!res.error) return res.data;
+      if(!/req_/.test(res.error.message || "")) return null;
+      hasReqCols = false;
+    }
+    const { data } = await sb.from("profiles").select(PROFILE_COLS).eq("id", user.id).maybeSingle();
+    return data;
+  }
+
   async function loadProfile(sb){
-    const { data } = await sb.from("profiles").select("full_name, phone, avatar_url").eq("id", user.id).maybeSingle();
-    profile = data || null;
+    profile = (await selectProfile(sb)) || null;
     prefillContact();
   }
 
@@ -162,16 +178,35 @@
     const { data, error } = await sb.from("profiles")
       .update({ full_name: fullName || null, phone: phone || null })
       .eq("id", user.id)
-      .select("full_name, phone, avatar_url")
+      .select(PROFILE_COLS)
       .maybeSingle();
     if(error) throw error;
     if(!data) throw new Error("Your profile could not be found. Please log out and in again.");
-    profile = data;
+    profile = { ...(profile || {}), ...data };
     /* Keep the login's own copy of the name in step (shown before the profile loads). */
     const { data: updated } = await sb.auth.updateUser({ data: { full_name: fullName || null } });
     if(updated && updated.user) user = updated.user;
     try{ localStorage.setItem("k99_contact", JSON.stringify({ name: fullName || "", phone: (phone || "").replace(/^\+91/, "") })); }catch(_){}
     prefillContact();
+    changed();
+  }
+
+  /* What the visitor is looking for: { residential, commercial }, each
+     an object, or null to clear that section. Only the given sections
+     change. */
+  async function updateRequirements(sections){
+    const sb = await client();
+    const changes = { req_updated_at: new Date().toISOString() };
+    if("residential" in sections) changes.req_residential = sections.residential || null;
+    if("commercial" in sections) changes.req_commercial = sections.commercial || null;
+    const { data, error } = await sb.from("profiles")
+      .update(changes)
+      .eq("id", user.id)
+      .select("req_residential, req_commercial, req_updated_at")
+      .maybeSingle();
+    if(error) throw error;
+    if(!data) throw new Error("Your profile could not be found. Please log out and in again.");
+    profile = { ...(profile || {}), ...data };
     changed();
   }
 
@@ -591,7 +626,7 @@
   async function finishLogin(sb){
     if(user && Date.now() - Date.parse(user.created_at || 0) < NEW_ACCOUNT_MS){
       const { data } = await sb.from("profiles").select("full_name, phone, avatar_url").eq("id", user.id).maybeSingle();
-      if(data) profile = data;
+      if(data) profile = { ...(profile || {}), ...data };
       if(!(data && data.phone)){
         showPhoneStep();
         return;
@@ -734,6 +769,7 @@
     profile: () => profile,
     displayName,
     updateProfile,
+    updateRequirements,
     changeEmail,
     toast,
     ids: () => [...saved.keys()],
