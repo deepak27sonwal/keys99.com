@@ -32,6 +32,7 @@ const { buildBlog } = require("./blog.js");
 const { buildComparePage } = require("./compare.js");
 const { buildComparisons } = require("./compare-pages.js");
 const { buildSavedPage, buildProfilePage, buildReelsPage } = require("./extra-pages.js");
+const { collectFooterLinks, injectFooterLinks } = require("./footer-links.js");
 const { stampAssetVersions, htmlFiles } = require("./asset-versions.js");
 
 /* City/locality hubs with a single project are thin; they are built
@@ -697,6 +698,17 @@ async function main(){
   fs.writeFileSync(indexPath, fs.readFileSync(indexPath, "utf8")
     .replace(/(<meta (?:property="og:image"|name="twitter:image") content=")[^"]*(")/g, `$1${DEFAULT_SHARE_IMAGE}$2`));
   console.log(`  wrote    / (homepage sections: ${home.projects} projects, ${home.stats.cities} cities)`);
+
+  /* The "Explore Real Estate" link directory in every page's footer:
+     the listing pages that are in the sitemap. */
+  const footerTabs = collectFooterLinks(hubs, h => h.indexable || h.count >= HUB_MIN_INDEXED);
+  const footerPages = injectFooterLinks(ROOT, [
+    indexPath,
+    ...["about", "contact", "home-loans", "testimonials", "privacy-policy", "terms", "saved", "profile", "reels"]
+      .map(name => path.join(ROOT, name + ".html")),
+    ...htmlFiles(ROOT, ["projects", "commercial", "developers", "blog", "compare"])
+  ], footerTabs);
+  console.log(`  footer   ${footerTabs.reduce((n, t) => n + t.groups.reduce((m, g) => m + g.links.length, 0), 0)} links in ${footerTabs.length} tab(s), on ${footerPages} page(s)`);
 
   /* Last: version every CSS/JS link so browsers never pair new pages
      with old cached styles or scripts. */
