@@ -28,6 +28,7 @@
   let ready = false;                         /* login state known */
   let saved = new Map();                     /* project id -> kind, newest first */
   let clientPromise = null;
+  let cameBackFromLogin = /[#&](access_token|error_description)=/.test(location.hash) || /[?&]code=/.test(location.search);
 
   const store = {
     get(area, key){ try{ return JSON.parse(window[area].getItem(key) || "null"); }catch(_){ return null; } },
@@ -114,6 +115,11 @@
     ready = true;
     changed();
     if(user) runPendingSave();
+    /* Back from Google's redirect as a brand-new account: ask for the number. */
+    if(user && cameBackFromLogin){
+      cameBackFromLogin = false;
+      if(Date.now() - Date.parse(user.created_at || 0) < NEW_ACCOUNT_MS && !(profile && profile.phone)) showPhoneStep();
+    }
     /* Google's return leaves an empty "#" once Supabase has read the login from it. */
     if(location.href.endsWith("#")) history.replaceState(null, "", location.pathname + location.search);
   }
@@ -165,6 +171,7 @@
     const { data: updated } = await sb.auth.updateUser({ data: { full_name: fullName || null } });
     if(updated && updated.user) user = updated.user;
     try{ localStorage.setItem("k99_contact", JSON.stringify({ name: fullName || "", phone: (phone || "").replace(/^\+91/, "") })); }catch(_){}
+    prefillContact();
     changed();
   }
 
@@ -339,6 +346,9 @@
 .k99-gsi{display:flex;justify-content:center;min-height:44px}
 .k99-gsi[hidden]{display:none}
 .k99-login button.k99-btn[hidden]{display:none}
+.k99-login form > input + .k99-phone,.k99-login form > input + input{margin-top:10px}
+.k99-phone{display:flex;margin-top:10px}
+.k99-phone input{border-radius:0 12px 12px 0 !important}
 .k99-small{margin:14px 0 0 !important;font-size:.8rem !important;color:#6b7c82 !important}
 .k99-toast{position:fixed;left:50%;bottom:90px;z-index:10001;transform:translate(-50%,20px);opacity:0;pointer-events:none;max-width:calc(100% - 32px);background:#082d38;color:#fff;padding:12px 18px;border-radius:12px;font-size:.95rem;transition:.25s}
 .k99-toast.show{opacity:1;transform:translate(-50%,0)}`;
@@ -379,6 +389,16 @@
     </form>
     <p class="k99-resend">Didn't get it? <button type="button" class="k99-link" data-resend disabled>Resend code in <span data-timer>0:60</span></button></p>
     <button class="k99-link" type="button" data-back>Use a different email</button>
+  </div>
+  <div data-step="phone" hidden>
+    <h2>Welcome to Keys99 🎉</h2>
+    <p>Add your mobile number so our property experts can reach you on WhatsApp.</p>
+    <form data-phone-form novalidate>
+      <input name="name" type="text" maxlength="80" autocomplete="name" placeholder="Your name">
+      <div class="k99-phone"><input name="phone" type="tel" inputmode="numeric" maxlength="10" autocomplete="tel-national" placeholder="10-digit mobile number"></div>
+      <button class="k99-btn k99-primary" type="submit">Continue</button>
+    </form>
+    <button class="k99-link" type="button" data-skip>Skip for now</button>
   </div>
   <p class="k99-err" role="alert"></p>
   <p class="k99-small">New here? Logging in creates your account.</p>
@@ -521,8 +541,7 @@
         const sb = await client();
         const { error } = await sb.auth.verifyOtp({ email, token, type: "email" });
         if(error) throw error;
-        closeLogin(true);
-        toast("You are logged in");
+        await finishLogin(sb);
       }catch(ex){
         err("That code did not work. Check it, or ask for a new one.");
       }
@@ -535,6 +554,78 @@
       $("[data-step=start]").hidden = false;
       $("input[type=email]").focus();
     });
+
+    const phoneInput = $("[data-phone-form] input[name=phone]");
+    $("[data-phone-form]").addEventListener("input", () => err());
+    $("[data-phone-form]").addEventListener("change", () => err());
+
+    $("[data-phone-form]").addEventListener("submit", async e => {
+      e.preventDefault();
+      const btn = e.currentTarget.querySelector("button[type=submit]");
+      const name = $("[data-phone-form] input[name=name]").value.trim().replace(/\s+/g, " ");
+      const phone = await loadPhone().then(P => P.read(phoneInput)).catch(() => ({ error: "Please try again." }));
+      if(phone.error || !phone.number){ err(phone.error || "Please enter your mobile number."); phoneInput.focus(); return; }
+      busy(btn, true); err();
+      try{
+        await updateProfile({ fullName: name || (profile && profile.full_name) || "", phone: phone.number });
+        closeLogin(true);
+        toast("Welcome to Keys99!");
+      }catch(ex){
+        err("Could not save your number. Please try again, or skip for now.");
+      }
+      busy(btn, false);
+    });
+
+    $("[data-skip]").addEventListener("click", () => {
+      closeLogin(true);
+      toast("You are logged in");
+    });
+  }
+
+  /* ---------- after logging in ----------
+     A brand-new account (created in the last half hour) that has no
+     mobile number yet is asked for one, with its name, before the
+     popup closes. Anyone who already had an account goes straight in. */
+  const NEW_ACCOUNT_MS = 30 * 60 * 1000;
+
+  async function finishLogin(sb){
+    if(user && Date.now() - Date.parse(user.created_at || 0) < NEW_ACCOUNT_MS){
+      const { data } = await sb.from("profiles").select("full_name, phone, avatar_url").eq("id", user.id).maybeSingle();
+      if(data) profile = data;
+      if(!(data && data.phone)){
+        showPhoneStep();
+        return;
+      }
+    }
+    closeLogin(true);
+    toast("You are logged in");
+  }
+
+  /* Country codes for phone numbers (js/phone.js), loaded when needed. */
+  let phonePromise = null;
+  function loadPhone(){
+    if(window.Keys99Phone) return Promise.resolve(window.Keys99Phone);
+    if(!phonePromise) phonePromise = loadScript(JS_BASE + "phone.js").then(() => window.Keys99Phone).catch(e => { phonePromise = null; throw e; });
+    return phonePromise;
+  }
+
+  function showPhoneStep(){
+    if(!modal) buildModal();
+    const phoneField = modal.querySelector("[data-phone-form] input[name=phone]");
+    loadPhone().then(P => P.set(phoneField, (profile && profile.phone) || "")).catch(() => {});
+    if(modal.hidden){
+      lastFocus = document.activeElement;
+      modal.hidden = false;
+      document.documentElement.style.overflow = "hidden";
+    }
+    const meta = (user && user.user_metadata) || {};
+    ["start", "code"].forEach(step => { modal.querySelector(`[data-step=${step}]`).hidden = true; });
+    modal.querySelector("[data-step=phone]").hidden = false;
+    modal.querySelector(".k99-small").hidden = true;
+    modal.querySelector(".k99-err").textContent = "";
+    const nameInput = modal.querySelector("[data-phone-form] input[name=name]");
+    nameInput.value = (profile && profile.full_name) || meta.full_name || meta.name || "";
+    (nameInput.value ? modal.querySelector("[data-phone-form] input[name=phone]") : nameInput).focus();
   }
 
   /* ---------- Google sign-in on this site ----------
@@ -575,8 +666,7 @@
           try{
             const { error } = await sb.auth.signInWithIdToken({ provider: "google", token: response.credential, nonce: raw });
             if(error) throw error;
-            closeLogin(true);
-            toast("You are logged in");
+            await finishLogin(sb);
           }catch(ex){
             errEl.textContent = "Google login did not work. Please try again, or use your email.";
           }
@@ -603,6 +693,8 @@
     modal.querySelector(".k99-err").textContent = "";
     modal.querySelector("[data-step=start]").hidden = false;
     modal.querySelector("[data-step=code]").hidden = true;
+    modal.querySelector("[data-step=phone]").hidden = true;
+    modal.querySelector(".k99-small").hidden = false;
     modal.hidden = false;
     document.documentElement.style.overflow = "hidden";
     modal.querySelector("[data-google]").disabled = false;
@@ -615,7 +707,7 @@
     modal.hidden = true;
     stopTimer();
     document.documentElement.style.overflow = "";
-    if(loggedIn !== true) store.del("sessionStorage", PENDING_KEY);
+    if(loggedIn !== true && !user) store.del("sessionStorage", PENDING_KEY);
     if(lastFocus && lastFocus.focus) lastFocus.focus();
   }
 
