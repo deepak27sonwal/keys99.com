@@ -381,7 +381,7 @@ function buildPage(template, row, config, allProjects, shareImage, similarCards,
     .map(i => i.url).filter(u => /^https?:\/\//i.test(u))
     .filter((u, i, a) => a.indexOf(u) === i).slice(0, 30);
 
-  return { slug: p.slug, base: K.base, html: $.html(), lastmod: p.updatedAt, images };
+  return { slug: p.slug, base: K.base, city: p.city, html: $.html(), lastmod: p.updatedAt, images };
 }
 
 
@@ -699,16 +699,30 @@ async function main(){
     .replace(/(<meta (?:property="og:image"|name="twitter:image") content=")[^"]*(")/g, `$1${DEFAULT_SHARE_IMAGE}$2`));
   console.log(`  wrote    / (homepage sections: ${home.projects} projects, ${home.stats.cities} cities)`);
 
-  /* The "Explore Real Estate" link directory in every page's footer:
-     the listing pages that are in the sitemap. */
-  const footerTabs = collectFooterLinks(hubs, h => h.indexable || h.count >= HUB_MIN_INDEXED);
-  const footerPages = injectFooterLinks(ROOT, [
+  /* Footer links chosen for each page (build/footer-links.js): a page
+     about one city links to that city's listing pages, other pages to
+     the main cities, and pages that already have the links get none.
+     The city of a page comes from its folder: a listing page's own
+     city, or the project a project page (or its blog post) is about. */
+  const footerData = collectFooterLinks(hubs, h => h.indexable || h.count >= HUB_MIN_INDEXED);
+  const cityByDir = new Map();
+  hubs.forEach(h => { if(h.footer && h.footer.city) cityByDir.set(h.dir, h.footer.city); });
+  pages.forEach(p => { if(p.city) cityByDir.set(`${p.base}/${p.slug}`, p.city); });
+  const cityOfDir = dir => {
+    const parts = dir.split("/");
+    for(let n = parts.length; n > 1; n--){
+      const city = cityByDir.get(parts.slice(0, n).join("/"));
+      if(city) return city;
+    }
+    return "";
+  };
+  const footer = injectFooterLinks(ROOT, [
     indexPath,
     ...["about", "contact", "home-loans", "testimonials", "privacy-policy", "terms", "saved", "profile", "reels"]
       .map(name => path.join(ROOT, name + ".html")),
     ...htmlFiles(ROOT, ["projects", "commercial", "developers", "blog", "compare"])
-  ], footerTabs);
-  console.log(`  footer   ${footerTabs.reduce((n, t) => n + t.groups.reduce((m, g) => m + g.links.length, 0), 0)} links in ${footerTabs.length} tab(s), on ${footerPages} page(s)`);
+  ], footerData, cityOfDir);
+  console.log(`  footer   city links on ${footer.city} page(s), popular cities on ${footer.cities}, none on ${footer.skipped} (already linked)`);
 
   /* Last: version every CSS/JS link so browsers never pair new pages
      with old cached styles or scripts. */
