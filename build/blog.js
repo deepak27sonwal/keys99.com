@@ -66,61 +66,6 @@ function displayDate(day){
   return new Date(day + "T00:00:00Z").toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
 }
 
-/* ---------- Project post bodies: plain text to HTML ---------- */
-
-function inlineMarks(text){
-  return esc(text)
-    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-    .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (all, label, url) => {
-      const raw = url.replace(/&amp;/g, "&");
-      if(/^https?:\/\/(?:www\.)?keys99\.com(?:\/|$)/i.test(raw) || /^\/(?!\/)/.test(raw)){
-        return `<a href="${url}">${label}</a>`;
-      }
-      if(/^https?:\/\//i.test(raw)) return `<a href="${url}" rel="noopener" target="_blank">${label}</a>`;
-      return label;
-    });
-}
-
-/* Returns { html, toc }: every h2 gets an id so search results and
-   the "On this page" list can link straight to a section. */
-function formatArticle(body){
-  const out = [], toc = [], ids = new Set();
-  let para = [], list = null;
-  const flushPara = () => { if(para.length){ out.push(`<p>${para.map(inlineMarks).join("<br>")}</p>`); para = []; } };
-  const flushList = () => { if(list){ out.push(`<${list.tag}>${list.items.map(i => `<li>${inlineMarks(i)}</li>`).join("")}</${list.tag}>`); list = null; } };
-  String(body || "").replace(/\r\n?/g, "\n").split("\n").forEach(raw => {
-    const line = raw.trim();
-    let m;
-    if(!line){ flushPara(); flushList(); return; }
-    /* The page title is the only h1. */
-    if((m = line.match(/^(#{1,3})\s+(.+)$/))){
-      flushPara(); flushList();
-      const level = m[1].length === 3 ? 3 : 2;
-      if(level === 3){ out.push(`<h3>${inlineMarks(m[2])}</h3>`); return; }
-      const text = m[2].replace(/\*\*(.+?)\*\*/g, "$1").replace(/\[([^\]]+)\]\([^)\s]+\)/g, "$1");
-      let id = P.slugify(text) || "section";
-      for(let n = 2; ids.has(id); n++) id = id.replace(/-\d+$/, "") + "-" + n;
-      ids.add(id);
-      toc.push({ id, text });
-      out.push(`<h2 id="${id}">${inlineMarks(m[2])}</h2>`);
-      return;
-    }
-    const item = line.match(/^[-*•]\s+(.+)$/) ? ["ul", line.replace(/^[-*•]\s+/, "")]
-      : line.match(/^\d+[.)]\s+(.+)$/) ? ["ol", line.replace(/^\d+[.)]\s+/, "")] : null;
-    if(item){
-      flushPara();
-      if(list && list.tag !== item[0]) flushList();
-      if(!list) list = { tag: item[0], items: [] };
-      list.items.push(item[1]);
-      return;
-    }
-    flushList();
-    para.push(line);
-  });
-  flushPara(); flushList();
-  return { html: out.join("\n        "), toc };
-}
-
 /* The longest of these that fits; a long post title is kept whole.
    The project name is left out when the post title already has it. */
 function postTitle(title, p){
@@ -327,7 +272,7 @@ function buildProjectPostPage(entry, ctx){
   const blogUrl = `${siteOrigin}/blog/`;
   const prefix = "../../../../";
   const citySlug = P.slugify(p.city);
-  const article = formatArticle(b.body);
+  const article = P.formatArticle(b.body);
   /* Link preview: the cover's 1200x630 JPEG, else the project photo's. */
   const preview = (b.image && shareImage(b.image)) || (p.images[0] && shareImage(p.images[0].url)) || null;
   const image = preview || b.image || (p.images[0] && p.images[0].url) || defaultShareImage;
@@ -450,6 +395,47 @@ function buildProjectPostPage(entry, ctx){
       ].filter(Boolean).join("\n")
     }), prefix, /^commercial\//.test(entry.dir))
   };
+}
+
+/* The page for a project post published since the last build
+   (404.html and .htaccess send projects/<project>/blog/<post>/ here
+   as ?project=&post=); js/blog-post.js loads the post by slug. Never
+   indexed. kind: "residential" (projects/blog-post.html) or
+   "commercial" (commercial/blog-post.html). */
+function buildPostFallback({ indexHtml, siteOrigin, defaultShareImage, kind }){
+  const K = P.kindOf(kind), commercial = K.kind === "commercial";
+  const chrome = homepageChrome(indexHtml);
+  const prefix = "../";
+  const title = "Project article | Keys99";
+  const main = `
+<main class="hub legal blog project-post">
+  <div class="container">
+    <nav class="hub-breadcrumb" id="bpCrumbs" aria-label="Breadcrumb">
+      <a href="./">Home</a><span>›</span><span aria-current="page">Article</span>
+    </nav>
+    <div class="post-layout">
+      <article class="legal-body blog-body" id="bpArticle">
+        <p id="bpStatus" role="status">Loading article…</p>
+      </article>
+      <div id="bpAside"></div>
+    </div>
+  </div>
+</main>`;
+  const html = shell({
+    chrome, title, description: "Read this project article on Keys99.",
+    canonical: `${siteOrigin}/${K.base}/blog-post`, robots: "noindex,follow", ogType: "article",
+    shareImage: defaultShareImage, jsonLd: { "@context": "https://schema.org", "@type": "WebPage", name: title },
+    main, prefix,
+    extraHead: ""
+  }).replace("<script defer src=\"js/hub.js\"></script>", [
+    `<script>window.__KEYS99_KIND__="${K.kind}";</script>`,
+    '<script defer src="js/supabase.js"></script>',
+    '<script defer src="js/config.js"></script>',
+    '<script defer src="js/project-core.js"></script>',
+    '<script defer src="js/blog-post.js"></script>',
+    '<script defer src="js/hub.js"></script>'
+  ].join("\n"));
+  return finish(html, prefix, commercial);
 }
 
 /* projects: normalised projects (P.normalizeProject, root "") whose
@@ -685,4 +671,4 @@ ${sorted.map(i => `  <item>
 `;
 }
 
-module.exports = { buildBlog, loadPosts, formatArticle, MIN_INDEXED_WORDS };
+module.exports = { buildBlog, buildPostFallback, loadPosts, formatArticle: P.formatArticle, MIN_INDEXED_WORDS };

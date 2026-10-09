@@ -488,6 +488,63 @@
       .replace(/\s+/g, " ").trim();
   }
 
+  /* A post body (plain text with ## headings, - lists, **bold** and
+       [text](link)) as HTML; used by build/blog.js and the browser
+       fallback page (js/blog-post.js). */
+
+  function inlineMarks(text){
+    return escapeHtml(text)
+      .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+      .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (all, label, url) => {
+        const raw = url.replace(/&amp;/g, "&");
+        if(/^https?:\/\/(?:www\.)?keys99\.com(?:\/|$)/i.test(raw) || /^\/(?!\/)/.test(raw)){
+          return `<a href="${url}">${label}</a>`;
+        }
+        if(/^https?:\/\//i.test(raw)) return `<a href="${url}" rel="noopener" target="_blank">${label}</a>`;
+        return label;
+      });
+  }
+
+  /* Returns { html, toc }: every h2 gets an id so search results and
+     the "On this page" list can link straight to a section. */
+  function formatArticle(body){
+    const out = [], toc = [], ids = new Set();
+    let para = [], list = null;
+    const flushPara = () => { if(para.length){ out.push(`<p>${para.map(inlineMarks).join("<br>")}</p>`); para = []; } };
+    const flushList = () => { if(list){ out.push(`<${list.tag}>${list.items.map(i => `<li>${inlineMarks(i)}</li>`).join("")}</${list.tag}>`); list = null; } };
+    String(body || "").replace(/\r\n?/g, "\n").split("\n").forEach(raw => {
+      const line = raw.trim();
+      let m;
+      if(!line){ flushPara(); flushList(); return; }
+      /* The page title is the only h1. */
+      if((m = line.match(/^(#{1,3})\s+(.+)$/))){
+        flushPara(); flushList();
+        const level = m[1].length === 3 ? 3 : 2;
+        if(level === 3){ out.push(`<h3>${inlineMarks(m[2])}</h3>`); return; }
+        const text = m[2].replace(/\*\*(.+?)\*\*/g, "$1").replace(/\[([^\]]+)\]\([^)\s]+\)/g, "$1");
+        let id = slugify(text) || "section";
+        for(let n = 2; ids.has(id); n++) id = id.replace(/-\d+$/, "") + "-" + n;
+        ids.add(id);
+        toc.push({ id, text });
+        out.push(`<h2 id="${id}">${inlineMarks(m[2])}</h2>`);
+        return;
+      }
+      const item = line.match(/^[-*•]\s+(.+)$/) ? ["ul", line.replace(/^[-*•]\s+/, "")]
+        : line.match(/^\d+[.)]\s+(.+)$/) ? ["ol", line.replace(/^\d+[.)]\s+/, "")] : null;
+      if(item){
+        flushPara();
+        if(list && list.tag !== item[0]) flushList();
+        if(!list) list = { tag: item[0], items: [] };
+        list.items.push(item[1]);
+        return;
+      }
+      flushList();
+      para.push(line);
+    });
+    flushPara(); flushList();
+    return { html: out.join("\n        "), toc };
+  }
+
   function shorten(text, max){
     return text.length > max ? text.slice(0, max).replace(/\s+\S*$/, "").replace(/[\s,.;:!?-]+$/, "") + "…" : text;
   }
@@ -1477,6 +1534,7 @@
     renderFaqs,
     renderBlogs,
     articleText,
+    formatArticle,
     shorten,
     formatDay,
     renderFloorPlans,
