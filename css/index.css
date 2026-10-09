@@ -138,7 +138,7 @@ a{
 /* assets/logo-wide.png is the logo cropped to its edges (logo.png
    carries wide empty margins), so these widths are all logo. */
 .header-logo{
-  width:230px;
+  width:170px;
   height:auto;
   object-fit:contain;
   display:block;
@@ -2103,7 +2103,7 @@ footer{
   /* MOBILE LOGO */
 
   .header-logo{
-    width:180px;
+    width:135px;
   }
 
 
@@ -2510,7 +2510,7 @@ footer{
   }
 
   .header-logo{
-    width:165px;
+    width:125px;
   }
 
 }
