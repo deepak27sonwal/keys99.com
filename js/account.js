@@ -272,6 +272,15 @@
 
   /* ---------- hearts and the Saved count ---------- */
   function paint(root){
+    /* "♡ Save" / "♥ Saved" buttons with a label (project pages). */
+    (root || document).querySelectorAll("[data-save-btn][data-property-id]").forEach(btn => {
+      const on = saved.has(btn.dataset.propertyId);
+      btn.classList.toggle("saved", on);
+      btn.setAttribute("aria-pressed", on ? "true" : "false");
+      btn.setAttribute("aria-label", on ? "Remove from saved" : "Save this project");
+      const label = btn.querySelector("span");
+      if(label) label.textContent = on ? "Saved" : "Save";
+    });
     (root || document).querySelectorAll(".fav[data-property-id], #favoriteBtn[data-property-id]").forEach(btn => {
       const on = saved.has(btn.dataset.propertyId);
       btn.classList.toggle(btn.id === "favoriteBtn" ? "saved" : "active", on);
@@ -324,7 +333,7 @@
 
   /* Capture phase, so the card's own "open the project" click never runs. */
   document.addEventListener("click", e => {
-    const btn = e.target.closest && e.target.closest(".fav[data-property-id], #favoriteBtn");
+    const btn = e.target.closest && e.target.closest(".fav[data-property-id], #favoriteBtn, [data-save-btn]");
     if(!btn) return;
     e.preventDefault();
     e.stopPropagation();

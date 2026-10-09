@@ -110,7 +110,7 @@
 }
 
 /* Site visit (property-details.js, contact form in "visit" mode) */
-.title-actions .visit-btn{grid-column:1/-1;background:#fff7e3;border:1px solid #f0d58e;color:#7a5a00;font-weight:700}
+.title-actions .visit-btn{background:#fff7e3;border:1px solid #f0d58e;color:#7a5a00;font-weight:700}
 .visit-card-btn{width:100%;padding:12px;border-radius:9px;border:0;background:#fff;color:var(--green);font-weight:700;font-size:var(--fs-ui);cursor:pointer}
 .contact-gate-done{text-align:center;justify-items:center}
 .contact-gate-done[hidden],.contact-gate-card[hidden]{display:none}
@@ -285,3 +285,21 @@
 .about-toggle::after{content:"";width:7px;height:7px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:translateY(-2px) rotate(45deg);transition:transform .2s}
 .about-toggle[aria-expanded="true"]::after{transform:translateY(2px) rotate(225deg)}
 .about-toggle:hover{background:var(--green);color:#fff}
+
+/* Save + Share above the photos; Enquire Now and Schedule Site Visit
+   side by side under the price. */
+.page-tools{display:flex;justify-content:flex-end;gap:8px;margin:0 0 10px}
+.tool-btn{display:inline-flex;align-items:center;gap:7px;padding:8px 15px;border:1px solid var(--line);border-radius:999px;background:#fff;color:var(--ink,#092c3d);font:inherit;font-size:var(--fs-ui);font-weight:700;cursor:pointer;transition:border-color .15s,background .15s,color .15s}
+.tool-btn:hover{border-color:var(--green);color:var(--green)}
+.tool-btn svg{width:18px;height:18px;flex:none}
+.tool-heart{fill:none;stroke:currentColor;stroke-width:2;stroke-linejoin:round}
+.tool-btn.saved{border-color:#f3c3c3;background:#fff4f4;color:#d6336c}
+.tool-btn.saved .tool-heart{fill:currentColor}
+.title-card .title-actions{grid-template-columns:1fr 1fr}
+.title-card .title-actions .primary{grid-column:auto}
+.title-card .title-actions button{display:flex;align-items:center;justify-content:center;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:600px){
+  .page-tools{margin-top:-2px}
+  .tool-btn{padding:7px 13px;font-size:var(--fs-small)}
+  .title-card .title-actions button{padding:11px 6px;font-size:var(--fs-small)}
+}

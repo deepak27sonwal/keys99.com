@@ -105,6 +105,18 @@
       <span id="crumbName" aria-current="page">Details</span>
     </nav>
 
+    <!-- SAVE + SHARE, above the photos -->
+    <div class="page-tools">
+      <button class="tool-btn" id="saveBtn" type="button" data-save-btn aria-pressed="false">
+        <svg class="tool-heart" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z"/></svg>
+        <span>Save</span>
+      </button>
+      <button class="tool-btn" id="shareBtn" type="button" aria-label="Share this project">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg>
+        <span>Share</span>
+      </button>
+    </div>
+
     <!-- IMAGE GALLERY -->
     <section class="gallery-card">
       <div class="main-photo" id="mainPhoto" tabindex="0" role="button" aria-label="Open property image">
@@ -145,10 +157,8 @@
       </div>
 
       <div class="title-actions">
-        <button id="shareBtn" type="button">⌯ &nbsp; Share</button>
-        <button id="backBtn" type="button">← &nbsp; Back</button>
         <button id="enquireTopBtn" class="primary" type="button">✉ &nbsp; Enquire Now</button>
-        <button id="visitTopBtn" class="visit-btn" type="button">📅 &nbsp; Schedule a Free Site Visit</button>
+        <button id="visitTopBtn" class="visit-btn" type="button">📅 &nbsp; Schedule Site Visit</button>
       </div>
     </section>
 
