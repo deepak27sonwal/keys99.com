@@ -1148,23 +1148,40 @@
     return out;
   }
 
+  /* Tabs, one per size ("1 BHK", "2 BHK"...). Each tab shows that
+     size's area, price and status, and its plan with a 2D / 3D switch
+     on top of the image. Every tab and plan is in the HTML (search
+     engines see them all); js/property-details.js switches them. */
   function renderFloorPlans(p){
-    return floorPlanGroups(p).map(g => `
-      <article class="fp-group">
-        <header class="fp-head">
-          <h3>${escapeHtml(g.bhk)}${g.variant ? ` <small>${escapeHtml(g.variant)}</small>` : ""}</h3>
-          ${planDetails(g).length ? `<dl class="fp-facts">${planDetails(g).map(([k, v]) => `<div><dt>${escapeHtml(k)}</dt><dd>${escapeHtml(v)}</dd></div>`).join("")}</dl>` : ""}
-        </header>
-        <div class="fp-plans">${g.plans.map(f => `
-          <figure class="floor-plan-card">
-            <span class="fp-type fp-type-${f.type.toLowerCase()}">${f.type}</span>
-            ${f.url ? `<a href="${escapeHtml(f.url)}" target="_blank" rel="noopener" aria-label="Open ${escapeHtml(g.bhk)} ${f.type} floor plan at full size">
-              <img src="${escapeHtml(f.large)}" data-full="${escapeHtml(f.url)}" onerror="${IMG_FALLBACK}" alt="${escapeHtml(f.alt || `${p.name} ${g.bhk} ${f.type} floor plan`)}" loading="lazy" decoding="async">
-            </a>` : `<a class="fp-pdf" href="${escapeHtml(f.pdf)}" target="_blank" rel="noopener">View ${escapeHtml(f.type)} plan (PDF)</a>`}
-            <figcaption>${escapeHtml(f.title)}${f.url && f.pdf ? ` · <a href="${escapeHtml(f.pdf)}" target="_blank" rel="noopener">PDF</a>` : ""}</figcaption>
-          </figure>`).join("")}
+    const groups = floorPlanGroups(p);
+    if(!groups.length) return "";
+    const tabLabel = g => g.bhk + (g.variant ? ` ${g.variant}` : "");
+    const plan = (g, f, shown) => `
+            <figure class="floor-plan-card" data-fp-type="${f.type}"${shown ? "" : " hidden"}>
+              ${f.url ? `<a href="${escapeHtml(f.url)}" target="_blank" rel="noopener" aria-label="Open ${escapeHtml(g.bhk)} ${f.type} floor plan at full size">
+                <img src="${escapeHtml(f.large)}" data-full="${escapeHtml(f.url)}" onerror="${IMG_FALLBACK}" alt="${escapeHtml(f.alt || `${p.name} ${g.bhk} ${f.type} floor plan`)}" loading="lazy" decoding="async">
+              </a>` : `<a class="fp-pdf" href="${escapeHtml(f.pdf)}" target="_blank" rel="noopener">View ${escapeHtml(f.type)} plan (PDF)</a>`}
+              <figcaption>${escapeHtml(f.title)}${f.url && f.pdf ? ` · <a href="${escapeHtml(f.pdf)}" target="_blank" rel="noopener">PDF</a>` : ""}</figcaption>
+            </figure>`;
+    return `
+      <div class="fp-tabs" role="tablist" aria-label="Floor plans by size">${groups.map((g, i) => `
+        <button type="button" role="tab" id="fp-tab-${i}" aria-controls="fp-panel-${i}" aria-selected="${i === 0}"${i ? ' tabindex="-1"' : ""} data-fp-tab="${i}">${escapeHtml(tabLabel(g))}</button>`).join("")}
+      </div>
+      ${groups.map((g, i) => {
+        const types = [...new Set(g.plans.map(f => f.type))];
+        const first = types[0];
+        const facts = planDetails(g);
+        return `
+      <div class="fp-panel" id="fp-panel-${i}" role="tabpanel" aria-labelledby="fp-tab-${i}"${i ? " hidden" : ""}>
+        <h3 class="fp-title">${escapeHtml(tabLabel(g))} Floor Plan</h3>
+        ${facts.length ? `<dl class="fp-facts">${facts.map(([k, v]) => `<div><dt>${escapeHtml(k)}</dt><dd>${escapeHtml(v)}</dd></div>`).join("")}</dl>` : ""}
+        <div class="fp-viewer">
+          ${types.length > 1 ? `<div class="fp-switch" role="group" aria-label="Plan view">${types.map(t => `<button type="button" data-fp-view="${t}" aria-pressed="${t === first}">${t}</button>`).join("")}</div>`
+            : `<span class="fp-type fp-type-${first.toLowerCase()}">${first}</span>`}
+          ${g.plans.map(f => plan(g, f, f.type === first)).join("")}
         </div>
-      </article>`).join("");
+      </div>`;
+      }).join("")}`;
   }
 
   function renderMasterPlans(p){

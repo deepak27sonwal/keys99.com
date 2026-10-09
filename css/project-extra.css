@@ -220,27 +220,35 @@
 #configurationSection table,#towersSection table,#phasesSection table{min-width:560px}
 #configurationSection th,#configurationSection td,#towersSection th,#towersSection td,#phasesSection th,#phasesSection td{overflow-wrap:normal;word-break:normal}
 
-/* Floor plans & pricing: one block per size (BHK) with its area and
-   price beside its 2D and 3D plans (renderFloorPlans in project-core). */
-.fp-list{display:grid;gap:14px}
-.fp-group{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff}
-.fp-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 18px;padding:12px 14px;background:#f6fbf9;border-bottom:1px solid var(--line)}
-.fp-head h3{margin:0;font-size:var(--fs-lead);color:var(--ink,#092c3d)}
-.fp-head h3 small{font-size:var(--fs-small);font-weight:600;color:var(--muted)}
-.fp-facts{display:flex;flex-wrap:wrap;gap:6px 18px;margin:0}
+/* Floor plans & pricing: a tab per size (BHK) with its area, price
+   and status, and its plan with a 2D / 3D switch over the image
+   (renderFloorPlans in project-core, switching in property-details.js). */
+.fp-tabs{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:2px 2px 4px;margin-bottom:12px}
+.fp-tabs::-webkit-scrollbar{display:none}
+.fp-tabs button{flex:none;padding:9px 18px;border:1px solid var(--line);border-radius:999px;background:#fff;color:var(--ink,#092c3d);font:inherit;font-size:var(--fs-ui);font-weight:700;cursor:pointer;white-space:nowrap;transition:background .15s,color .15s,border-color .15s}
+.fp-tabs button:hover{border-color:var(--green)}
+.fp-tabs button[aria-selected="true"]{background:var(--green);border-color:var(--green);color:#fff}
+.fp-tabs button:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+.fp-panel[hidden]{display:none}
+.fp-title{margin:0 0 8px;font-size:var(--fs-lead);color:var(--ink,#092c3d)}
+.fp-facts{display:flex;flex-wrap:wrap;gap:8px 22px;margin:0 0 12px;padding:12px 14px;border-radius:12px;background:#f6fbf9}
 .fp-facts div{display:flex;flex-direction:column}
 .fp-facts dt{font-size:var(--fs-label);color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
 .fp-facts dd{margin:0;font-size:var(--fs-ui);font-weight:800;color:var(--green)}
-.fp-plans{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:12px}
-.fp-plans .floor-plan-card{position:relative;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fafcfb}
-.fp-plans .floor-plan-card img{display:block;width:100%;height:230px;object-fit:contain;background:#f7faf9}
-.fp-type{position:absolute;top:8px;left:8px;z-index:1;padding:3px 9px;border-radius:999px;font-size:var(--fs-label);font-weight:800;color:#fff;background:#006b5b}
+.fp-viewer{position:relative}
+.fp-viewer .floor-plan-card{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fafcfb}
+.fp-viewer .floor-plan-card[hidden]{display:none}
+.fp-viewer .floor-plan-card img{display:block;width:100%;height:380px;object-fit:contain;background:#f7faf9;padding-top:44px;box-sizing:border-box}
+.fp-switch{position:absolute;top:10px;left:50%;z-index:2;transform:translateX(-50%);display:flex;padding:4px;border-radius:999px;background:rgba(255,255,255,.95);box-shadow:0 4px 14px rgba(8,45,56,.16)}
+.fp-switch button{min-width:56px;padding:7px 16px;border:0;border-radius:999px;background:none;color:var(--muted);font:inherit;font-size:var(--fs-small);font-weight:800;cursor:pointer}
+.fp-switch button[aria-pressed="true"]{background:var(--green);color:#fff}
+.fp-switch button:focus-visible{outline:2px solid var(--green);outline-offset:1px}
+.fp-type{position:absolute;top:10px;left:10px;z-index:1;padding:4px 11px;border-radius:999px;font-size:var(--fs-label);font-weight:800;color:#fff;background:#006b5b}
 .fp-type-3d{background:#e1a400;color:#082d38}
-.fp-pdf{display:grid;place-items:center;height:230px;color:var(--green);font-weight:700;text-decoration:none;background:#f7faf9}
+.fp-pdf{display:grid;place-items:center;height:300px;color:var(--green);font-weight:700;text-decoration:none;background:#f7faf9}
 .floor-plan-card figcaption a{color:var(--green)}
 @media(max-width:600px){
-  .fp-plans{gap:8px;padding:10px}
-  .fp-plans .floor-plan-card img,.fp-pdf{height:170px}
-  .fp-plans .floor-plan-card figcaption{padding:8px 9px;font-size:var(--fs-label)}
-  .fp-facts{gap:6px 14px}
+  .fp-tabs button{padding:8px 14px}
+  .fp-viewer .floor-plan-card img{height:260px}
+  .fp-facts{gap:6px 16px}
 }
