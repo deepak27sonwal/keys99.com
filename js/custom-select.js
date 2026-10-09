@@ -169,7 +169,9 @@
       const list = activeList();
       const current = list.findIndex(li => Number(li.dataset.index) === select.selectedIndex);
       setActive(current >= 0 ? current : 0);
-      if(searchable) searchInput.focus({ preventScroll:true });
+      /* Only where there is a real pointer: on a phone, focusing the box
+         raises the keyboard, which resizes the page and covers the list. */
+      if(searchable && window.matchMedia("(hover:hover) and (pointer:fine)").matches) searchInput.focus({ preventScroll:true });
     }
 
     function position(){
@@ -325,12 +327,24 @@
   document.addEventListener("click", e => {
     if(openInstance && !e.target.closest(".cs") && !e.target.closest(".cs-menu")) openInstance.close();
   });
-  window.addEventListener("resize", () => openInstance && openInstance.close());
+  /* Close on a change of width (rotation, window resize); a change of
+     height alone is the on-screen keyboard coming up. */
+  let lastWidth = window.innerWidth;
+  window.addEventListener("resize", () => {
+    const widthChanged = window.innerWidth !== lastWidth;
+    lastWidth = window.innerWidth;
+    if(!openInstance) return;
+    if(widthChanged) openInstance.close();
+    else openInstance.position();
+  });
 
   /* Keep an open menu attached to its field while the page or a
      panel scrolls; close it once the field scrolls out of view. */
   document.addEventListener("scroll", e => {
     if(!openInstance || openInstance.menu.contains(e.target)) return;
+    /* Typing in the list's search box scrolls the page to keep the box
+       in view; that is not the visitor leaving the field. */
+    if(openInstance.menu.contains(document.activeElement)){ openInstance.position(); return; }
     const r = openInstance.trigger.getBoundingClientRect();
     if(r.bottom < 0 || r.top > window.innerHeight) openInstance.close();
     else openInstance.position();
