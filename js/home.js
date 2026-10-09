@@ -755,6 +755,7 @@ function createPropertyCard(property, badgeLabel, badgeClass){
       data-bhks="${escapeHtml(options.map(o => normaliseBhkType(o.type).toLowerCase()).filter(Boolean).join("|"))}"
       data-city="${escapeHtml(slugify(property.city))}"
       data-locality="${escapeHtml(slugify(property.locality))}"
+      data-developer="${escapeHtml(slugify(titleCaseName(property.developer)))}"
       data-price="${optionPrices.length ? Math.min(...optionPrices) : ""}"
       data-status="${escapeHtml(property.status_key || "")}"
       data-listing="${property.is_resale ? "resale" : "new"}"

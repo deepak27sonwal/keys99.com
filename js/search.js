@@ -25,7 +25,7 @@
   const citySel = document.getElementById("sfCity");
   const localitySel = document.getElementById("sfLocality");
 
-  const FIELDS = ["q", "city", "locality", "bhk", "type", "minPrice", "maxPrice", "sort", "status"];
+  const FIELDS = ["q", "city", "locality", "developer", "bhk", "type", "minPrice", "maxPrice", "sort", "status"];
 
   const slug = v => String(v || "").toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g, "")
     .replace(/&/g, " and ").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
@@ -37,6 +37,7 @@
     FIELDS.forEach(f => { values[f] = (params.get(f) || "").trim(); });
     values.city = slug(values.city);
     values.locality = slug(values.locality);
+    values.developer = slug(values.developer);
     values.bhk = values.bhk.toLowerCase().replace(/\s+/g, " ");
     return values;
   }
@@ -58,6 +59,23 @@
     });
     const current = localitySel.options[localitySel.selectedIndex];
     if(current && current.hidden) localitySel.value = "";
+  }
+
+  /* BHK / Unit follows the property type: sizes for homes, unit types
+     (Office Space, Shop...) for commercial, nothing for plots. */
+  function syncBhk(){
+    const sel = form.elements.bhk, field = document.getElementById("sfBhkField");
+    if(!sel) return;
+    const type = form.elements.type.value;
+    const show = type === "commercial" ? "commercial" : ["residential", "luxury", "resale"].includes(type) ? "home" : "";
+    const hasUnits = [...sel.options].some(o => o.dataset.group === "commercial");
+    [...sel.options].forEach(o => { if(o.value) o.hidden = !!show && o.dataset.group !== show; });
+    const current = sel.options[sel.selectedIndex];
+    if((current && current.hidden) || type === "plots") sel.value = "";
+    if(field) field.style.display = type === "plots" ? "none" : "";
+    const label = document.getElementById("sfBhkLabel");
+    if(label) label.textContent = show === "commercial" ? "Unit Type" : show === "home" || !hasUnits ? "BHK" : "BHK / Unit";
+    sel.options[0].textContent = show === "commercial" ? "Any Unit Type" : show === "home" || !hasUnits ? "Any BHK" : "Any BHK / Unit";
   }
 
   function values(){
@@ -117,6 +135,7 @@
     }
     if(v.city && d.city !== v.city) return false;
     if(v.locality && d.locality !== v.locality) return false;
+    if(v.developer && d.developer !== v.developer) return false;
     /* "resale" is a listing type across categories (data-listing);
        the rest are categories (data-type). */
     if(v.type === "resale"){
@@ -205,7 +224,7 @@
   const panel = document.getElementById("sfPanel");
   const backdrop = document.getElementById("sfBackdrop");
   const applyBtn = document.getElementById("sfApply");
-  const FILTERS = ["city", "locality", "bhk", "type", "minPrice", "maxPrice"];
+  const FILTERS = ["city", "locality", "developer", "bhk", "type", "minPrice", "maxPrice"];
 
   /* Count on the Filters button, one removable chip per active
      filter, and the result count on the panel's button. */
@@ -228,6 +247,7 @@
     if(!chip) return;
     form.elements[chip.dataset.field].value = "";
     if(chip.dataset.field === "city") syncLocalities();
+    if(chip.dataset.field === "type") syncBhk();
     apply(true);
   });
 
@@ -267,6 +287,7 @@
     FIELDS.forEach(f => { if(f !== "locality") setControl(f, p[f]); });
     syncLocalities();
     setControl("locality", p.locality);
+    syncBhk();
     if(!form.elements.sort.value) form.elements.sort.value = "newest";
     apply(false);
   }
@@ -280,6 +301,7 @@
   });
   form.addEventListener("change", e => {
     if(e.target.name === "city") syncLocalities();
+    if(e.target.name === "type") syncBhk();
     apply(false);
   });
   form.addEventListener("submit", e => { e.preventDefault(); apply(true); });
@@ -288,6 +310,7 @@
     form.reset();
     form.elements.status.value = "";
     syncLocalities();
+    syncBhk();
     form.elements.sort.value = "newest";
     apply(true);
   }

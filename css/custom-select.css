@@ -172,3 +172,9 @@
 .enquiry-card .cs-placeholder .cs-value{ color:rgba(255,255,255,.72); }
 
 .enquiry-card .cs-arrow{ color:#fff; opacity:.85; }
+
+/* <select data-searchable>: search box pinned at the top of the list */
+.cs-search{ position:sticky; top:-6px; z-index:1; margin:-6px -6px 4px; padding:8px; background:#fff; border-bottom:1px solid #e7eceb; list-style:none; }
+.cs-search-input{ width:100%; box-sizing:border-box; height:38px; padding:0 12px; border:1px solid #d7dfdd; border-radius:10px; font:inherit; font-size:14px; background:#f7faf9; color:inherit; outline:none; }
+.cs-search-input:focus{ border-color:#006b5b; background:#fff; }
+.cs-empty{ padding:12px; font-size:14px; color:#6b7a77; text-align:center; list-style:none; }
