@@ -243,7 +243,7 @@
 .fp-switch button{min-width:56px;padding:7px 16px;border:0;border-radius:999px;background:none;color:var(--muted);font:inherit;font-size:var(--fs-small);font-weight:800;cursor:pointer}
 .fp-switch button[aria-pressed="true"]{background:var(--green);color:#fff}
 .fp-switch button:focus-visible{outline:2px solid var(--green);outline-offset:1px}
-.fp-type{position:absolute;top:10px;left:10px;z-index:1;padding:4px 11px;border-radius:999px;font-size:var(--fs-label);font-weight:800;color:#fff;background:#006b5b}
+.fp-type{position:absolute;top:10px;left:50%;z-index:2;transform:translateX(-50%);min-width:56px;padding:7px 16px;border-radius:999px;font-size:var(--fs-small);font-weight:800;text-align:center;color:#fff;background:#006b5b;box-shadow:0 0 0 4px rgba(255,255,255,.95),0 4px 14px rgba(8,45,56,.16)}
 .fp-type-3d{background:#e1a400;color:#082d38}
 .fp-pdf{display:grid;place-items:center;height:300px;color:var(--green);font-weight:700;text-decoration:none;background:#f7faf9}
 .floor-plan-card figcaption a{color:var(--green)}
@@ -252,3 +252,36 @@
   .fp-viewer .floor-plan-card img{height:260px}
   .fp-facts{gap:6px 16px}
 }
+/* One BHK, several carpet areas: cards in a row that scrolls sideways
+   (scroll-snap), the next card peeking in; ‹ › and a counter above. */
+.fp-tabs button small{display:inline-grid;place-items:center;min-width:18px;height:18px;margin-left:4px;padding:0 5px;border-radius:999px;background:rgba(0,107,91,.12);color:inherit;font-size:var(--fs-label);font-weight:800}
+.fp-tabs button[aria-selected="true"] small{background:rgba(255,255,255,.25)}
+.fp-panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+.fp-panel-head .fp-title{margin:0}
+.fp-title small{font-size:var(--fs-small);font-weight:600;color:var(--muted)}
+.fp-nav{display:flex;align-items:center;gap:8px;flex:none}
+.fp-nav button{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:#fff;color:var(--green);font-size:22px;line-height:1;cursor:pointer;display:grid;place-items:center;padding:0 0 3px}
+.fp-nav button:disabled{opacity:.35;cursor:default}
+.fp-count{font-size:var(--fs-small);font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+.fp-variants{display:grid;gap:12px}
+.fp-scroll{grid-auto-flow:column;grid-auto-columns:calc(100% - 56px);overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding:0;overscroll-behavior-x:contain;scrollbar-width:thin;padding-bottom:6px;-webkit-overflow-scrolling:touch}
+.fp-scroll .fp-variant{scroll-snap-align:start;border:1px solid var(--line);border-radius:16px;padding:12px;background:#fff;min-width:0}
+.fp-variant-name{margin:0 0 6px;font-weight:700;color:var(--ink,#092c3d)}
+.fp-scroll .fp-facts{margin-bottom:10px}
+@media(max-width:600px){
+  .fp-scroll{grid-auto-columns:calc(100% - 36px);gap:10px}
+  .fp-scroll .fp-variant{padding:10px}
+  .fp-scroll .fp-viewer .floor-plan-card img{height:220px}
+  .fp-nav button{width:30px;height:30px;font-size:20px}
+}
+
+/* About: long text folds after a few lines with "Read more" (foldAbout
+   in js/property-details.js). The text itself stays in the page. */
+.description.is-folded{position:relative;max-height:210px;overflow:hidden}
+.description.is-folded::after{content:"";position:absolute;left:0;right:0;bottom:0;height:72px;background:linear-gradient(rgba(255,255,255,0),#fff);pointer-events:none}
+.description.is-folded.is-open{max-height:none;overflow:visible}
+.description.is-folded.is-open::after{display:none}
+.about-toggle{display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:8px 16px;border:1px solid var(--green);border-radius:999px;background:#fff;color:var(--green);font:inherit;font-size:var(--fs-small);font-weight:800;cursor:pointer}
+.about-toggle::after{content:"";width:7px;height:7px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:translateY(-2px) rotate(45deg);transition:transform .2s}
+.about-toggle[aria-expanded="true"]::after{transform:translateY(2px) rotate(225deg)}
+.about-toggle:hover{background:var(--green);color:#fff}

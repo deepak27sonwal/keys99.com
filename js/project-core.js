@@ -1093,33 +1093,35 @@
     return new Date(day + "T00:00:00Z").toLocaleDateString("en-IN", { day:"numeric", month:"short", year:"numeric", timeZone:"UTC" });
   }
 
-  /* Floor plans grouped by size: one block per configuration (or BHK)
-     with its carpet area, price and availability beside its 2D and 3D
-     drawings. Plans whose size matches no configuration still show,
-     under their own BHK. */
+  /* Floor plans by size: one group per BHK, holding one "variant" per
+     configuration (carpet area) that has plans. A plan linked to a
+     configuration goes to that variant; an unlinked one goes to the
+     only configuration of its BHK, or to a variant of its own showing
+     the BHK's area and price range. */
   function floorPlanGroups(p){
     const groups = [];
-    const byKey = new Map();
-    const groupFor = (key, make) => {
-      if(!byKey.has(key)){ const g = make(); byKey.set(key, g); groups.push(g); }
-      return byKey.get(key);
-    };
+    const byBhk = new Map();
     p.floorPlans.forEach(f => {
-      const cfg = (f.configId && p.configurations.find(c => c.id === f.configId))
-        || (f.bhk && p.configurations.filter(c => c.bhk === f.bhk).length === 1 ? p.configurations.find(c => c.bhk === f.bhk) : null);
-      const key = cfg ? "cfg:" + (cfg.id || cfg.bhk + cfg.variant) : "bhk:" + (f.bhk || f.title);
-      const g = groupFor(key, () => {
-        const same = cfg ? [cfg] : p.configurations.filter(c => f.bhk && c.bhk === f.bhk);
-        return {
-          bhk: cfg ? cfg.bhk : (f.bhk || f.title),
-          variant: cfg ? cfg.variant : "",
-          configs: same,
-          plans: []
-        };
-      });
-      g.plans.push(f);
+      const linked = f.configId && p.configurations.find(c => c.id === f.configId);
+      const bhk = linked ? linked.bhk : (f.bhk || f.title);
+      if(!byBhk.has(bhk)){ const g = { bhk, variants: [], byKey: new Map() }; byBhk.set(bhk, g); groups.push(g); }
+      const g = byBhk.get(bhk);
+      const sameBhk = p.configurations.filter(c => c.bhk === bhk);
+      const cfg = linked || (sameBhk.length === 1 ? sameBhk[0] : null);
+      const key = cfg ? "cfg:" + (cfg.id || cfg.area + cfg.variant) : "all";
+      if(!g.byKey.has(key)){
+        const v = { cfg, configs: cfg ? [cfg] : sameBhk, plans: [] };
+        g.byKey.set(key, v);
+        g.variants.push(v);
+      }
+      g.byKey.get(key).plans.push(f);
     });
-    groups.forEach(g => g.plans.sort((a, b) => (a.type === "2D" ? 0 : 1) - (b.type === "2D" ? 0 : 1)));
+    groups.forEach(g => {
+      delete g.byKey;
+      g.variants.forEach(v => v.plans.sort((a, b) => (a.type === "2D" ? 0 : 1) - (b.type === "2D" ? 0 : 1)));
+      /* Smallest carpet area first; the BHK-wide variant last. */
+      g.variants.sort((a, b) => (a.cfg ? a.cfg.areaValue || 0 : Infinity) - (b.cfg ? b.cfg.areaValue || 0 : Infinity));
+    });
     return groups;
   }
 
@@ -1148,37 +1150,51 @@
     return out;
   }
 
-  /* Tabs, one per size ("1 BHK", "2 BHK"...). Each tab shows that
-     size's area, price and status, and its plan with a 2D / 3D switch
-     on top of the image. Every tab and plan is in the HTML (search
-     engines see them all); js/property-details.js switches them. */
+  /* Tabs, one per size ("1 BHK", "2 BHK"...). Each tab holds a card
+     per carpet area of that size - its area, price and status, and its
+     plan with a 2D / 3D switch on top of the image. Several cards
+     scroll sideways (swipe on phones, arrows on desktop). Every tab
+     and plan is in the HTML (search engines see them all);
+     js/property-details.js switches them. */
   function renderFloorPlans(p){
     const groups = floorPlanGroups(p);
     if(!groups.length) return "";
-    const tabLabel = g => g.bhk + (g.variant ? ` ${g.variant}` : "");
     const plan = (g, f, shown) => `
-            <figure class="floor-plan-card" data-fp-type="${f.type}"${shown ? "" : " hidden"}>
-              ${f.url ? `<a href="${escapeHtml(f.url)}" target="_blank" rel="noopener" aria-label="Open ${escapeHtml(g.bhk)} ${f.type} floor plan at full size">
-                <img src="${escapeHtml(f.large)}" data-full="${escapeHtml(f.url)}" onerror="${IMG_FALLBACK}" alt="${escapeHtml(f.alt || `${p.name} ${g.bhk} ${f.type} floor plan`)}" loading="lazy" decoding="async">
-              </a>` : `<a class="fp-pdf" href="${escapeHtml(f.pdf)}" target="_blank" rel="noopener">View ${escapeHtml(f.type)} plan (PDF)</a>`}
-              <figcaption>${escapeHtml(f.title)}${f.url && f.pdf ? ` · <a href="${escapeHtml(f.pdf)}" target="_blank" rel="noopener">PDF</a>` : ""}</figcaption>
-            </figure>`;
+              <figure class="floor-plan-card" data-fp-type="${f.type}"${shown ? "" : " hidden"}>
+                ${f.url ? `<a href="${escapeHtml(f.url)}" target="_blank" rel="noopener" aria-label="Open ${escapeHtml(g.bhk)} ${f.type} floor plan at full size">
+                  <img src="${escapeHtml(f.large)}" data-full="${escapeHtml(f.url)}" onerror="${IMG_FALLBACK}" alt="${escapeHtml(f.alt || `${p.name} ${g.bhk} ${f.type} floor plan`)}" loading="lazy" decoding="async">
+                </a>` : `<a class="fp-pdf" href="${escapeHtml(f.pdf)}" target="_blank" rel="noopener">View ${escapeHtml(f.type)} plan (PDF)</a>`}
+                <figcaption>${escapeHtml(f.title)}${f.url && f.pdf ? ` · <a href="${escapeHtml(f.pdf)}" target="_blank" rel="noopener">PDF</a>` : ""}</figcaption>
+              </figure>`;
+    const variant = (g, v) => {
+      const types = [...new Set(v.plans.map(f => f.type))];
+      const first = types[0];
+      const facts = planDetails(v);
+      const name = v.cfg && v.cfg.variant ? v.cfg.variant : "";
+      return `
+          <div class="fp-variant">
+            ${name ? `<p class="fp-variant-name">${escapeHtml(name)}</p>` : ""}
+            ${facts.length ? `<dl class="fp-facts">${facts.map(([k, val]) => `<div><dt>${escapeHtml(k)}</dt><dd>${escapeHtml(val)}</dd></div>`).join("")}</dl>` : ""}
+            <div class="fp-viewer">
+              ${types.length > 1 ? `<div class="fp-switch" role="group" aria-label="Plan view">${types.map(t => `<button type="button" data-fp-view="${t}" aria-pressed="${t === first}">${t}</button>`).join("")}</div>`
+                : `<span class="fp-type fp-type-${first.toLowerCase()}">${first}</span>`}
+              ${v.plans.map(f => plan(g, f, f.type === first)).join("")}
+            </div>
+          </div>`;
+    };
     return `
       <div class="fp-tabs" role="tablist" aria-label="Floor plans by size">${groups.map((g, i) => `
-        <button type="button" role="tab" id="fp-tab-${i}" aria-controls="fp-panel-${i}" aria-selected="${i === 0}"${i ? ' tabindex="-1"' : ""} data-fp-tab="${i}">${escapeHtml(tabLabel(g))}</button>`).join("")}
+        <button type="button" role="tab" id="fp-tab-${i}" aria-controls="fp-panel-${i}" aria-selected="${i === 0}"${i ? ' tabindex="-1"' : ""} data-fp-tab="${i}">${escapeHtml(g.bhk)}${g.variants.length > 1 ? ` <small>${g.variants.length}</small>` : ""}</button>`).join("")}
       </div>
       ${groups.map((g, i) => {
-        const types = [...new Set(g.plans.map(f => f.type))];
-        const first = types[0];
-        const facts = planDetails(g);
+        const many = g.variants.length > 1;
         return `
       <div class="fp-panel" id="fp-panel-${i}" role="tabpanel" aria-labelledby="fp-tab-${i}"${i ? " hidden" : ""}>
-        <h3 class="fp-title">${escapeHtml(tabLabel(g))} Floor Plan</h3>
-        ${facts.length ? `<dl class="fp-facts">${facts.map(([k, v]) => `<div><dt>${escapeHtml(k)}</dt><dd>${escapeHtml(v)}</dd></div>`).join("")}</dl>` : ""}
-        <div class="fp-viewer">
-          ${types.length > 1 ? `<div class="fp-switch" role="group" aria-label="Plan view">${types.map(t => `<button type="button" data-fp-view="${t}" aria-pressed="${t === first}">${t}</button>`).join("")}</div>`
-            : `<span class="fp-type fp-type-${first.toLowerCase()}">${first}</span>`}
-          ${g.plans.map(f => plan(g, f, f.type === first)).join("")}
+        <div class="fp-panel-head">
+          <h3 class="fp-title">${escapeHtml(g.bhk)} Floor Plan${many ? `s <small>${g.variants.length} carpet areas</small>` : ""}</h3>
+          ${many ? `<div class="fp-nav"><button type="button" class="fp-prev" aria-label="Previous ${escapeHtml(g.bhk)} plan" disabled>‹</button><span class="fp-count">1 / ${g.variants.length}</span><button type="button" class="fp-next" aria-label="Next ${escapeHtml(g.bhk)} plan">›</button></div>` : ""}
+        </div>
+        <div class="fp-variants${many ? " fp-scroll" : ""}">${g.variants.map(v => variant(g, v)).join("")}
         </div>
       </div>`;
       }).join("")}`;

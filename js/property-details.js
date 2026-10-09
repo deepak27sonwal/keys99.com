@@ -38,6 +38,38 @@ const $ = id => document.getElementById(id);
 const normalize = row => P.normalizeProject(row, { supabaseUrl: SUPABASE_URL, root: SITE_ROOT, kind: KIND.kind });
 
 
+/* ---------------- ABOUT: READ MORE ----------------
+   A long About text shows its first few lines with "Read more"; the
+   whole text stays in the page (search engines read all of it). */
+
+const ABOUT_FOLD_PX = 210;
+
+function foldAbout(){
+  const text = $("description");
+  if(!text) return;
+  const old = document.getElementById("aboutToggle");
+  if(old) old.remove();
+  text.classList.remove("is-folded", "is-open");
+  if(text.scrollHeight <= ABOUT_FOLD_PX + 60) return;      /* a few lines over: just show it */
+
+  text.classList.add("is-folded");
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.id = "aboutToggle";
+  btn.className = "about-toggle";
+  btn.setAttribute("aria-controls", "description");
+  btn.setAttribute("aria-expanded", "false");
+  btn.textContent = "Read more";
+  text.after(btn);
+  btn.addEventListener("click", () => {
+    const open = !text.classList.contains("is-open");
+    text.classList.toggle("is-open", open);
+    btn.setAttribute("aria-expanded", String(open));
+    btn.textContent = open ? "Show less" : "Read more";
+    if(!open) text.closest("section").scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+}
+
 /* ---------------- FLOOR PLAN TABS ----------------
    One tab per size; on each, a 2D / 3D switch over the plan image
    (markup from renderFloorPlans in js/project-core.js). Arrow keys
@@ -69,6 +101,33 @@ function initFloorPlanTabs(){
       viewer.querySelectorAll("[data-fp-type]").forEach(f => { f.hidden = f.dataset.fpType !== view.dataset.fpView; });
     }
   });
+
+  /* Several carpet areas of one size: a row that scrolls sideways,
+     with ‹ › and a "2 / 3" counter kept in step. */
+  const scrollerOf = el => el.closest(".fp-panel").querySelector(".fp-scroll");
+  const step = scroller => {
+    const card = scroller.querySelector(".fp-variant");
+    return card ? card.getBoundingClientRect().width + parseFloat(getComputedStyle(scroller).columnGap || 0) : scroller.clientWidth;
+  };
+  const syncNav = scroller => {
+    const panel = scroller.closest(".fp-panel");
+    const total = scroller.querySelectorAll(".fp-variant").length;
+    const at = Math.min(total, Math.round(scroller.scrollLeft / step(scroller)) + 1);
+    const count = panel.querySelector(".fp-count");
+    if(count) count.textContent = `${at} / ${total}`;
+    const prev = panel.querySelector(".fp-prev"), next = panel.querySelector(".fp-next");
+    if(prev) prev.disabled = scroller.scrollLeft <= 2;
+    if(next) next.disabled = scroller.scrollLeft + scroller.clientWidth >= scroller.scrollWidth - 2;
+  };
+  grid.addEventListener("click", e => {
+    const btn = e.target.closest(".fp-prev, .fp-next");
+    if(!btn) return;
+    const scroller = scrollerOf(btn);
+    scroller.scrollBy({ left: (btn.classList.contains("fp-next") ? 1 : -1) * step(scroller), behavior: "smooth" });
+  });
+  grid.addEventListener("scroll", e => {
+    if(e.target.classList && e.target.classList.contains("fp-scroll")) syncNav(e.target);
+  }, true);
 
   grid.addEventListener("keydown", e => {
     const tab = e.target.closest("[data-fp-tab]");
@@ -206,6 +265,7 @@ function renderProject(p){
   setText("carpetArea", p.firstArea || "—");
   setText("possession", p.possession || (p.status === "Ready to Move" ? "Ready" : "—"));
   setText("description", p.overview || "Project description will be available soon.");
+  foldAbout();
 
   const meta = [];
   if(p.reraNumbers.length) meta.push("RERA: " + p.reraNumbers.join(", "));
