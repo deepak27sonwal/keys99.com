@@ -83,10 +83,35 @@
 
     const items = () => [...menu.querySelectorAll(".cs-option")];
 
+    /* <select data-searchable>: a search box at the top of the list
+       narrows the options as you type. */
+    const searchable = select.hasAttribute("data-searchable");
+    let searchLi = null, searchInput = null, emptyLi = null, query = "";
+    if(searchable){
+      searchLi = document.createElement("li");
+      searchLi.className = "cs-search";
+      searchLi.setAttribute("role", "presentation");
+      searchInput = document.createElement("input");
+      searchInput.type = "search";
+      searchInput.className = "cs-search-input";
+      searchInput.autocomplete = "off";
+      searchInput.placeholder = select.getAttribute("data-search-placeholder") || "Search";
+      searchInput.setAttribute("aria-label", searchInput.placeholder);
+      searchLi.appendChild(searchInput);
+      emptyLi = document.createElement("li");
+      emptyLi.className = "cs-empty";
+      emptyLi.textContent = "No matches";
+    }
+
     function build(){
-      menu.innerHTML = "";
+      if(searchable){
+        if(!searchLi.parentNode) menu.appendChild(searchLi);
+        menu.querySelectorAll(".cs-option, .cs-empty").forEach(n => n.remove());
+      }else menu.innerHTML = "";
+      const q = query.trim().toLowerCase();
       [...select.options].forEach((opt, i) => {
         if(opt.hidden) return;
+        if(q && (!opt.value || !opt.textContent.toLowerCase().includes(q))) return;
         const li = document.createElement("li");
         li.className = "cs-option";
         li.id = `${id}-opt-${i}`;
@@ -96,6 +121,7 @@
         if(opt.disabled) li.setAttribute("aria-disabled", "true");
         menu.appendChild(li);
       });
+      if(searchable && !menu.querySelector(".cs-option")) menu.appendChild(emptyLi);
       sync();
     }
 
@@ -130,6 +156,8 @@
     function open(){
       if(select.disabled || !menu.hidden) return;
       if(openInstance && openInstance !== api) openInstance.close();
+      query = "";
+      if(searchable) searchInput.value = "";
       build();
       menu.hidden = false;
       wrap.classList.add(OPEN_CLASS);
@@ -141,6 +169,7 @@
       const list = activeList();
       const current = list.findIndex(li => Number(li.dataset.index) === select.selectedIndex);
       setActive(current >= 0 ? current : 0);
+      if(searchable) searchInput.focus({ preventScroll:true });
     }
 
     function position(){
@@ -184,7 +213,25 @@
       menu.hidden ? open() : close();
     });
 
-    menu.addEventListener("mousedown", e => e.preventDefault());
+    menu.addEventListener("mousedown", e => { if(!e.target.closest(".cs-search")) e.preventDefault(); });
+    if(searchable){
+      searchInput.addEventListener("input", () => {
+        query = searchInput.value;
+        build();
+        setActive(0);
+      });
+      searchInput.addEventListener("keydown", e => {
+        if(e.key === "Escape"){ e.preventDefault(); e.stopPropagation(); close(true); return; }
+        if(e.key === "Tab"){ close(); return; }
+        if(["ArrowDown", "ArrowUp", "Home", "End", "Enter"].includes(e.key) && e.key !== "Home" && e.key !== "End"){
+          e.preventDefault();
+          const list = activeList();
+          if(e.key === "ArrowDown") setActive(active + 1);
+          else if(e.key === "ArrowUp") setActive(active - 1);
+          else if(list[active]) choose(Number(list[active].dataset.index));
+        }
+      });
+    }
     menu.addEventListener("click", e => {
       /* The menu sits on <body>, outside whatever panel holds the
          field; page code that closes a panel on "click outside"

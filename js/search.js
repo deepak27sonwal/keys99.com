@@ -25,7 +25,7 @@
   const citySel = document.getElementById("sfCity");
   const localitySel = document.getElementById("sfLocality");
 
-  const FIELDS = ["q", "city", "locality", "bhk", "type", "minPrice", "maxPrice", "sort", "status"];
+  const FIELDS = ["q", "city", "locality", "developer", "bhk", "type", "minPrice", "maxPrice", "sort", "status"];
 
   const slug = v => String(v || "").toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g, "")
     .replace(/&/g, " and ").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
@@ -37,6 +37,7 @@
     FIELDS.forEach(f => { values[f] = (params.get(f) || "").trim(); });
     values.city = slug(values.city);
     values.locality = slug(values.locality);
+    values.developer = slug(values.developer);
     values.bhk = values.bhk.toLowerCase().replace(/\s+/g, " ");
     return values;
   }
@@ -134,6 +135,7 @@
     }
     if(v.city && d.city !== v.city) return false;
     if(v.locality && d.locality !== v.locality) return false;
+    if(v.developer && d.developer !== v.developer) return false;
     /* "resale" is a listing type across categories (data-listing);
        the rest are categories (data-type). */
     if(v.type === "resale"){
@@ -222,7 +224,7 @@
   const panel = document.getElementById("sfPanel");
   const backdrop = document.getElementById("sfBackdrop");
   const applyBtn = document.getElementById("sfApply");
-  const FILTERS = ["city", "locality", "bhk", "type", "minPrice", "maxPrice"];
+  const FILTERS = ["city", "locality", "developer", "bhk", "type", "minPrice", "maxPrice"];
 
   /* Count on the Filters button, one removable chip per active
      filter, and the result count on the panel's button. */

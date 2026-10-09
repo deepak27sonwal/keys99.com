@@ -45,6 +45,10 @@ function buildSearchPage({ H, indexHtml, props, siteOrigin }){
   const unitTypes = [...new Set(props.filter(p => p.kind === "commercial")
     .flatMap(p => H.getBhkOptions(p).map(o => H.normaliseBhkType(o.type))).filter(Boolean))].sort();
 
+  const developers = [...new Map(props.map(p => H.titleCaseName(p.developer)).filter(Boolean)
+    .map(n => [H.slugify(n), n])).entries()]
+    .map(([value, label]) => ({ value, label })).sort((a, b) => a.label.localeCompare(b.label));
+
   const option = (value, label, extra) => `<option value="${e(value)}"${extra || ""}>${e(label)}</option>`;
 
   const html = `<!doctype html>
@@ -121,7 +125,7 @@ ${chrome.mobileMenu}
         <div class="sf-grid">
           <label class="sf-field">
             <span>City</span>
-            <select name="city" id="sfCity">
+            <select name="city" id="sfCity" data-searchable data-search-placeholder="Search city">
               ${option("", "All Cities")}
               ${cities.map(c => option(c.value, c.label)).join("")}
             </select>
@@ -129,9 +133,17 @@ ${chrome.mobileMenu}
 
           <label class="sf-field">
             <span>Locality</span>
-            <select name="locality" id="sfLocality">
+            <select name="locality" id="sfLocality" data-searchable data-search-placeholder="Search locality">
               ${option("", "All Localities")}
               ${localities.map(l => option(l.value, l.label, ` data-city="${e(l.city)}"`)).join("")}
+            </select>
+          </label>
+
+          <label class="sf-field">
+            <span>Developer</span>
+            <select name="developer" id="sfDeveloper" data-searchable data-search-placeholder="Search developer">
+              ${option("", "All Developers")}
+              ${developers.map(d => option(d.value, d.label)).join("")}
             </select>
           </label>
 
