@@ -38,6 +38,52 @@ const $ = id => document.getElementById(id);
 const normalize = row => P.normalizeProject(row, { supabaseUrl: SUPABASE_URL, root: SITE_ROOT, kind: KIND.kind });
 
 
+/* ---------------- FLOOR PLAN TABS ----------------
+   One tab per size; on each, a 2D / 3D switch over the plan image
+   (markup from renderFloorPlans in js/project-core.js). Arrow keys
+   move between tabs. */
+
+function initFloorPlanTabs(){
+  const grid = $("floorPlanGrid");
+  if(!grid || grid._fpBound) return;
+  grid._fpBound = true;
+
+  const select = tab => {
+    grid.querySelectorAll("[data-fp-tab]").forEach(t => {
+      const on = t === tab;
+      t.setAttribute("aria-selected", String(on));
+      t.tabIndex = on ? 0 : -1;
+      const panel = document.getElementById(t.getAttribute("aria-controls"));
+      if(panel) panel.hidden = !on;
+    });
+    tab.scrollIntoView({ block: "nearest", inline: "nearest" });
+  };
+
+  grid.addEventListener("click", e => {
+    const tab = e.target.closest("[data-fp-tab]");
+    if(tab){ select(tab); return; }
+    const view = e.target.closest("[data-fp-view]");
+    if(view){
+      const viewer = view.closest(".fp-viewer");
+      viewer.querySelectorAll("[data-fp-view]").forEach(b => b.setAttribute("aria-pressed", String(b === view)));
+      viewer.querySelectorAll("[data-fp-type]").forEach(f => { f.hidden = f.dataset.fpType !== view.dataset.fpView; });
+    }
+  });
+
+  grid.addEventListener("keydown", e => {
+    const tab = e.target.closest("[data-fp-tab]");
+    if(!tab || !["ArrowRight", "ArrowLeft", "Home", "End"].includes(e.key)) return;
+    const tabs = [...grid.querySelectorAll("[data-fp-tab]")];
+    const i = tabs.indexOf(tab);
+    const next = e.key === "Home" ? tabs[0] : e.key === "End" ? tabs[tabs.length - 1]
+      : tabs[(i + (e.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length];
+    e.preventDefault();
+    select(next);
+    next.focus();
+  });
+}
+
+
 /* ---------------- BOTTOM NAV ---------------- */
 
 function initBottomNav(){
@@ -182,6 +228,7 @@ function renderProject(p){
   fillSection("highlightsSection", "highlights", P.renderHighlights(p));
   fillSection("factsSection", "facts", P.renderFacts(p));
   fillSection("floorPlanSection", "floorPlanGrid", P.renderFloorPlans(p));
+  fillSection("masterPlanSection", "masterPlanGrid", P.renderMasterPlans(p));
   fillSection("amenitiesSection", "amenities", P.renderAmenities(p));
   fillSection("specsSection", "specifications", P.renderSpecificationRows(p));
   fillSection("towersSection", "towers", P.renderTowerRows(p));
@@ -882,6 +929,7 @@ function showToast(message){
 /* ---------------- START ---------------- */
 
 initBottomNav();
+initFloorPlanTabs();
 initMobileMenu();
 initLoginButton();
 loadProject();

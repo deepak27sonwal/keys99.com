@@ -158,7 +158,6 @@ function applyKindLabels($, kind){
   $("#bhk").prev("small").text("Unit Types");
   $("#configurationSection thead tr").html("<th>Unit Type</th><th>Price / Rent</th><th>Carpet Area</th><th>Furnishing</th><th>Status</th>");
   $("#configurationSection > h2").html("<i></i>Units &amp; Prices");
-  $("#floorPlanSection > h2").html("<i></i>Master Plan");
   ["#towersSection", "#phasesSection"].forEach(sel => $(sel).find("th").each((_, th) => {
     if($(th).text() === "Configurations") $(th).text("Unit Types");
   }));
@@ -284,6 +283,7 @@ function buildPage(template, row, config, allProjects, shareImage, similarCards,
     ["#highlightsSection", "#highlights", P.renderHighlights(p)],
     ["#factsSection", "#facts", P.renderFacts(p)],
     ["#floorPlanSection", "#floorPlanGrid", P.renderFloorPlans(p)],
+    ["#masterPlanSection", "#masterPlanGrid", P.renderMasterPlans(p)],
     ["#amenitiesSection", "#amenities", P.renderAmenities(p)],
     ["#specsSection", "#specifications", P.renderSpecificationRows(p)],
     ["#towersSection", "#towers", P.renderTowerRows(p)],
@@ -309,7 +309,8 @@ function buildPage(template, row, config, allProjects, shareImage, similarCards,
     [$("#highlightsSection"), `${name} Highlights`],
     [$("#factsSection"), `${name} Project Details`],
     [$("#configurationSection"), commercial ? `${name} Units & Prices` : `${name} Price & Configurations`],
-    [$("#floorPlanSection"), commercial ? `${name} Master Plan` : `${name} Floor Plans & Master Plan`],
+    [$("#floorPlanSection"), `${name} Floor Plans & Pricing`],
+    [$("#masterPlanSection"), `${name} Master Plan`],
     [$("#mediaSection"), `${name} Videos`],
     [$("#amenitiesSection"), `Amenities at ${name}`],
     [$("#specsSection"), `${name} Specifications`],
