@@ -231,7 +231,7 @@
           </select>
         </label>
 
-        <label class="search-field">
+        <label class="search-field" id="bhkField">
           <span class="search-icon">▣</span>
           <select id="bhkType">
             <option value="">BHK Type</option>
@@ -257,15 +257,22 @@
 
           <div class="filter-field">
             <label for="heroCity">City</label>
-            <select id="heroCity">
+            <select id="heroCity" data-searchable data-search-placeholder="Search city">
               <option value="">All Cities</option>
             </select>
           </div>
 
           <div class="filter-field">
             <label for="heroLocality">Locality</label>
-            <select id="heroLocality">
+            <select id="heroLocality" data-searchable data-search-placeholder="Search locality">
               <option value="">All Localities</option>
+            </select>
+          </div>
+
+          <div class="filter-field">
+            <label for="heroDeveloper">Developer</label>
+            <select id="heroDeveloper" data-searchable data-search-placeholder="Search developer">
+              <option value="">All Developers</option>
             </select>
           </div>
 
