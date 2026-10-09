@@ -136,20 +136,20 @@ ${chrome.mobileMenu}
           </label>
 
           <label class="sf-field">
-            <span>${unitTypes.length ? "BHK / Unit" : "BHK"}</span>
-            <select name="bhk" id="sfBhk">
-              ${option("", unitTypes.length ? "Any BHK / Unit" : "Any BHK")}
-              ${bhks.map(b => option(b.toLowerCase(), b)).join("")}
-              ${option("4+ bhk", "4+ BHK")}
-              ${unitTypes.length ? `<optgroup label="Commercial units">${unitTypes.map(u => option(u.toLowerCase(), u)).join("")}</optgroup>` : ""}
-            </select>
-          </label>
-
-          <label class="sf-field">
             <span>Type</span>
             <select name="type" id="sfType">
               ${option("", "All Types")}
               ${TYPES.map(([v, l]) => option(v, l)).join("")}
+            </select>
+          </label>
+
+          <label class="sf-field" id="sfBhkField">
+            <span id="sfBhkLabel">${unitTypes.length ? "BHK / Unit" : "BHK"}</span>
+            <select name="bhk" id="sfBhk">
+              ${option("", unitTypes.length ? "Any BHK / Unit" : "Any BHK")}
+              ${bhks.map(b => option(b.toLowerCase(), b, ' data-group="home"')).join("")}
+              ${option("4+ bhk", "4+ BHK", ' data-group="home"')}
+              ${unitTypes.map(u => option(u.toLowerCase(), u, ' data-group="commercial"')).join("")}
             </select>
           </label>
 

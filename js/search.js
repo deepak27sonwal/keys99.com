@@ -60,6 +60,23 @@
     if(current && current.hidden) localitySel.value = "";
   }
 
+  /* BHK / Unit follows the property type: sizes for homes, unit types
+     (Office Space, Shop...) for commercial, nothing for plots. */
+  function syncBhk(){
+    const sel = form.elements.bhk, field = document.getElementById("sfBhkField");
+    if(!sel) return;
+    const type = form.elements.type.value;
+    const show = type === "commercial" ? "commercial" : ["residential", "luxury", "resale"].includes(type) ? "home" : "";
+    const hasUnits = [...sel.options].some(o => o.dataset.group === "commercial");
+    [...sel.options].forEach(o => { if(o.value) o.hidden = !!show && o.dataset.group !== show; });
+    const current = sel.options[sel.selectedIndex];
+    if((current && current.hidden) || type === "plots") sel.value = "";
+    if(field) field.style.display = type === "plots" ? "none" : "";
+    const label = document.getElementById("sfBhkLabel");
+    if(label) label.textContent = show === "commercial" ? "Unit Type" : show === "home" || !hasUnits ? "BHK" : "BHK / Unit";
+    sel.options[0].textContent = show === "commercial" ? "Any Unit Type" : show === "home" || !hasUnits ? "Any BHK" : "Any BHK / Unit";
+  }
+
   function values(){
     const v = {};
     FIELDS.forEach(f => { v[f] = form.elements[f] ? String(form.elements[f].value || "").trim() : ""; });
@@ -228,6 +245,7 @@
     if(!chip) return;
     form.elements[chip.dataset.field].value = "";
     if(chip.dataset.field === "city") syncLocalities();
+    if(chip.dataset.field === "type") syncBhk();
     apply(true);
   });
 
@@ -267,6 +285,7 @@
     FIELDS.forEach(f => { if(f !== "locality") setControl(f, p[f]); });
     syncLocalities();
     setControl("locality", p.locality);
+    syncBhk();
     if(!form.elements.sort.value) form.elements.sort.value = "newest";
     apply(false);
   }
@@ -280,6 +299,7 @@
   });
   form.addEventListener("change", e => {
     if(e.target.name === "city") syncLocalities();
+    if(e.target.name === "type") syncBhk();
     apply(false);
   });
   form.addEventListener("submit", e => { e.preventDefault(); apply(true); });
@@ -288,6 +308,7 @@
     form.reset();
     form.elements.status.value = "";
     syncLocalities();
+    syncBhk();
     form.elements.sort.value = "newest";
     apply(true);
   }
