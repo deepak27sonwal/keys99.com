@@ -231,9 +231,15 @@ ${chrome.bottomNav}
 `;
 }
 
-function finish(html, prefix){
+function finish(html, prefix, commercial){
   const $ = cheerio.load(html);
   $(".nav-links a.active").removeClass("active");
+  /* A commercial project's post stays inside /commercial/: Buy and Rent
+     go to its sale and lease sections, not the residential search. */
+  if(commercial){
+    $('a[href="projects/search?status=sale"]').attr("href", "commercial/#hubRow-sale");
+    $('a[href="projects/search?status=rent"]').attr("href", "commercial/#hubRow-lease");
+  }
   rebase($, prefix);
   return $.html();
 }
@@ -442,7 +448,7 @@ function buildProjectPostPage(entry, ctx){
         ...b.tags.map(t => `<meta property="article:tag" content="${esc(t)}">`),
         preview ? `<meta property="og:image:type" content="image/jpeg">\n<meta property="og:image:width" content="${P.OG_SIZE.width}">\n<meta property="og:image:height" content="${P.OG_SIZE.height}">\n<meta property="og:image:alt" content="${esc(b.title)}">` : ""
       ].filter(Boolean).join("\n")
-    }), prefix)
+    }), prefix, /^commercial\//.test(entry.dir))
   };
 }
 
