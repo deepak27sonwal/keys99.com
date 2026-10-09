@@ -165,6 +165,19 @@ function applyKindLabels($, kind){
   $("#gateBhkField > span").text("Unit Type *");
 }
 
+/* The template's own links point at the residential site (Buy/Rent go to
+   projects/search, the footer lists residential cities). A commercial page
+   has its own: Buy/Rent go to the sale and lease sections of /commercial/,
+   the bottom-bar search to /commercial/, and the static footer block is
+   dropped (build/footer-links.js adds the commercial one). Links are
+   template-relative (projects/), as rebaseLinks() expects. */
+function commercialLinks($){
+  $('a[href="search?status=sale"]').attr("href", "../commercial/#hubRow-sale");
+  $('a[href="search?status=rent"]').attr("href", "../commercial/#hubRow-lease");
+  $("#footer .footer-links").remove();
+  $("#footer *").contents().filter((_, n) => n.type === "comment" && /footer-links:/.test(n.data)).remove();
+}
+
 function setMeta($, selector, attr, value){
   const el = $(selector);
   if(el.length) el.attr(attr, value);
@@ -242,6 +255,7 @@ function buildPage(template, row, config, allProjects, shareImage, similarCards,
     toggle($, sel + "Sep", !!text);
   });
   applyKindLabels($, K.kind);
+  if(commercial) commercialLinks($);
   $("#miniBreadcrumb").text([p.typeLabel, p.transactionLabel].filter(Boolean).join(" · "));
   $("#propertyType").text(p.typeLabel);
   $("#developer").text(p.developer || "—");
@@ -607,6 +621,9 @@ async function main(){
   {
     const $f = cheerio.load(template);
     applyKindLabels($f, "commercial");
+    commercialLinks($f);
+    $f('link[rel="canonical"]').attr("href", `${SITE_ORIGIN}/commercial/property-details`);
+    $f('meta[property="og:url"]').attr("content", `${SITE_ORIGIN}/commercial/property-details`);
     $f('script[src^="../js/config.js"]').first().before(`<script>window.__KEYS99_KIND__="commercial";</script>\n  `);
     $f("[href], [src]").each((_, el) => {
       ["href", "src"].forEach(attr => {

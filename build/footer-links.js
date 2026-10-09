@@ -101,7 +101,19 @@ function collectFooterLinks(hubs, listed){
     .slice(0, LIMITS.cities)
     .map(c => ({ ...c.main, text: `Property in ${c.name}` }));
 
-  return { cities: out, popularCities };
+  /* Commercial pages link to commercial pages only. */
+  const commercialOut = new Map();
+  cities.forEach((c, key) => {
+    const links = c.commercial.sort((a, b) => a.order - b.order).slice(0, LIMITS.popular + LIMITS.commercial);
+    if(links.length) commercialOut.set(key, { name: c.name, total: c.total, groups: [{ heading: `Commercial Property in ${c.name}`, links }] });
+  });
+  const commercialCities = [...cities.values()]
+    .filter(c => c.commercial.some(l => l.order === 0))
+    .sort((a, b) => b.commercial.length - a.commercial.length || a.name.localeCompare(b.name))
+    .slice(0, LIMITS.cities)
+    .map(c => ({ ...c.commercial.find(l => l.order === 0), text: `Commercial Property in ${c.name}` }));
+
+  return { cities: out, popularCities, commercial: { isCommercial: true, cities: commercialOut, popularCities: commercialCities } };
 }
 
 /* The block for one page: its city's links (minus the page itself),
@@ -118,7 +130,7 @@ function footerBlock(data, city, selfHref, prefix){
       hrefs: groups.flatMap(g => g.links.map(l => prefix + l.href)),
       html: `${START}
 <section class="footer-links" aria-labelledby="footerLinksTitle">
-  <h2 class="footer-links-title" id="footerLinksTitle">Explore Property in ${esc(entry.name)}</h2>
+  <h2 class="footer-links-title" id="footerLinksTitle">Explore ${data.isCommercial ? "Commercial " : ""}Property in ${esc(entry.name)}</h2>
   <div class="fl-groups">
 ${groups.map(g => `    <div class="fl-group">
       <h3>${esc(g.heading)}</h3>
@@ -164,7 +176,8 @@ function injectFooterLinks(root, files, data, cityOf){
       at = s;
     }
 
-    let block = footerBlock(data, cityOf(dir), self, prefix);
+    const isCommercial = dir === "commercial" || dir.startsWith("commercial/");
+    let block = footerBlock(isCommercial ? data.commercial : data, cityOf(dir), self, prefix);
     if(block){
       const own = new Set((page.match(/href="[^"]*"/g) || []).map(m => m.slice(6, -1)));
       const repeated = block.hrefs.filter(h => own.has(h)).length;

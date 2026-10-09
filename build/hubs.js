@@ -825,6 +825,12 @@ ${chrome.bottomNav}
 `;
 
   const $ = cheerio.load(html);
+  /* A commercial page's Buy / Rent go to the sale and lease sections of
+     /commercial/, not to the residential search. */
+  if(base === "commercial"){
+    $('a[href="projects/search?status=sale"]').attr("href", "commercial/#hubRow-sale");
+    $('a[href="projects/search?status=rent"]').attr("href", "commercial/#hubRow-lease");
+  }
   rebase($, prefix);
   return {
     base, path: hub.path, dir: dirPath, html: $.html(), lastmod: hub.lastmod,
