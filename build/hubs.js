@@ -718,6 +718,8 @@ ${chrome.mobileMenu}
 
     ${hub.devLinks && hub.devLinks.length && hub.devLinksFirst ? devLinksSection(hub, e) : ""}
 
+    ${hub.landing ? landingSections(H, hub, e, linkBase) : ""}
+
     ${hub.hideGrid ? "" : `
     <section class="hub-section" aria-labelledby="hubProjects">
       <h2 class="section-title" id="hubProjects">${e(hub.listHeading)}</h2>
@@ -758,7 +760,7 @@ ${chrome.mobileMenu}
       </div>
     </section>`).join("")}
 
-    ${hub.localities && hub.localities.length ? `
+    ${hub.localities && hub.localities.length && !hub.landing ? `
     <section class="hub-section" aria-labelledby="hubLocalities">
       <h2 class="section-title" id="hubLocalities">${e(hub.localitiesHeading || "Localities in " + hub.cityName)}</h2>
       <div class="hub-localities">
@@ -848,6 +850,65 @@ function footerInfo(hub, base){
     : hub.what ? "filter"
     : "locality";
   return { kind, city: hub.cityName || "", name: last, h1: hub.h1 };
+}
+
+/* The sections of the /commercial/ landing page, like the sections of
+   the homepage: property types, card rows (new launches, popular, for
+   sale, for lease), top cities and top localities. Each row's "View
+   all" goes to the section's own page (see collectCommercialHubs). */
+function landingSections(H, hub, e, linkBase){
+  const L = hub.landing;
+  const icon = type => ({ office: "office", shop: "shop", showroom: "shop", warehouse: "warehouse", industrial: "warehouse" }[type] || "commercial");
+  const rowHref = href => href ? `${linkBase}/${e(href)}/` : "#hubProjects";
+  return `
+    ${L.types.length ? `
+    <section class="hub-section hub-types-section" aria-labelledby="hubTypes">
+      <h2 class="section-title" id="hubTypes">Commercial Property Types</h2>
+      <div class="type-grid hub-types">
+        ${L.types.map(t => `
+        <a class="type-card" href="${t.href ? `${linkBase}/${e(t.href)}/` : `${linkBase}/`}">
+          <div class="type-img"><img src="assets/type-${icon(t.type)}.svg" alt="${e(t.label)}" loading="lazy" width="700" height="420"></div>
+          <div class="type-body"><div class="type-row"><div><h3>${e(t.label)}</h3><p>${plural(t.count, "Project", "Projects")}</p></div><span class="arrow">→</span></div></div>
+        </a>`).join("")}
+      </div>
+    </section>` : ""}
+
+    ${L.rows.map(r => `
+    <section class="hub-section hub-row" aria-labelledby="hubRow-${r.id}">
+      <div class="hub-row-head">
+        <div>
+          <div class="section-kicker">${e(r.kicker)}</div>
+          <h2 class="section-title" id="hubRow-${r.id}">${e(r.title)}</h2>
+        </div>
+        ${r.total > r.list.length || r.href ? `<a class="view-all" href="${rowHref(r.href)}">View All →</a>` : ""}
+      </div>
+      <div class="property-scroll">${r.list.map(p => H.createPropertyCard(p)).join("")}</div>
+    </section>`).join("")}
+
+    ${L.cities.length ? `
+    <section class="hub-section" aria-labelledby="hubCities">
+      <h2 class="section-title" id="hubCities">Commercial Property in Top Cities</h2>
+      <div class="hub-cities">
+        ${L.cities.map(c => `
+        <a class="hub-city" href="${linkBase}/${e(c.path)}/">
+          <span class="hub-city-img"${c.image ? ` style="background-image:url('${e(c.image)}')"` : ""}></span>
+          <span class="hub-city-body"><strong>${e(c.name)}</strong><span class="count">${plural(c.count, "Project", "Projects")}</span></span>
+        </a>`).join("")}
+      </div>
+    </section>` : ""}
+
+    ${L.topLocalities.length ? `
+    <section class="hub-section" aria-labelledby="hubTopLocalities">
+      <h2 class="section-title" id="hubTopLocalities">Commercial Property in Top Localities</h2>
+      <div class="hub-localities">
+        ${L.topLocalities.map(l => `
+        <a class="locality-chip" href="${linkBase}/${e(l.path)}/">
+          <strong>${e(l.name)}</strong>
+          <span class="count">${plural(l.count, "Project", "Projects")}</span>
+        </a>`).join("")}
+      </div>
+    </section>` : ""}
+`;
 }
 
 /* Group mapped projects into city and locality hubs. */
@@ -1246,13 +1307,83 @@ function collectCommercialHubs(H, props, reservedSlugs){
   const hubs = [];
   const push = hub => hubs.push({ base: "commercial", ...hub, copy: commercialCopy(hub) });
 
+  /* Pages for the sections of /commercial/ that cover every city:
+     each property type, new launches, popular, for sale and for lease.
+     Each has its own slug, canonical URL, title and FAQs like any
+     other hub. A section that would list every project (so it would
+     just repeat /commercial/) gets no page of its own, and neither
+     does one whose slug a city or a project already uses. */
+  const rootTaken = new Set([...reservedSlugs, ...cityList.map(c => c.slug)]);
+  const byNewest = (a, b) => String(b.created_at || "").localeCompare(String(a.created_at || ""));
+  const rootFilters = [];
+  const addRoot = (slug, label, what, list, group, h1, sort) => {
+    if(!list.length || list.length === props.length) return;
+    if(rootTaken.has(slug)){ console.warn(`  skipped  /commercial/${slug}/: a city or project already uses that slug`); return; }
+    rootTaken.add(slug);
+    rootFilters.push({ slug, path: slug, label, what, group, h1, props: sort ? [...list].sort(sort) : list, count: list.length });
+  };
+  Object.entries(COMMERCIAL_TYPE_PAGES).forEach(([type, [slug, label]]) =>
+    addRoot(slug, label, label.toLowerCase(), props.filter(p => p.project_type === type), "type", `${label} in ${allPlace}`));
+  addRoot("new-launch-projects", "New Launches", "new commercial launches",
+    props.filter(p => p.is_new_launch || p.status_key === "upcoming"), "section", `New Commercial Launches in ${allPlace}`, byNewest);
+  addRoot("popular-projects", "Popular Projects", "popular commercial projects",
+    props.filter(p => Number(p.views) > 0), "section", `Popular Commercial Projects in ${allPlace}`,
+    (a, b) => (Number(b.views) || 0) - (Number(a.views) || 0) || byNewest(a, b));
+  addRoot("for-sale", "For Sale", "commercial projects for sale",
+    props.filter(p => p.transaction !== "lease"), "deal", `Commercial Property for Sale in ${allPlace}`);
+  addRoot("for-lease", "For Lease", "commercial projects for lease",
+    props.filter(p => p.transaction === "lease" || p.transaction === "sale_and_lease"), "deal", `Commercial Property for Lease in ${allPlace}`);
+
+  /* Rows for the /commercial/ landing page; each links to its own page
+     when it has one, otherwise to the full list on the same page. */
+  const ROW = 8;
+  const rowOf = slug => {
+    const f = rootFilters.find(x => x.slug === slug);
+    return f ? { href: f.path, count: f.count } : { href: "", count: 0 };
+  };
+  const pick = (list, sort) => (sort ? [...list].sort(sort) : list).slice(0, ROW);
+  const popularSort = (a, b) => (Number(b.views) || 0) - (Number(a.views) || 0) || byNewest(a, b);
+  const sale = props.filter(p => p.transaction !== "lease");
+  const lease = props.filter(p => p.transaction === "lease" || p.transaction === "sale_and_lease");
+  const newLaunch = props.filter(p => p.is_new_launch || p.status_key === "upcoming");
+  const landing = {
+    types: Object.entries(COMMERCIAL_TYPE_PAGES).map(([type, [slug, label]]) => {
+      const list = props.filter(p => p.project_type === type);
+      return { type, label, count: list.length, href: rootFilters.some(f => f.slug === slug) ? slug : (list.length === props.length ? "" : null) };
+    }).filter(t => t.count && t.href !== null),
+    rows: [
+      { id: "new", title: "New Commercial Launches", kicker: "Fresh On Keys99", list: pick(newLaunch, byNewest), total: newLaunch.length, ...rowOf("new-launch-projects") },
+      { id: "popular", title: "Popular Commercial Projects", kicker: "Most Viewed", list: pick(props.filter(p => Number(p.views) > 0), popularSort), total: props.filter(p => Number(p.views) > 0).length, ...rowOf("popular-projects") },
+      { id: "sale", title: "Commercial Property for Sale", kicker: "Buy", list: pick(sale, byNewest), total: sale.length, ...rowOf("for-sale") },
+      { id: "lease", title: "Commercial Property for Lease", kicker: "Lease & Rent", list: pick(lease, byNewest), total: lease.length, ...rowOf("for-lease") }
+    ].filter(r => r.list.length),
+    cities: cityList.map(c => ({ path: c.slug, name: c.name, count: c.props.length, image: (c.props.find(p => p.city_image) || {}).city_image || "" })),
+    topLocalities: cityList.flatMap(c => [...c.localities.values()].map(l => ({ path: `${c.slug}/${l.slug}`, name: `${l.name}, ${c.name}`, count: l.props.length })))
+      .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name)).slice(0, 12)
+  };
+
+  const rootGroups = current => [
+    { heading: "Commercial Property Types", links: rootFilters.filter(f => f.group === "type" && f.path !== current) },
+    { heading: "More Commercial Property", links: rootFilters.filter(f => f.group !== "type" && f.path !== current) }
+  ];
+
   push({
     path: "", place: allPlace, h1: `Commercial Projects in ${allPlace}`, kicker: "Commercial",
-    listHeading: "All Commercial Projects", crumbs: [crumbRoot], props,
+    listHeading: "All Commercial Projects", crumbs: [crumbRoot], props, landing,
     localities: cityList.map(c => ({ path: c.slug, name: c.name, count: c.props.length })),
     localitiesHeading: "Commercial Projects by City",
     lastmod: latest(props)
   });
+
+  rootFilters.forEach(f => push({
+    path: f.path, place: allPlace, what: f.what, h1: f.h1,
+    kicker: `${f.label} · Commercial`, listHeading: f.group === "type" ? `${f.label} Projects` : f.h1,
+    crumbs: [crumbRoot, { name: f.label, base: "commercial", path: f.path }],
+    props: f.props,
+    localities: cityList.map(c => ({ path: c.slug, name: c.name, count: f.props.filter(p => H.slugify(p.city) === c.slug).length })).filter(c => c.count),
+    localitiesHeading: `${f.label} by City`,
+    linkGroups: rootGroups(f.path), lastmod: latest(f.props)
+  }));
 
   cityList.forEach(city => {
     const taken = new Set(city.localities.keys());

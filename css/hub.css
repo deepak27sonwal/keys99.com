@@ -213,3 +213,33 @@
 .hub-guide li{ margin-bottom:6px; }
 
 .hub-guide a{ color:var(--green); font-weight:600; }
+
+/* =========================================================
+   /commercial/ LANDING SECTIONS (landingSections in build/hubs.js)
+   Property type tiles, card rows, top cities.
+========================================================= */
+.hub-types{ grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); }
+.hub-types .type-card{ min-width:0; }
+.hub-row-head{ display:flex; align-items:flex-end; justify-content:space-between; gap:12px; margin-bottom:14px; }
+.hub-row-head .section-title{ margin-bottom:0; }
+.hub-row .view-all{ flex:none; color:var(--green); font-weight:700; font-size:var(--fs-ui); text-decoration:none; white-space:nowrap; }
+.hub-row .view-all:hover{ text-decoration:underline; }
+.hub-row .property-scroll{ margin:0 -2px; padding:2px; }
+
+.hub-cities{ display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:14px; }
+.hub-city{
+  display:block; overflow:hidden; border:1px solid var(--line); border-radius:14px; background:#fff;
+  text-decoration:none; color:inherit; box-shadow:0 5px 20px rgba(0,0,0,.03); transition:transform .25s, box-shadow .25s;
+}
+.hub-city:hover{ transform:translateY(-4px); box-shadow:var(--shadow); }
+.hub-city-img{
+  display:block; height:110px; background:linear-gradient(135deg,#eaf7f3,#cfeee4) center/cover no-repeat;
+}
+.hub-city-body{ display:flex; align-items:center; justify-content:space-between; gap:8px; padding:12px 14px; }
+.hub-city-body strong{ font-size:var(--fs-lead); color:var(--ink,#092c3d); }
+.hub-city-body .count{ font-size:var(--fs-small); color:var(--muted); white-space:nowrap; }
+@media(max-width:600px){
+  .hub-types{ grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:10px; }
+  .hub-cities{ grid-template-columns:1fr 1fr; gap:10px; }
+  .hub-city-img{ height:84px; }
+}
