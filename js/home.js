@@ -935,6 +935,7 @@ function heroSearchParams(){
     bhk: value("bhkType"),
     city: value("heroCity"),
     locality: value("heroLocality"),
+    developer: value("heroDeveloper"),
     status: value("heroStatus"),
     minPrice: value("heroMinPrice"),
     maxPrice: value("heroMaxPrice"),
@@ -1600,6 +1601,8 @@ if(heroFilterClear){
     document.getElementById("heroSort").value = "newest";
     if(heroCity){ heroCity.value = ""; }
     if(heroLocality){ populateHeroLocalityOptions(""); heroLocality.value = ""; }
+    const heroDeveloper = document.getElementById("heroDeveloper");
+    if(heroDeveloper){ heroDeveloper.value = ""; }
   });
 }
 
@@ -1617,7 +1620,100 @@ function populateHeroCityOptions(){
     cities.map(city => `<option value="${escapeHtml(city)}">${escapeHtml(city)}</option>`).join("");
 
   populateHeroLocalityOptions("");
+  populateHeroDeveloperOptions();
+  populateHeroBhkOptions();
 
+}
+
+/* Developers with a project, A to Z (the search page matches by name). */
+function populateHeroDeveloperOptions(){
+
+  const select = document.getElementById("heroDeveloper");
+  if(!select){
+    return;
+  }
+
+  const names = [...new Set(
+    allProperties.map(p => titleCaseName(p.developer)).filter(Boolean)
+  )].sort((a,b) => a.localeCompare(b));
+
+  select.innerHTML = `<option value="">All Developers</option>` +
+    names.map(name => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join("");
+
+}
+
+/* BHK / Unit follows the property type, as on the search page: BHK
+   sizes for homes, unit types (Office Space, Shop...) for commercial,
+   nothing for plots. */
+function populateHeroBhkOptions(){
+
+  const select = document.getElementById("bhkType");
+  if(!select){
+    return;
+  }
+
+  const sizes = new Set(), units = new Set();
+  allProperties.forEach(p => getBhkOptions(p).forEach(option => {
+    const label = normaliseBhkType(option.type);
+    if(!label){
+      return;
+    }
+    if(/bhk/i.test(label)){
+      sizes.add(label);
+    }else if(p.kind === "commercial"){
+      units.add(label);
+    }
+  }));
+
+  const sortedSizes = [...sizes].sort((a,b) => parseFloat(a) - parseFloat(b));
+  const option = (value, label, group) =>
+    `<option value="${escapeHtml(value)}" data-group="${group}">${escapeHtml(label)}</option>`;
+
+  select.innerHTML = `<option value="">BHK Type</option>` +
+    sortedSizes.map(label => option(label.toLowerCase(), label, "home")).join("") +
+    option("4+ bhk", "4+ BHK", "home") +
+    [...units].sort().map(label => option(label.toLowerCase(), label, "commercial")).join("");
+
+  syncHeroBhk();
+
+}
+
+function syncHeroBhk(){
+
+  const select = document.getElementById("bhkType");
+  const field = document.getElementById("bhkField");
+  const typeSelect = document.getElementById("propertyType");
+  if(!select || !typeSelect){
+    return;
+  }
+
+  const type = typeSelect.value;
+  const show = type === "commercial" ? "commercial"
+    : ["residential", "luxury", "resale"].includes(type) ? "home" : "";
+
+  [...select.options].forEach(o => {
+    if(o.value){
+      o.hidden = !!show && o.dataset.group !== show;
+    }
+  });
+
+  const current = select.options[select.selectedIndex];
+  if((current && current.hidden) || type === "plots"){
+    select.value = "";
+  }
+
+  if(field){
+    field.style.display = type === "plots" ? "none" : "";
+  }
+  select.options[0].textContent = show === "commercial" ? "Unit Type" : "BHK Type";
+
+}
+
+{
+  const propertyTypeSelect = document.getElementById("propertyType");
+  if(propertyTypeSelect){
+    propertyTypeSelect.addEventListener("change", syncHeroBhk);
+  }
 }
 
 function populateHeroLocalityOptions(selectedCity){
