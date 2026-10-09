@@ -70,6 +70,33 @@ function initFloorPlanTabs(){
     }
   });
 
+  /* Several carpet areas of one size: a row that scrolls sideways,
+     with ‹ › and a "2 / 3" counter kept in step. */
+  const scrollerOf = el => el.closest(".fp-panel").querySelector(".fp-scroll");
+  const step = scroller => {
+    const card = scroller.querySelector(".fp-variant");
+    return card ? card.getBoundingClientRect().width + parseFloat(getComputedStyle(scroller).columnGap || 0) : scroller.clientWidth;
+  };
+  const syncNav = scroller => {
+    const panel = scroller.closest(".fp-panel");
+    const total = scroller.querySelectorAll(".fp-variant").length;
+    const at = Math.min(total, Math.round(scroller.scrollLeft / step(scroller)) + 1);
+    const count = panel.querySelector(".fp-count");
+    if(count) count.textContent = `${at} / ${total}`;
+    const prev = panel.querySelector(".fp-prev"), next = panel.querySelector(".fp-next");
+    if(prev) prev.disabled = scroller.scrollLeft <= 2;
+    if(next) next.disabled = scroller.scrollLeft + scroller.clientWidth >= scroller.scrollWidth - 2;
+  };
+  grid.addEventListener("click", e => {
+    const btn = e.target.closest(".fp-prev, .fp-next");
+    if(!btn) return;
+    const scroller = scrollerOf(btn);
+    scroller.scrollBy({ left: (btn.classList.contains("fp-next") ? 1 : -1) * step(scroller), behavior: "smooth" });
+  });
+  grid.addEventListener("scroll", e => {
+    if(e.target.classList && e.target.classList.contains("fp-scroll")) syncNav(e.target);
+  }, true);
+
   grid.addEventListener("keydown", e => {
     const tab = e.target.closest("[data-fp-tab]");
     if(!tab || !["ArrowRight", "ArrowLeft", "Home", "End"].includes(e.key)) return;
