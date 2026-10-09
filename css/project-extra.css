@@ -274,3 +274,14 @@
   .fp-scroll .fp-viewer .floor-plan-card img{height:220px}
   .fp-nav button{width:30px;height:30px;font-size:20px}
 }
+
+/* About: long text folds after a few lines with "Read more" (foldAbout
+   in js/property-details.js). The text itself stays in the page. */
+.description.is-folded{position:relative;max-height:210px;overflow:hidden}
+.description.is-folded::after{content:"";position:absolute;left:0;right:0;bottom:0;height:72px;background:linear-gradient(rgba(255,255,255,0),#fff);pointer-events:none}
+.description.is-folded.is-open{max-height:none;overflow:visible}
+.description.is-folded.is-open::after{display:none}
+.about-toggle{display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:8px 16px;border:1px solid var(--green);border-radius:999px;background:#fff;color:var(--green);font:inherit;font-size:var(--fs-small);font-weight:800;cursor:pointer}
+.about-toggle::after{content:"";width:7px;height:7px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:translateY(-2px) rotate(45deg);transition:transform .2s}
+.about-toggle[aria-expanded="true"]::after{transform:translateY(2px) rotate(225deg)}
+.about-toggle:hover{background:var(--green);color:#fff}

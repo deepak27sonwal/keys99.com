@@ -38,6 +38,38 @@ const $ = id => document.getElementById(id);
 const normalize = row => P.normalizeProject(row, { supabaseUrl: SUPABASE_URL, root: SITE_ROOT, kind: KIND.kind });
 
 
+/* ---------------- ABOUT: READ MORE ----------------
+   A long About text shows its first few lines with "Read more"; the
+   whole text stays in the page (search engines read all of it). */
+
+const ABOUT_FOLD_PX = 210;
+
+function foldAbout(){
+  const text = $("description");
+  if(!text) return;
+  const old = document.getElementById("aboutToggle");
+  if(old) old.remove();
+  text.classList.remove("is-folded", "is-open");
+  if(text.scrollHeight <= ABOUT_FOLD_PX + 60) return;      /* a few lines over: just show it */
+
+  text.classList.add("is-folded");
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.id = "aboutToggle";
+  btn.className = "about-toggle";
+  btn.setAttribute("aria-controls", "description");
+  btn.setAttribute("aria-expanded", "false");
+  btn.textContent = "Read more";
+  text.after(btn);
+  btn.addEventListener("click", () => {
+    const open = !text.classList.contains("is-open");
+    text.classList.toggle("is-open", open);
+    btn.setAttribute("aria-expanded", String(open));
+    btn.textContent = open ? "Show less" : "Read more";
+    if(!open) text.closest("section").scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+}
+
 /* ---------------- FLOOR PLAN TABS ----------------
    One tab per size; on each, a 2D / 3D switch over the plan image
    (markup from renderFloorPlans in js/project-core.js). Arrow keys
@@ -233,6 +265,7 @@ function renderProject(p){
   setText("carpetArea", p.firstArea || "—");
   setText("possession", p.possession || (p.status === "Ready to Move" ? "Ready" : "—"));
   setText("description", p.overview || "Project description will be available soon.");
+  foldAbout();
 
   const meta = [];
   if(p.reraNumbers.length) meta.push("RERA: " + p.reraNumbers.join(", "));
