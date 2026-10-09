@@ -310,8 +310,12 @@ function renderProject(p){
   setupMap(p);
 
   /* The heart saves to the visitor's account (js/account.js). */
-  $("favoriteBtn").dataset.propertyId = p.id;
-  $("favoriteBtn").dataset.kind = KIND.kind;
+  ["favoriteBtn", "saveBtn"].forEach(id => {
+    const btn = $(id);
+    if(!btn) return;
+    btn.dataset.propertyId = p.id;
+    btn.dataset.kind = KIND.kind;
+  });
   if(window.Keys99Account) Keys99Account.paint();
 
   $("loading").classList.add("hidden");
@@ -908,7 +912,7 @@ $("enquiryForm").addEventListener("submit", async event => {
 });
 
 
-/* ---------------- SHARE / FAVORITE / BACK ---------------- */
+/* ---------------- SHARE ---------------- */
 
 $("shareBtn").addEventListener("click", async () => {
   if(!project) return;
@@ -920,11 +924,6 @@ $("shareBtn").addEventListener("click", async () => {
       showToast("Project link copied.");
     }
   }catch(_){}
-});
-
-$("backBtn").addEventListener("click", () => {
-  if(document.referrer && new URL(document.referrer).origin === window.location.origin) history.back();
-  else window.location.href = SITE_ROOT;
 });
 
 $("enquireTopBtn").addEventListener("click", () => {
