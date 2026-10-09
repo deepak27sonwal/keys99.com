@@ -35,10 +35,10 @@
   function draw(p, b){
     const base = KIND.base;
     const projectHref = `${ROOT}${base}/${p.slug}/`;
-    const body = P.formatArticle(b.body);
-    const title = `${b.title} | ${p.name} | Keys99`;
+    const body = P.renderPostBody(b);
+    const title = `${b.metaTitle || b.title} | ${p.name} | Keys99`;
     document.title = title;
-    const mins = Math.max(1, Math.round(b.words / 200));
+    const mins = b.readMinutes || Math.max(1, Math.round(b.words / 200));
     const date = day(b.date);
 
     $("bpCrumbs").innerHTML = `<a href="${ROOT}">Home</a><span>›</span>` +
@@ -49,7 +49,7 @@
       <div class="section-kicker"><a href="${projectHref}">${esc(p.name)}</a>${p.locality ? " · " + esc(p.locality) : ""}</div>
       <h1>${esc(b.title)}</h1>
       <p class="blog-meta">By ${esc(b.author || "Keys99 Team")}${date ? " · " + esc(date) : ""} · ${mins} min read</p>
-      ${b.cover ? `<figure class="post-cover"><img src="${esc(b.cover.large)}" data-full="${esc(b.image)}" alt="${esc(b.title)}" width="1280" height="720" decoding="async" onerror="if(this.dataset.full){this.src=this.dataset.full;this.dataset.full=''}else{this.parentNode.remove()}"></figure>` : ""}
+      ${b.cover ? `<figure class="post-cover"><img src="${esc(b.cover.large)}" data-full="${esc(b.image)}" alt="${esc(b.coverAlt || b.title)}" width="1280" height="720" decoding="async" onerror="if(this.dataset.full){this.src=this.dataset.full;this.dataset.full=''}else{this.parentNode.remove()}"></figure>` : ""}
       ${body.toc.length >= 3 ? `<nav class="post-toc" aria-labelledby="postToc"><strong id="postToc">On this page</strong><ol>${body.toc.map(t => `<li><a href="#${t.id}">${esc(t.text)}</a></li>`).join("")}</ol></nav>` : ""}
       ${body.html}
       ${b.tags.length ? `<p class="post-tags">${b.tags.map(t => `<span>${esc(t)}</span>`).join("")}</p>` : ""}

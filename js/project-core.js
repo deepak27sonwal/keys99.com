@@ -65,7 +65,7 @@
     blogs:residential_project_blogs!residential_project_blogs_project_id_fkey (
       title, slug, excerpt, body, cover_image_url, cover_image_path, storage_bucket,
       author, tags, meta_description, is_published, published_at, created_at, updated_at,
-      display_order
+      display_order, body_html, meta_title, cover_image_alt, reading_time_minutes, is_featured
     ),
     floor_plans:residential_floor_plans!residential_floor_plans_project_id_fkey (
       configuration_id, bhk_type, plan_type, title, description, image_url, image_path,
@@ -144,7 +144,7 @@
     blogs:commercial_project_blogs!commercial_project_blogs_project_id_fkey (
       title, slug, excerpt, body, cover_image_url, cover_image_path, storage_bucket,
       author, tags, meta_description, is_published, published_at, created_at, updated_at,
-      display_order
+      display_order, body_html, meta_title, cover_image_alt, reading_time_minutes, is_featured
     ),
     towers:commercial_towers!commercial_towers_project_id_fkey (
       tower_name, number_of_floors, number_of_units, configurations,
@@ -545,6 +545,128 @@
     return { html: out.join("\n        "), toc };
   }
 
+  /* ---------------- STYLED POST BODIES (body_html) ----------------
+     The admin's editor saves a post as HTML. It is cleaned here with
+     an allow-list (no scripts, event handlers or odd URLs), the same
+     in Node and in the browser, then drawn as the post's body. */
+
+  const HTML_TAGS = new Set(["p", "br", "strong", "b", "em", "i", "u", "s", "strike", "h1", "h2", "h3", "h4", "ul", "ol", "li",
+    "blockquote", "a", "img", "figure", "figcaption", "span", "div", "hr", "table", "thead", "tbody", "tr", "th", "td",
+    "sub", "sup", "code", "pre"]);
+  const HTML_VOID = new Set(["br", "hr", "img"]);
+  const STYLE_OK = {
+    "text-align": /^(left|right|center|justify)$/,
+    "color": /^(#[0-9a-f]{3,8}|rgba?\([\d\s.,%]+\)|[a-z]+)$/i,
+    "background-color": /^(#[0-9a-f]{3,8}|rgba?\([\d\s.,%]+\)|[a-z]+)$/i,
+    "font-weight": /^(normal|bold|[1-9]00)$/,
+    "font-style": /^(normal|italic)$/,
+    "text-decoration": /^(none|underline|line-through)$/
+  };
+
+  const decodeAttr = v => String(v == null ? "" : v).replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, "<").replace(/&gt;/g, ">");
+
+  function cleanStyle(v){
+    return decodeAttr(v).split(";").map(d => {
+      const i = d.indexOf(":");
+      if(i < 0) return "";
+      const prop = d.slice(0, i).trim().toLowerCase(), val = d.slice(i + 1).trim();
+      return STYLE_OK[prop] && STYLE_OK[prop].test(val) ? `${prop}:${val}` : "";
+    }).filter(Boolean).join(";");
+  }
+
+  function cleanAttrs(tag, raw){
+    const attrs = {};
+    String(raw || "").replace(/([a-zA-Z_:][-\w:.]*)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'>]+)))?/g, (all, name, a, b, c) => {
+      attrs[name.toLowerCase()] = a !== undefined ? a : b !== undefined ? b : c !== undefined ? c : "";
+      return all;
+    });
+    const out = [];
+    const put = (name, value) => out.push(`${name}="${escapeHtml(value)}"`);
+    if(tag === "a" && attrs.href){
+      const href = decodeAttr(attrs.href).trim();
+      if(/^(https?:\/\/|mailto:|\/(?!\/)|#)/i.test(href)){
+        put("href", href);
+        if(/^https?:\/\//i.test(href) && !/^https?:\/\/(?:www\.)?keys99\.com(?:\/|$)/i.test(href)){
+          put("target", "_blank");
+          put("rel", "noopener");
+        }
+      }
+    }
+    if(tag === "img"){
+      const src = decodeAttr(attrs.src).trim();
+      if(!/^https:\/\//i.test(src)) return null;
+      put("src", src);
+      put("alt", decodeAttr(attrs.alt));
+      ["width", "height"].forEach(n => { if(/^\d{1,4}$/.test(attrs[n] || "")) put(n, attrs[n]); });
+      out.push('loading="lazy"', 'decoding="async"');
+    }
+    if((tag === "td" || tag === "th")){
+      ["colspan", "rowspan"].forEach(n => { if(/^[1-9]\d?$/.test(attrs[n] || "")) put(n, attrs[n]); });
+    }
+    const cls = String(attrs.class || "").split(/\s+/).filter(c => /^ql-(align|indent)-[a-z0-9]+$/.test(c));
+    if(cls.length) put("class", cls.join(" "));
+    const style = attrs.style ? cleanStyle(attrs.style) : "";
+    if(style) put("style", style);
+    return out.length ? " " + out.join(" ") : "";
+  }
+
+  function sanitizeHtml(html){
+    let src = String(html || "").replace(/\r\n?/g, "\n")
+      .replace(/<(script|style|iframe|object|embed|noscript|template|svg|math|form)\b[\s\S]*?(?:<\/\1\s*>|$)/gi, "");
+    const stack = [];
+    let out = "", pos = 0;
+    const text = t => t.replace(/&(?!#?\w+;)/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const re = /<!--[\s\S]*?-->|<(\/?)([a-zA-Z][a-zA-Z0-9]*)((?:"[^"]*"|'[^']*'|[^>"'])*)>/g;
+    let m;
+    while((m = re.exec(src))){
+      out += text(src.slice(pos, m.index));
+      pos = re.lastIndex;
+      if(!m[2]) continue;                                  // a comment
+      const tag = m[2].toLowerCase();
+      if(!HTML_TAGS.has(tag)) continue;                    // tag dropped, its text kept
+      const name = tag === "h1" ? "h2" : tag === "strike" ? "s" : tag === "b" ? "strong" : tag === "i" ? "em" : tag;
+      if(m[1]){
+        const at = stack.lastIndexOf(name);
+        if(at < 0) continue;
+        while(stack.length > at) out += `</${stack.pop()}>`;
+        continue;
+      }
+      const attrs = cleanAttrs(tag, m[3]);
+      if(attrs === null) continue;
+      if(HTML_VOID.has(name)){ out += `<${name}${attrs}>`; continue; }
+      out += `<${name}${attrs}>`;
+      stack.push(name);
+    }
+    out += text(src.slice(pos));
+    while(stack.length) out += `</${stack.pop()}>`;
+    /* The editor's blank spacer paragraphs. */
+    return out.replace(/<p(?:\s[^>]*)?>(?:\s|<br>|&nbsp;)*<\/p>/g, "").trim();
+  }
+
+  /* A cleaned post's words, for reading time and the card excerpt. */
+  function htmlText(html){
+    return String(html || "").replace(/<(?:br|\/p|\/li|\/h[1-4]|\/div|\/tr|\/blockquote)\b[^>]*>/gi, " ").replace(/<[^>]+>/g, "")
+      .replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'")
+      .replace(/\s+/g, " ").trim();
+  }
+
+  /* { html, toc } for a post: the styled body when it has one (each h2
+     gets an id for "On this page"), else the plain body. */
+  function renderPostBody(b){
+    if(!b.html) return formatArticle(b.body);
+    const toc = [], ids = new Set();
+    const html = b.html.replace(/<h2((?:\s[^>]*)?)>([\s\S]*?)<\/h2>/g, (all, attrs, inner) => {
+      const label = htmlText(inner);
+      if(!label) return all;
+      let id = slugify(label) || "section";
+      for(let n = 2; ids.has(id); n++) id = id.replace(/-\d+$/, "") + "-" + n;
+      ids.add(id);
+      toc.push({ id, text: label });
+      return `<h2 id="${id}"${attrs}>${inner}</h2>`;
+    });
+    return { html, toc };
+  }
+
   function shorten(text, max){
     return text.length > max ? text.slice(0, max).replace(/\s+\S*$/, "").replace(/[\s,.;:!?-]+$/, "") + "…" : text;
   }
@@ -688,11 +810,13 @@
        projects/<project>/blog/<post>/ (build/blog.js). The project
        page lists them as cards that link there. */
     const postSlugs = new Set();
-    const blogs = list(row.blogs).filter(b => b.is_published === true && clean(b.title) && clean(b.body)).map(b => {
+    const blogs = list(row.blogs).filter(b => b.is_published === true && clean(b.title) && (clean(b.body) || clean(b.body_html))).map(b => {
       const body = clean(b.body).replace(/\r\n?/g, "\n");
-      const flat = articleText(body);
+      /* A styled body (the editor's HTML) wins over the plain one. */
+      const html = clean(b.body_html) ? sanitizeHtml(b.body_html) : "";
+      const flat = html ? htmlText(html) : articleText(body);
       /* The card excerpt skips headings so it reads as one passage. */
-      const lead = articleText(body.replace(/^\s*#{1,3}\s+.*$/gm, ""));
+      const lead = html ? flat : articleText(body.replace(/^\s*#{1,3}\s+.*$/gm, ""));
       let slug = POST_SLUG_RE.test(clean(b.slug)) ? clean(b.slug) : slugify(b.title) || "post";
       for(let n = 2; postSlugs.has(slug); n++) slug = slug.replace(/-\d+$/, "") + "-" + n;
       postSlugs.add(slug);
@@ -705,6 +829,12 @@
         excerpt: clean(b.excerpt) || shorten(lead, 180),
         description: clean(b.meta_description) || clean(b.excerpt) || lead,
         body,
+        html,
+        images: html ? [...html.matchAll(/<img\s[^>]*src="([^"]+)"/g)].map(m => m[1].replace(/&amp;/g, "&")) : [],
+        metaTitle: clean(b.meta_title),
+        coverAlt: clean(b.cover_image_alt),
+        readMinutes: Number(b.reading_time_minutes) > 0 ? Math.round(Number(b.reading_time_minutes)) : 0,
+        featured: b.is_featured === true,
         words: flat.split(/\s+/).filter(Boolean).length,
         image: clean(b.cover_image_url) || storagePublicUrl(supabaseUrl, b.storage_bucket, b.cover_image_path),
         indexable: flat.split(/\s+/).filter(Boolean).length >= MIN_INDEXED_WORDS,
@@ -714,6 +844,9 @@
         updated: b.updated_at || b.published_at || b.created_at || ""
       };
     });
+
+    /* A featured post comes first (the sort is stable). */
+    blogs.sort((a, b) => Number(b.featured) - Number(a.featured));
 
     blogs.forEach(b => {
       b.cover = b.image ? { large: resized(b.image, IMAGE_WIDTHS.large, root), card: resized(b.image, 0, root) } : null;
@@ -1535,6 +1668,8 @@
     renderBlogs,
     articleText,
     formatArticle,
+    sanitizeHtml,
+    renderPostBody,
     shorten,
     formatDay,
     renderFloorPlans,
