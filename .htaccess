@@ -94,6 +94,15 @@
   RewriteCond %{REQUEST_FILENAME}       !-d
   RewriteRule ^projects/([A-Za-z0-9-]+)/([A-Za-z0-9-]+)/?$  /projects/search?city=$1&locality=$2 [R=302,L,QSA]
 
+  # A project article published since the last build: the page that
+  # loads it by slug (projects/blog-post, commercial/blog-post).
+  RewriteCond %{REQUEST_FILENAME}       !-f
+  RewriteCond %{REQUEST_FILENAME}       !-d
+  RewriteRule ^projects/([A-Za-z0-9-]+)/blog/([A-Za-z0-9-]+)/?$  /projects/blog-post?project=$1&post=$2 [R=302,L]
+  RewriteCond %{REQUEST_FILENAME}       !-f
+  RewriteCond %{REQUEST_FILENAME}       !-d
+  RewriteRule ^commercial/([A-Za-z0-9-]+)/blog/([A-Za-z0-9-]+)/?$  /commercial/blog-post?project=$1&post=$2 [R=302,L]
+
   # Single segment: a listing slug. Tried last, so the two-segment
   # rules above get first refusal.
   RewriteCond %{REQUEST_FILENAME}       !-f

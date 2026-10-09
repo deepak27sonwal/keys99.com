@@ -28,7 +28,7 @@ const { buildThumbs } = require("./thumbs.js");
 const { buildHubs, loadLocalityGuides, joinPath } = require("./hubs.js");
 const { buildSearchPage } = require("./search.js");
 const { buildLegalPages } = require("./legal.js");
-const { buildBlog } = require("./blog.js");
+const { buildBlog, buildPostFallback } = require("./blog.js");
 const { buildComparePage } = require("./compare.js");
 const { buildComparisons } = require("./compare-pages.js");
 const { buildSavedPage, buildProfilePage, buildReelsPage } = require("./extra-pages.js");
@@ -566,8 +566,8 @@ async function main(){
     rows: goodRows.filter(r => r.__kind !== "commercial"),
     commercialProps: goodRows.filter(r => r.__kind === "commercial").map(mapProp),
     commercialRows: goodRows.filter(r => r.__kind === "commercial"),
-    commercialReservedSlugs: new Set([...buildable.filter(r => r.__kind === "commercial").map(r => r.slug), "property-details"]),
-    reservedSlugs: new Set([...buildable.filter(r => r.__kind !== "commercial").map(r => r.slug), "property-details", "search"]),
+    commercialReservedSlugs: new Set([...buildable.filter(r => r.__kind === "commercial").map(r => r.slug), "property-details", "blog-post"]),
+    reservedSlugs: new Set([...buildable.filter(r => r.__kind !== "commercial").map(r => r.slug), "property-details", "blog-post", "search"]),
     siteOrigin: SITE_ORIGIN,
     shareImageFor: prop => shareById.get(prop.id) || null,
     defaultShareImage: DEFAULT_SHARE_IMAGE,
@@ -635,6 +635,17 @@ async function main(){
     fs.writeFileSync(path.join(ROOT, "commercial", "property-details.html"), $f.html());
     console.log("  wrote    /commercial/property-details.html");
   }
+
+  /* Fallback for a project post published since the last build
+     (404.html sends projects/<project>/blog/<post>/ here). */
+  ["residential", "commercial"].forEach(kind => {
+    const base = kind === "commercial" ? "commercial" : "projects";
+    fs.mkdirSync(path.join(ROOT, base), { recursive: true });
+    fs.writeFileSync(path.join(ROOT, base, "blog-post.html"), buildPostFallback({
+      indexHtml: fs.readFileSync(indexPath, "utf8"), siteOrigin: SITE_ORIGIN, defaultShareImage: DEFAULT_SHARE_IMAGE, kind
+    }));
+    console.log(`  wrote    /${base}/blog-post.html`);
+  });
 
   fs.writeFileSync(path.join(ROOT, "projects", "search.html"), buildSearchPage({
     H, indexHtml: fs.readFileSync(indexPath, "utf8"), props: allProps, siteOrigin: SITE_ORIGIN

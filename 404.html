@@ -21,11 +21,12 @@
     location.replace(m[1] + "projects/property-details.html?slug=" + m[2] + location.hash);
     return;
   }
-  /* A project blog post published after the last build: its project
-     page, at the blog cards (the live data lists the new post). */
-  var b = path.match(/^(.*\/)projects\/([a-z0-9]+(?:-[a-z0-9]+)*)\/blog\/[a-z0-9]+(?:-[a-z0-9]+)*\/?$/);
+  /* A project blog post published after the last build: the page that
+     loads it by slug (projects/blog-post.html), until the build
+     writes the real one. */
+  var b = path.match(/^(.*\/)projects\/([a-z0-9]+(?:-[a-z0-9]+)*)\/blog\/([a-z0-9]+(?:-[a-z0-9]+)*)\/?$/);
   if(b){
-    location.replace(b[1] + "projects/" + b[2] + "/#blogSection");
+    location.replace(b[1] + "projects/blog-post.html?project=" + b[2] + "&post=" + b[3]);
     return;
   }
   /* The same for a commercial project: commercial/property-details.html
@@ -36,9 +37,9 @@
     location.replace(c[1] + "commercial/property-details.html?slug=" + c[2] + location.hash);
     return;
   }
-  var cb = path.match(/^(.*\/)commercial\/([a-z0-9]+(?:-[a-z0-9]+)*)\/blog\/[a-z0-9]+(?:-[a-z0-9]+)*\/?$/);
+  var cb = path.match(/^(.*\/)commercial\/([a-z0-9]+(?:-[a-z0-9]+)*)\/blog\/([a-z0-9]+(?:-[a-z0-9]+)*)\/?$/);
   if(cb){
-    location.replace(cb[1] + "commercial/" + cb[2] + "/#blogSection");
+    location.replace(cb[1] + "commercial/blog-post.html?project=" + cb[2] + "&post=" + cb[3]);
     return;
   }
   var cl = path.match(/^(.*\/)commercial\/[a-z0-9]+(?:-[a-z0-9]+)*\/[a-z0-9]+(?:-[a-z0-9]+)*\/?$/);
