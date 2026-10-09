@@ -32,7 +32,7 @@
   <link rel="stylesheet" href="../../css/property-details.css?v=d7f41289">
   <link rel="stylesheet" href="../../css/cards.css?v=8c79f8b3">
   <link rel="stylesheet" href="../../css/chat-widget.css?v=b41320eb">
-  <link rel="stylesheet" href="../../css/project-extra.css?v=c5cf1e73">
+  <link rel="stylesheet" href="../../css/project-extra.css?v=1152bda1">
   <link rel="stylesheet" href="../../css/custom-select.css?v=cd907343">
 
   <script defer="" src="../../js/supabase.js?v=16aeff36"></script>
@@ -44,9 +44,9 @@
   <script src="../../js/custom-select.js?v=bf40792a" defer=""></script>
   <script src="../../js/attribution.js?v=207c1e9f" defer=""></script>
   <script src="../../js/compare-tray.js?v=6f49cf7f" defer=""></script>
-  <script src="../../js/account.js?v=91788e42" defer=""></script>
+  <script src="../../js/account.js?v=e2ac8715" defer=""></script>
   <script src="../../js/cards.js?v=b0c00cb1" defer=""></script>
-  <script src="../../js/property-details.js?v=817ae685" defer=""></script>
+  <script src="../../js/property-details.js?v=1822e49e" defer=""></script>
   <script src="../../js/nav-fx.js?v=777d5b5c" defer=""></script>
 
 
@@ -107,6 +107,18 @@
       <span id="crumbName" aria-current="page">Life Republic R10 Universe</span>
     </nav>
 
+    <!-- SAVE + SHARE, above the photos -->
+    <div class="page-tools">
+      <button class="tool-btn" id="saveBtn" type="button" data-save-btn="" aria-pressed="false">
+        <svg class="tool-heart" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z"></path></svg>
+        <span>Save</span>
+      </button>
+      <button class="tool-btn" id="shareBtn" type="button" aria-label="Share this project">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"></path></svg>
+        <span>Share</span>
+      </button>
+    </div>
+
     <!-- IMAGE GALLERY -->
     <section class="gallery-card">
       <div class="main-photo" id="mainPhoto" tabindex="0" role="button" aria-label="Open property image">
@@ -156,10 +168,8 @@
       </div>
 
       <div class="title-actions">
-        <button id="shareBtn" type="button">⌯ &nbsp; Share</button>
-        <button id="backBtn" type="button">← &nbsp; Back</button>
         <button id="enquireTopBtn" class="primary" type="button">✉ &nbsp; Enquire Now</button>
-        <button id="visitTopBtn" class="visit-btn" type="button">📅 &nbsp; Schedule a Free Site Visit</button>
+        <button id="visitTopBtn" class="visit-btn" type="button">📅 &nbsp; Schedule Site Visit</button>
       </div>
     </section>
 
