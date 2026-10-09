@@ -182,6 +182,7 @@ function renderProject(p){
   fillSection("highlightsSection", "highlights", P.renderHighlights(p));
   fillSection("factsSection", "facts", P.renderFacts(p));
   fillSection("floorPlanSection", "floorPlanGrid", P.renderFloorPlans(p));
+  fillSection("masterPlanSection", "masterPlanGrid", P.renderMasterPlans(p));
   fillSection("amenitiesSection", "amenities", P.renderAmenities(p));
   fillSection("specsSection", "specifications", P.renderSpecificationRows(p));
   fillSection("towersSection", "towers", P.renderTowerRows(p));

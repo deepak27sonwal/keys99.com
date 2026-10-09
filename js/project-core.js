@@ -42,7 +42,7 @@
     city:cities!residential_projects_city_id_fkey ( name, state, city_image ),
     locality:localities!residential_projects_locality_id_fkey ( name ),
     configurations:residential_configurations!residential_configurations_project_id_fkey (
-      bhk_type, variant_name, carpet_area, built_up_area, super_built_up_area, area_unit,
+      id, bhk_type, variant_name, carpet_area, built_up_area, super_built_up_area, area_unit,
       starting_price, maximum_price, price_type, price_on_request, availability,
       parking_included, parking_type, display_order, updated_at
     ),
@@ -68,8 +68,8 @@
       display_order
     ),
     floor_plans:residential_floor_plans!residential_floor_plans_project_id_fkey (
-      bhk_type, plan_type, title, image_url, image_path, storage_bucket,
-      alt_text, is_active, display_order
+      configuration_id, bhk_type, plan_type, title, description, image_url, image_path,
+      pdf_url, pdf_path, storage_bucket, alt_text, is_active, display_order
     ),
     towers:residential_towers!residential_towers_project_id_fkey (
       tower_name, number_of_floors, number_of_units, configurations,
@@ -555,6 +555,7 @@
         else if(sqft > 0) rate = from / sqft;
       }
       return {
+        id: c.id || null,
         bhk: commercial ? titleCase(c.unit_type) : normaliseBhk(c.bhk_type),
         variant: commercial ? [clean(c.variant_name), floorLabel(c.floor_level)].filter(Boolean).join(" · ") : clean(c.variant_name),
         rent,
@@ -661,12 +662,19 @@
       b.cover = b.image ? { large: resized(b.image, IMAGE_WIDTHS.large, root), card: resized(b.image, 0, root) } : null;
     });
 
-    const floorPlans = list(row.floor_plans).filter(f => f.is_active !== false).map(f => ({
+    /* Floor plans (residential_floor_plans): a 2D or 3D drawing of one
+       size, linked to its configuration or named by its BHK. Shown with
+       that size's area and price, apart from the master plan. */
+    const floorPlans = list(row.floor_plans).filter(f => f.is_active !== false).sort(byOrder).map(f => ({
       url: clean(f.image_url) || storagePublicUrl(supabaseUrl, f.storage_bucket, f.image_path),
+      pdf: clean(f.pdf_url) || storagePublicUrl(supabaseUrl, f.storage_bucket, f.pdf_path),
+      type: String(f.plan_type || "").toLowerCase() === "3d" ? "3D" : "2D",
+      configId: f.configuration_id || null,
       title: clean(f.title) || normaliseBhk(f.bhk_type) || "Floor Plan",
       bhk: normaliseBhk(f.bhk_type),
+      description: clean(f.description),
       alt: clean(f.alt_text)
-    })).filter(f => f.url).map(withCopies);
+    })).filter(f => f.url || f.pdf).map(f => f.url ? withCopies(f) : f);
 
     const towers = list(row.towers).filter(t => clean(t.tower_name)).map(t => ({
       name: clean(t.tower_name),
@@ -1085,8 +1093,82 @@
     return new Date(day + "T00:00:00Z").toLocaleDateString("en-IN", { day:"numeric", month:"short", year:"numeric", timeZone:"UTC" });
   }
 
+  /* Floor plans grouped by size: one block per configuration (or BHK)
+     with its carpet area, price and availability beside its 2D and 3D
+     drawings. Plans whose size matches no configuration still show,
+     under their own BHK. */
+  function floorPlanGroups(p){
+    const groups = [];
+    const byKey = new Map();
+    const groupFor = (key, make) => {
+      if(!byKey.has(key)){ const g = make(); byKey.set(key, g); groups.push(g); }
+      return byKey.get(key);
+    };
+    p.floorPlans.forEach(f => {
+      const cfg = (f.configId && p.configurations.find(c => c.id === f.configId))
+        || (f.bhk && p.configurations.filter(c => c.bhk === f.bhk).length === 1 ? p.configurations.find(c => c.bhk === f.bhk) : null);
+      const key = cfg ? "cfg:" + (cfg.id || cfg.bhk + cfg.variant) : "bhk:" + (f.bhk || f.title);
+      const g = groupFor(key, () => {
+        const same = cfg ? [cfg] : p.configurations.filter(c => f.bhk && c.bhk === f.bhk);
+        return {
+          bhk: cfg ? cfg.bhk : (f.bhk || f.title),
+          variant: cfg ? cfg.variant : "",
+          configs: same,
+          plans: []
+        };
+      });
+      g.plans.push(f);
+    });
+    groups.forEach(g => g.plans.sort((a, b) => (a.type === "2D" ? 0 : 1) - (b.type === "2D" ? 0 : 1)));
+    return groups;
+  }
+
+  function planDetails(g){
+    const configs = g.configs;
+    if(!configs.length) return [];
+    const out = [];
+    /* Several variants of one size read as a range: "560 – 656 Sq.Ft". */
+    const areaNums = configs.map(c => c.areaValue).filter(Boolean);
+    const unit = (configs.find(c => c.area) || {}).area ? configs.find(c => c.area).area.replace(/^[\d,.]+\s*/, "") : "";
+    if(areaNums.length){
+      const lo = Math.min(...areaNums), hi = Math.max(...areaNums);
+      out.push(["Carpet Area", (hi > lo ? `${formatNumber(lo)} – ${formatNumber(hi)}` : formatNumber(lo)) + (unit ? " " + unit : "")]);
+    }
+    const priceNums = configs.flatMap(c => [c.priceValue, c.priceMaxValue]).filter(Boolean);
+    if(priceNums.length && priceNums.length >= configs.filter(c => c.priceValue).length){
+      const lo = Math.min(...priceNums), hi = Math.max(...priceNums);
+      out.push(["Price", hi > lo ? `${formatPrice(lo)} – ${formatPrice(hi)}` : formatPrice(lo)]);
+    }else{
+      const prices = [...new Set(configs.map(c => c.price).filter(Boolean))];
+      if(prices.length) out.push(["Price", prices.join(" / ")]);
+    }
+    const built = configs.map(c => c.builtUp).filter(Boolean);
+    if(built.length) out.push(["Built-up", [...new Set(built)].join(" / ")]);
+    out.push(["Status", configs.every(c => c.soldOut) ? configs[0].availability : configs.find(c => !c.soldOut).availability]);
+    return out;
+  }
+
   function renderFloorPlans(p){
-    return [...p.floorPlans, ...p.masterPlans].map(f => `
+    return floorPlanGroups(p).map(g => `
+      <article class="fp-group">
+        <header class="fp-head">
+          <h3>${escapeHtml(g.bhk)}${g.variant ? ` <small>${escapeHtml(g.variant)}</small>` : ""}</h3>
+          ${planDetails(g).length ? `<dl class="fp-facts">${planDetails(g).map(([k, v]) => `<div><dt>${escapeHtml(k)}</dt><dd>${escapeHtml(v)}</dd></div>`).join("")}</dl>` : ""}
+        </header>
+        <div class="fp-plans">${g.plans.map(f => `
+          <figure class="floor-plan-card">
+            <span class="fp-type fp-type-${f.type.toLowerCase()}">${f.type}</span>
+            ${f.url ? `<a href="${escapeHtml(f.url)}" target="_blank" rel="noopener" aria-label="Open ${escapeHtml(g.bhk)} ${f.type} floor plan at full size">
+              <img src="${escapeHtml(f.large)}" data-full="${escapeHtml(f.url)}" onerror="${IMG_FALLBACK}" alt="${escapeHtml(f.alt || `${p.name} ${g.bhk} ${f.type} floor plan`)}" loading="lazy" decoding="async">
+            </a>` : `<a class="fp-pdf" href="${escapeHtml(f.pdf)}" target="_blank" rel="noopener">View ${escapeHtml(f.type)} plan (PDF)</a>`}
+            <figcaption>${escapeHtml(f.title)}${f.url && f.pdf ? ` · <a href="${escapeHtml(f.pdf)}" target="_blank" rel="noopener">PDF</a>` : ""}</figcaption>
+          </figure>`).join("")}
+        </div>
+      </article>`).join("");
+  }
+
+  function renderMasterPlans(p){
+    return p.masterPlans.map(f => `
       <figure class="floor-plan-card">
         <a href="${escapeHtml(f.url)}" target="_blank" rel="noopener" aria-label="Open ${escapeHtml(f.title)} at full size">
           <img src="${escapeHtml(f.large)}" data-full="${escapeHtml(f.url)}" onerror="${IMG_FALLBACK}" alt="${escapeHtml(f.alt || p.name + " " + f.title)}" loading="lazy" decoding="async">
@@ -1365,6 +1447,7 @@
     shorten,
     formatDay,
     renderFloorPlans,
+    renderMasterPlans,
     renderThumbs,
     pickSimilar,
     videoInfo,
