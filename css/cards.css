@@ -170,7 +170,8 @@
   display:grid;
   place-items:center;
 
-  font-size:14px;
+  font-size:20px;
+  line-height:1;
 
   color:#163944;
 
