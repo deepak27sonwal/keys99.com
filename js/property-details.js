@@ -153,7 +153,7 @@ function initBottomNav(){
     if(!button) return;
     const target = button.dataset.target;
     if(target === "home") window.location.href = SITE_ROOT;
-    else if(target === "search") window.location.href = SITE_ROOT + "projects/search";
+    else if(target === "search") window.location.href = SITE_ROOT + (window.__KEYS99_KIND__ === "commercial" ? "commercial/" : "projects/search");
     else if(target === "reels") window.location.href = SITE_ROOT + "reels";
     else if(target === "profile") window.location.href = SITE_ROOT + "profile";
     else if(target === "saved") window.location.href = SITE_ROOT + "saved";

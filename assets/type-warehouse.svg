@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 420" width="700" height="420" role="img" aria-label="Warehouses">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#eaf7f3"/>
+      <stop offset="1" stop-color="#ffffff"/>
+    </linearGradient>
+  </defs>
+  <rect width="700" height="420" fill="url(#bg)"/>
+  <circle cx="118" cy="96" r="30" fill="#e1a400" opacity=".18"/>
+
+  <path d="M120 346V190l230-78 230 78v156z" fill="#004f45"/>
+  <path d="M120 190l230-78 230 78" fill="none" stroke="#006b5b" stroke-width="10" stroke-linejoin="round"/>
+  <rect x="226" y="214" width="248" height="132" rx="4" fill="#eaf7f3" opacity=".92"/>
+  <g stroke="#006b5b" stroke-width="6" opacity=".55"><path d="M226 246h248M226 278h248M226 310h248"/></g>
+  <rect x="318" y="262" width="64" height="84" rx="3" fill="#e1a400"/>
+  <rect x="120" y="346" width="460" height="14" rx="7" fill="#006b5b" opacity=".4"/>
+</svg>
