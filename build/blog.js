@@ -224,7 +224,7 @@ function projectPostList(projects){
       updated: isoDay(b.updated) || date,
       image: b.image,
       cardImage: b.cover ? b.cover.card : "",
-      minutes: Math.max(1, Math.round(b.words / WORDS_PER_MINUTE)),
+      minutes: b.readMinutes || Math.max(1, Math.round(b.words / WORDS_PER_MINUTE)),
       thin: !b.indexable
     });
   }));
@@ -272,7 +272,7 @@ function buildProjectPostPage(entry, ctx){
   const blogUrl = `${siteOrigin}/blog/`;
   const prefix = "../../../../";
   const citySlug = P.slugify(p.city);
-  const article = P.formatArticle(b.body);
+  const article = P.renderPostBody(b);
   /* Link preview: the cover's 1200x630 JPEG, else the project photo's. */
   const preview = (b.image && shareImage(b.image)) || (p.images[0] && shareImage(p.images[0].url)) || null;
   const image = preview || b.image || (p.images[0] && p.images[0].url) || defaultShareImage;
@@ -307,7 +307,7 @@ function buildProjectPostPage(entry, ctx){
       articleSection: p.name,
       keywords: b.tags.length ? b.tags.join(", ") : undefined,
       wordCount: b.words,
-      image: coverShown ? [coverShown, image].filter((v, i, a) => a.indexOf(v) === i) : image,
+      image: [coverShown, image, ...b.images.slice(0, 3)].filter((v, i, a) => v && a.indexOf(v) === i),
       author: { "@type": "Organization", name: b.author || "Keys99 Team", url: siteOrigin },
       publisher: organisation,
       about: { "@type": "ApartmentComplex", "@id": projectUrl + "#project", name: p.name, url: projectUrl },
@@ -333,7 +333,7 @@ function buildProjectPostPage(entry, ctx){
         <div class="section-kicker"><a href="${p.basePath || "projects"}/${p.slug}/">${esc(p.name)}</a>${p.locality ? " · " + esc(p.locality) : ""}</div>
         <h1>${esc(b.title)}</h1>
         <p class="blog-meta">By ${esc(b.author || "Keys99 Team")} · ${dateLine} · ${entry.minutes} min read</p>
-        ${b.cover ? `<figure class="post-cover"><img src="${esc(b.cover.large)}" data-full="${esc(b.image)}" alt="${esc(b.title)}" width="1280" height="720" decoding="async" fetchpriority="high" onerror="${CARD_FALLBACK}"></figure>` : ""}
+        ${b.cover ? `<figure class="post-cover"><img src="${esc(b.cover.large)}" data-full="${esc(b.image)}" alt="${esc(b.coverAlt || b.title)}" width="1280" height="720" decoding="async" fetchpriority="high" onerror="${CARD_FALLBACK}"></figure>` : ""}
         ${article.toc.length >= TOC_MIN_HEADINGS ? `
         <nav class="post-toc" aria-labelledby="postToc">
           <strong id="postToc">On this page</strong>
@@ -378,7 +378,7 @@ function buildProjectPostPage(entry, ctx){
     image: coverShown,
     html: finish(shell({
       chrome,
-      title: postTitle(b.title, p),
+      title: postTitle(b.metaTitle || b.title, p),
       description: P.shorten(entry.description, 158),
       canonical: url,
       robots: robotsFor(entry.thin),
@@ -391,7 +391,7 @@ function buildProjectPostPage(entry, ctx){
         `<meta property="article:published_time" content="${entry.date}">`,
         `<meta property="article:modified_time" content="${entry.updated}">`,
         ...b.tags.map(t => `<meta property="article:tag" content="${esc(t)}">`),
-        preview ? `<meta property="og:image:type" content="image/jpeg">\n<meta property="og:image:width" content="${P.OG_SIZE.width}">\n<meta property="og:image:height" content="${P.OG_SIZE.height}">\n<meta property="og:image:alt" content="${esc(b.title)}">` : ""
+        preview ? `<meta property="og:image:type" content="image/jpeg">\n<meta property="og:image:width" content="${P.OG_SIZE.width}">\n<meta property="og:image:height" content="${P.OG_SIZE.height}">\n<meta property="og:image:alt" content="${esc(b.coverAlt || b.title)}">` : ""
       ].filter(Boolean).join("\n")
     }), prefix, /^commercial\//.test(entry.dir))
   };

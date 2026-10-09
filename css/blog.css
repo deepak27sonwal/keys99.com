@@ -306,3 +306,34 @@
   .post-layout{ grid-template-columns:minmax(0, 1fr); gap:24px; }
   .post-project{ position:static; }
 }
+
+/* Styled post bodies (the editor's HTML, cleaned by Keys99Project.sanitizeHtml) */
+.blog-body img{
+  display:block;
+  max-width:100%;
+  height:auto;
+  margin:18px auto;
+  border-radius:12px;
+}
+.blog-body figure{ margin:18px 0; }
+.blog-body figcaption{ margin-top:6px; font-size:13px; color:#6b7a77; text-align:center; }
+.blog-body blockquote{
+  margin:18px 0;
+  padding:10px 16px;
+  border-left:4px solid #006b5b;
+  background:#f6faf9;
+  border-radius:0 10px 10px 0;
+}
+.blog-body blockquote p:last-child{ margin-bottom:0; }
+.blog-body pre{ overflow-x:auto; padding:12px 14px; background:#f3f6f5; border-radius:10px; font-size:14px; }
+.blog-body hr{ border:0; border-top:1px solid #e7eceb; margin:22px 0; }
+.blog-body ul{ padding-left:22px; }
+.blog-body .ql-align-center{ text-align:center; }
+.blog-body .ql-align-right{ text-align:right; }
+.blog-body .ql-align-justify{ text-align:justify; }
+.blog-body .ql-indent-1{ padding-left:2em; }
+.blog-body .ql-indent-2{ padding-left:4em; }
+.blog-body .ql-indent-3{ padding-left:6em; }
+@media (max-width:700px){
+  .blog-body table{ display:block; overflow-x:auto; }
+}
