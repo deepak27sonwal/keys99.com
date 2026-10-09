@@ -170,16 +170,38 @@
   display:grid;
   place-items:center;
 
-  font-size:20px;
-  line-height:1;
+  /* The heart is drawn by ::before (below), so it is centred exactly
+     whatever font the phone has; the ♡ / ♥ text stays for scripts. */
+  font-size:0;
+  line-height:0;
 
   color:#163944;
 
   box-shadow:0 3px 10px rgba(0,0,0,.08);
 }
 
+.fav::before{
+  content:"";
+  position:absolute;
+  top:50%;
+  left:50%;
+  width:18px;
+  height:18px;
+  transform:translate(-50%, -50%);
+  background:currentColor;
+  -webkit-mask:var(--heart-outline) center / contain no-repeat;
+  mask:var(--heart-outline) center / contain no-repeat;
+  --heart-outline:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 20.8s-8.2-5-9.8-10.4C1 6.2 3.5 3.2 6.9 3.2c2 0 3.8 1.1 5.1 3 1.3-1.9 3.1-3 5.1-3 3.4 0 5.9 3 4.7 7.2-1.6 5.4-9.8 10.4-9.8 10.4z' fill='none' stroke='%23000' stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E");
+  --heart-filled:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 20.8s-8.2-5-9.8-10.4C1 6.2 3.5 3.2 6.9 3.2c2 0 3.8 1.1 5.1 3 1.3-1.9 3.1-3 5.1-3 3.4 0 5.9 3 4.7 7.2-1.6 5.4-9.8 10.4-9.8 10.4z' fill='%23000' stroke='%23000' stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
 .fav.active{
   color:#d53d49;
+}
+
+.fav.active::before{
+  -webkit-mask-image:var(--heart-filled);
+  mask-image:var(--heart-filled);
 }
 
 .property-body{
