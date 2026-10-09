@@ -243,7 +243,7 @@
 .fp-switch button{min-width:56px;padding:7px 16px;border:0;border-radius:999px;background:none;color:var(--muted);font:inherit;font-size:var(--fs-small);font-weight:800;cursor:pointer}
 .fp-switch button[aria-pressed="true"]{background:var(--green);color:#fff}
 .fp-switch button:focus-visible{outline:2px solid var(--green);outline-offset:1px}
-.fp-type{position:absolute;top:10px;left:10px;z-index:1;padding:4px 11px;border-radius:999px;font-size:var(--fs-label);font-weight:800;color:#fff;background:#006b5b}
+.fp-type{position:absolute;top:10px;left:50%;z-index:2;transform:translateX(-50%);min-width:56px;padding:7px 16px;border-radius:999px;font-size:var(--fs-small);font-weight:800;text-align:center;color:#fff;background:#006b5b;box-shadow:0 0 0 4px rgba(255,255,255,.95),0 4px 14px rgba(8,45,56,.16)}
 .fp-type-3d{background:#e1a400;color:#082d38}
 .fp-pdf{display:grid;place-items:center;height:300px;color:var(--green);font-weight:700;text-decoration:none;background:#f7faf9}
 .floor-plan-card figcaption a{color:var(--green)}
