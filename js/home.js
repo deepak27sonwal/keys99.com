@@ -187,6 +187,7 @@ function mapResidentialProject(row){
     /* Developers are only readable when active and verified, so an
        unverified developer comes back null and the card omits it. */
     developer: row.developer ? row.developer.name : "",
+    developer_logo: row.developer && /^https?:\/\//i.test(row.developer.logo_url || "") ? row.developer.logo_url : "",
     city: row.city ? row.city.name : "",
     state: row.city ? row.city.state : "",
     /* Photo for the city card (cities.city_image), if one is set. */
@@ -255,6 +256,7 @@ function mapCommercialProject(row){
     status_key: row.status,
 
     developer: row.developer ? row.developer.name : "",
+    developer_logo: row.developer && /^https?:\/\//i.test(row.developer.logo_url || "") ? row.developer.logo_url : "",
     city: row.city ? row.city.name : "",
     state: row.city ? row.city.state : "",
     city_image: row.city && /^https?:\/\//i.test(row.city.city_image || "") ? row.city.city_image : "",
@@ -1053,6 +1055,7 @@ const NEW_LAUNCH_COUNT = 8;
 const POPULAR_COUNT = 8;
 const TOP_CITY_COUNT = 5;
 const TOP_LOCALITY_COUNT = 10;
+const TOP_DEVELOPER_COUNT = 8;
 
 
 /* DOM ELEMENTS */
@@ -1080,6 +1083,9 @@ const topCitiesHint = document.getElementById("topCitiesHint");
 const topLocalitiesList = document.getElementById("topLocalitiesList");
 const topLocalitiesState = document.getElementById("topLocalitiesState");
 
+const topDevelopersSection = document.getElementById("trustedDevelopers");
+const topDevelopersList = document.getElementById("topDevelopersList");
+
 
 /* =========================================================
    LOAD PROPERTIES
@@ -1106,6 +1112,7 @@ async function loadHomepage(){
     renderRecentlyViewed();
     renderTopCities();
     renderTopLocalities();
+    renderTopDevelopers();
     populateHeroCityOptions();
     buildSearchSuggestionPool();
 
@@ -1345,6 +1352,76 @@ function localityChipHtml(item){
       <span class="count">${item.count} ${item.count === 1 ? "Project" : "Projects"}</span>
     </a>
   `;
+}
+
+/* "Trusted Developers": the developers with published projects, most
+   projects first. Only active, verified developers come back from the
+   database (the card omits the rest), so every card is a verified
+   builder. Each links to its developer page. */
+function developerCardHtml(item){
+  const mark = item.logo
+    ? `<img src="${escapeHtml(item.logo)}" alt="${escapeHtml(item.name)} logo" loading="lazy" width="64" height="64" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'developer-initial',textContent:'${escapeHtml(item.name.charAt(0).toUpperCase())}'}))">`
+    : `<span class="developer-initial" aria-hidden="true">${escapeHtml(item.name.charAt(0).toUpperCase())}</span>`;
+  return `
+    <a class="developer-card" href="developers/${escapeHtml(item.slug)}/">
+      <span class="developer-mark">${mark}</span>
+      <strong>${escapeHtml(item.name)}</strong>
+      <span class="developer-meta">${item.count} ${item.count === 1 ? "Project" : "Projects"}${item.city ? " · " + escapeHtml(titleCaseName(item.city)) : ""}</span>
+      <span class="developer-verified">✓ Verified</span>
+    </a>
+  `;
+}
+
+function computeTopDevelopers(properties, limit){
+
+  const byName = new Map();
+
+  properties.forEach(property => {
+    const name = titleCaseName(property.developer);
+    if(!name){
+      return;
+    }
+    const key = slugify(name);
+    if(!key){
+      return;
+    }
+    if(!byName.has(key)){
+      byName.set(key, { slug: key, name, count: 0, logo: "", cities: {} });
+    }
+    const entry = byName.get(key);
+    entry.count++;
+    if(property.developer_logo && !entry.logo) entry.logo = property.developer_logo;
+    const city = String(property.city || "").trim();
+    if(city) entry.cities[city] = (entry.cities[city] || 0) + 1;
+  });
+
+  return [...byName.values()]
+    .sort((a,b) => b.count - a.count || a.name.localeCompare(b.name))
+    .slice(0, limit)
+    .map(entry => {
+      const cities = Object.entries(entry.cities).sort((a,b) => b[1] - a[1]);
+      return { slug: entry.slug, name: entry.name, count: entry.count, logo: entry.logo, city: cities.length ? cities[0][0] : "" };
+    });
+
+}
+
+function renderTopDevelopers(){
+
+  if(!topDevelopersList){
+    return;
+  }
+
+  const developers = computeTopDevelopers(allProperties, TOP_DEVELOPER_COUNT);
+
+  if(!developers.length){
+    if(topDevelopersSection) topDevelopersSection.style.display = "none";
+    topDevelopersList.innerHTML = "";
+    return;
+  }
+
+  if(topDevelopersSection) topDevelopersSection.style.display = "";
+  topDevelopersList.innerHTML = developers.map(developerCardHtml).join("");
+
 }
 
 /* Real numbers for the stats bar and property-type cards,
