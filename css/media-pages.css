@@ -18,7 +18,11 @@
 /* Saved: who is logged in, with a log-out link (js/saved.js) */
 .saved-account{ display:flex; flex-wrap:wrap; align-items:center; gap:8px 12px; margin:0 0 16px; color:var(--muted); font-size:var(--fs-small, .9rem); }
 .saved-account[hidden]{ display:none; }
-.saved-logout{ background:none; border:0; padding:0; color:var(--green, #006b5b); font:inherit; font-weight:700; text-decoration:underline; cursor:pointer; }
+.saved-account{ justify-content:space-between; padding:10px 12px 10px 16px; border:1px solid var(--line, #e7eceb); border-radius:999px; background:#fff; box-shadow:0 2px 10px rgba(9,44,61,.06); }
+.saved-logout, .profile-logout{ display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:9px 18px; border-radius:999px; cursor:pointer; font:inherit; font-weight:700; font-size:14px; color:#b42318; background:linear-gradient(180deg,#fff,#fff4f2); border:1px solid #f1c9c4; box-shadow:0 2px 8px rgba(180,35,24,.12); transition:transform .15s, box-shadow .15s, background .15s, color .15s; }
+.saved-logout::before, .profile-logout::before{ content:""; width:16px; height:16px; background:currentColor; -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4'/%3E%3Cpath d='M16 17l5-5-5-5M21 12H9'/%3E%3C/svg%3E") center/contain no-repeat; mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4'/%3E%3Cpath d='M16 17l5-5-5-5M21 12H9'/%3E%3C/svg%3E") center/contain no-repeat; }
+.saved-logout:hover, .profile-logout:hover{ background:#b42318; color:#fff; border-color:#b42318; box-shadow:0 6px 16px rgba(180,35,24,.28); transform:translateY(-1px); }
+.saved-logout:active, .profile-logout:active{ transform:none; }
 .saved-page .search-empty button.btn-primary{ border:0; cursor:pointer; font:inherit; }
 
 /* Reels */
@@ -171,11 +175,7 @@
 }
 .profile-links > a i, .profile-links > button i{ margin-left:auto; font-style:normal; color:#b5c2c7; font-size:22px; line-height:1; }
 
-.profile-logout{
-  width:100%; margin:4px 0 24px; padding:14px; border-radius:14px; cursor:pointer;
-  background:#fff; border:1px solid #f1c9c4; color:#b42318; font:inherit; font-weight:700;
-}
-.profile-logout:hover{ background:#fff5f4; }
+.profile-logout{ width:100%; margin:4px 0 24px; padding:14px; font-size:15px; }
 
 /* Loading */
 .profile-skeleton{ display:grid; gap:12px; }
