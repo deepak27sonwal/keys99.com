@@ -23,9 +23,9 @@ const { summarise, introText, faqs, listText, bhkSlug, bhkLabelsOf, cityFilterPa
 
 const EXPORTS = [
   "mapResidentialProject", "mapCommercialProject", "mergeByNewest", "createPropertyCard", "cityCardHtml", "localityChipHtml",
-  "computeTopCities", "computeTopLocalities", "computeSiteStats",
+  "computeTopCities", "computeTopLocalities", "computeSiteStats", "developerCardHtml", "computeTopDevelopers",
   "formatStatCount", "typeCountText",
-  "POPULAR_COUNT", "NEW_LAUNCH_COUNT", "TOP_CITY_COUNT", "TOP_LOCALITY_COUNT",
+  "POPULAR_COUNT", "NEW_LAUNCH_COUNT", "TOP_CITY_COUNT", "TOP_LOCALITY_COUNT", "TOP_DEVELOPER_COUNT",
   "slugify", "titleCaseName", "formatPrice", "getNumericPrice", "getBhkOptions",
   "normaliseBhkType", "escapeHtml", "cityUrl", "localityUrl",
   "getImageUrl", "thumbName", "THUMB_DIR"
@@ -318,6 +318,11 @@ function buildHomepage(indexPath, rows, supabaseUrl, reelsHtml, siteOrigin){
     H.computeTopCities(props, H.TOP_CITY_COUNT).map(H.cityCardHtml).join(""));
   html = replaceBetween(html, "localities",
     H.computeTopLocalities(props, H.TOP_LOCALITY_COUNT).map(H.localityChipHtml).join(""));
+  const topDevelopers = H.computeTopDevelopers(props, H.TOP_DEVELOPER_COUNT);
+  html = replaceBetween(html, "developers", topDevelopers.map(H.developerCardHtml).join(""));
+  /* With no developer to show, the whole section stays out of the page. */
+  html = html.replace(/(<section id="trustedDevelopers")(?: style="display:none")?/,
+    topDevelopers.length ? "$1" : '$1 style="display:none"');
 
   /* Numbers: only the text of the marked elements changes. */
   const stats = H.computeSiteStats(props);
