@@ -112,6 +112,61 @@ function buildSavedPage({ H, indexHtml, props, siteOrigin, robots }){
   }), "profile");
 }
 
+function buildEnquiriesPage({ H, indexHtml, props, siteOrigin, robots }){
+  const chrome = homepageChrome(indexHtml);
+  const cards = (props || []).map(p => H.createPropertyCard(p)).join("");
+  const main = `
+<main class="hub enquiries-page">
+  <div class="container">
+    <nav class="hub-breadcrumb" aria-label="Breadcrumb">
+      <a href="./">Home</a><span>›</span><a href="profile">Profile</a><span>›</span><span aria-current="page">Enquiries</span>
+    </nav>
+
+    <header class="hub-head">
+      <div class="section-kicker">Your activity</div>
+      <h1>My Enquiries &amp; Site Visits</h1>
+      <p class="hub-intro">Every project you enquired about or asked to visit, newest first.</p>
+    </header>
+
+    <section class="hub-section" id="enqSection" aria-label="Enquiries and site visits">
+      <div class="saved-account" id="enqBar" hidden><span></span> <button type="button" class="saved-logout">Log out</button></div>
+
+      <div class="enq-summary" id="enqSummary" hidden>
+        <button type="button" class="enq-tab" data-enq-tab="all" aria-pressed="true"><strong id="enqCountAll">0</strong><span>All</span></button>
+        <button type="button" class="enq-tab" data-enq-tab="enquiry" aria-pressed="false"><strong id="enqCountEnq">0</strong><span>Enquired</span></button>
+        <button type="button" class="enq-tab" data-enq-tab="visit" aria-pressed="false"><strong id="enqCountVisit">0</strong><span>Site visits</span></button>
+      </div>
+
+      <ul class="enq-list" id="enqList"></ul>
+
+      <div class="search-empty" id="enqEmpty" hidden>
+        <strong id="enqEmptyTitle">No enquiries yet.</strong>
+        <p>Use <b>Enquire Now</b> or <b>Schedule Site Visit</b> on any project and it will appear here.</p>
+        <a class="btn-primary" href="projects/search">Browse projects</a>
+      </div>
+
+      <div class="search-empty" id="enqLogin" hidden>
+        <strong>Log in to see your enquiries.</strong>
+        <p>Your enquiries and site visits are kept in your Keys99 account.</p>
+        <button class="btn-primary" type="button" id="enqLoginBtn">Log in</button>
+      </div>
+    </section>
+
+    <div id="enqPool" hidden>${cards}</div>
+  </div>
+</main>`;
+  return finish(shell({
+    chrome,
+    title: "My Enquiries & Site Visits | Keys99",
+    description: "Projects you enquired about or scheduled a site visit for on Keys99.",
+    canonical: `${siteOrigin}/enquiries`,
+    robots,
+    css: ["css/media-pages.css"],
+    main,
+    scripts: ["js/cards.js", "js/hub.js", "js/nav-fx.js", "js/attribution.js", "js/compare-tray.js", "js/account.js", "js/enquiries.js"]
+  }), "profile");
+}
+
 function buildProfilePage({ H, indexHtml, props, siteOrigin, robots }){
   const chrome = homepageChrome(indexHtml);
   /* Every project's card; js/profile.js moves the ones that match the
@@ -157,8 +212,8 @@ function buildProfilePage({ H, indexHtml, props, siteOrigin, robots }){
         </div>
         <div class="profile-stats" aria-label="Your activity">
           <a class="profile-stat" href="saved"><i aria-hidden="true">♥</i><strong id="statSaved">0</strong><span>Saved</span></a>
-          <a class="profile-stat" href="#enquiries" data-open-enquiries><i aria-hidden="true">✉</i><strong id="statEnquired">0</strong><span>Enquired</span></a>
-          <a class="profile-stat" href="#enquiries" data-open-enquiries><i aria-hidden="true">📅</i><strong id="statVisits">0</strong><span>Site visits</span></a>
+          <a class="profile-stat" href="enquiries"><i aria-hidden="true">✉</i><strong id="statEnquired">0</strong><span>Enquired</span></a>
+          <a class="profile-stat" href="enquiries#visits"><i aria-hidden="true">📅</i><strong id="statVisits">0</strong><span>Site visits</span></a>
           <a class="profile-stat" href="saved#recentSection"><i aria-hidden="true">🕘</i><strong id="statRecent">0</strong><span>Recently viewed</span></a>
           <a class="profile-stat" href="projects/compare"><i aria-hidden="true">⇄</i><strong id="statCompare">0</strong><span>To compare</span></a>
         </div>
@@ -253,11 +308,7 @@ function buildProfilePage({ H, indexHtml, props, siteOrigin, robots }){
           <p class="profile-form-note">Your number is used to pre-fill enquiry forms, so experts can reach you on WhatsApp. It is never shown publicly.</p>
         </form>
       </section>
-        <button type="button" id="profileEnquiriesLink" aria-expanded="false" aria-controls="profileEnquiriesPanel"><span>✉</span>My enquiries &amp; site visits<i>›</i></button>
-        <div class="profile-enq" id="profileEnquiriesPanel" hidden>
-          <ul class="profile-enq-list" id="enqList"></ul>
-          <p class="profile-enq-empty" id="enqEmpty" hidden>No enquiries yet. Use <strong>Enquire Now</strong> or <strong>Schedule Site Visit</strong> on any project and it will appear here.</p>
-        </div>
+        <a href="enquiries"><span>✉</span>My enquiries &amp; site visits<i>›</i></a>
         <a href="saved"><span>♥</span>Saved projects<i>›</i></a>
         <a href="projects/compare"><span>⇄</span>Compare projects<i>›</i></a>
         <a href="projects/search"><span>⌕</span>Browse projects<i>›</i></a>
@@ -455,4 +506,4 @@ function homeReelsHtml(videos, e, typeLabel, platformLabel){
 </section>`;
 }
 
-module.exports = { buildSavedPage, buildProfilePage, buildReelsPage };
+module.exports = { buildSavedPage, buildEnquiriesPage, buildProfilePage, buildReelsPage };

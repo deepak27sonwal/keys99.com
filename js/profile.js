@@ -112,8 +112,7 @@
     render();
   }
 
-  /* Profile settings and My enquiries sit behind shortcut rows, like
-     Saved and Compare. */
+  /* Profile settings sits behind a shortcut row, like Saved and Compare. */
   function foldRow(linkId, panelId){
     const link = $(linkId), panel = $(panelId);
     const set = (open, scroll) => {
@@ -126,40 +125,15 @@
     return set;
   }
   const setSettingsOpen = foldRow("profileSettingsLink", "profileSettingsCard");
-  const setEnquiriesOpen = foldRow("profileEnquiriesLink", "profileEnquiriesPanel");
   if(location.hash === "#settings") setSettingsOpen(true, false);
-  if(location.hash === "#enquiries") setEnquiriesOpen(true, false);
-  document.addEventListener("click", e => {
-    if(!e.target.closest("[data-open-enquiries]")) return;
-    e.preventDefault();
-    setEnquiriesOpen(true, true);
-  });
 
   /* ---------- enquiries and site visits ---------- */
-  const projectCards = new Map();
-  document.querySelectorAll("#recoPool .property-card").forEach(c => projectCards.set(c.dataset.id, c));
-  const esc = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-  const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  const dayText = v => { const m = String(v || "").match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? `${+m[3]} ${MONTHS[+m[2] - 1]}` : ""; };
-  const timeText = v => { const m = String(v || "").match(/^(\d{1,2}):(\d{2})/); if(!m) return ""; const h = +m[1]; return `${h % 12 || 12}:${m[2]} ${h < 12 ? "AM" : "PM"}`; };
   let enquiries = [], enquiriesFor = "";
 
   function paintEnquiries(){
     const visits = enquiries.filter(e => e.type === "schedule_site_visit");
     $("statEnquired").textContent = new Set(enquiries.map(e => e.project_id)).size;
     $("statVisits").textContent = visits.length;
-    $("enqList").innerHTML = enquiries.map(e => {
-      const card = projectCards.get(e.project_id);
-      const name = card ? (card.querySelector(".card-link") || {}).textContent : "";
-      const url = card ? card.dataset.url : "";
-      const isVisit = e.type === "schedule_site_visit";
-      const what = isVisit
-        ? `Site visit · ${[dayText(e.visit_date), timeText(e.visit_time)].filter(Boolean).join(", ") || "requested"}`
-        : `Enquiry sent · ${dayText(e.at)}`;
-      const title = esc((name || "").trim() || "Project");
-      return `<li><span class="profile-enq-icon" aria-hidden="true">${isVisit ? "📅" : "✉"}</span><span class="profile-enq-text">${url ? `<a href="${esc(url)}">${title}</a>` : `<strong>${title}</strong>`}<small>${esc(what)}</small></span></li>`;
-    }).join("");
-    $("enqEmpty").hidden = enquiries.length > 0;
   }
 
   async function loadEnquiries(){
