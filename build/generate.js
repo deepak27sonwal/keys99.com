@@ -31,7 +31,7 @@ const { buildLegalPages } = require("./legal.js");
 const { buildBlog, buildPostFallback } = require("./blog.js");
 const { buildComparePage } = require("./compare.js");
 const { buildComparisons } = require("./compare-pages.js");
-const { buildSavedPage, buildProfilePage, buildReelsPage } = require("./extra-pages.js");
+const { buildSavedPage, buildEnquiriesPage, buildProfilePage, buildReelsPage } = require("./extra-pages.js");
 const { collectFooterLinks, injectFooterLinks } = require("./footer-links.js");
 const { stampAssetVersions, htmlFiles } = require("./asset-versions.js");
 
@@ -669,6 +669,11 @@ async function main(){
   }));
   console.log("  wrote    /saved.html");
 
+  fs.writeFileSync(path.join(ROOT, "enquiries.html"), buildEnquiriesPage({
+    H, indexHtml: fs.readFileSync(indexPath, "utf8"), props: allProps, siteOrigin: SITE_ORIGIN, robots: ROBOTS
+  }));
+  console.log("  wrote    /enquiries.html");
+
   fs.writeFileSync(path.join(ROOT, "profile.html"), buildProfilePage({
     H, indexHtml: fs.readFileSync(indexPath, "utf8"), props: allProps, siteOrigin: SITE_ORIGIN, robots: ROBOTS
   }));
@@ -765,7 +770,7 @@ async function main(){
   };
   const footer = injectFooterLinks(ROOT, [
     indexPath,
-    ...["about", "contact", "home-loans", "testimonials", "privacy-policy", "terms", "saved", "profile", "reels"]
+    ...["about", "contact", "home-loans", "testimonials", "privacy-policy", "terms", "saved", "enquiries", "profile", "reels"]
       .map(name => path.join(ROOT, name + ".html")),
     ...htmlFiles(ROOT, ["projects", "commercial", "developers", "blog", "compare"])
   ], footerData, cityOfDir);
@@ -775,7 +780,7 @@ async function main(){
      <head> of every public page, except the private admin page. */
   const protectedFiles = [
     indexPath,
-    ...["about", "contact", "home-loans", "testimonials", "privacy-policy", "terms", "saved", "profile", "reels"]
+    ...["about", "contact", "home-loans", "testimonials", "privacy-policy", "terms", "saved", "enquiries", "profile", "reels"]
       .map(name => path.join(ROOT, name + ".html")),
     ...htmlFiles(ROOT, ["projects", "commercial", "developers", "blog", "compare"])
   ];
@@ -811,6 +816,7 @@ async function main(){
     path.join(ROOT, "privacy-policy.html"),
     path.join(ROOT, "terms.html"),
     path.join(ROOT, "saved.html"),
+    path.join(ROOT, "enquiries.html"),
     path.join(ROOT, "profile.html"),
     path.join(ROOT, "reels.html"),
     ...htmlFiles(ROOT, ["projects", "commercial", "developers", "blog", "compare", "admin"])
