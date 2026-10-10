@@ -766,6 +766,23 @@ async function main(){
   ], footerData, cityOfDir);
   console.log(`  footer   city links on ${footer.city} page(s), popular cities on ${footer.cities}, none on ${footer.skipped} (already linked)`);
 
+  /* js/protect.js (a deterrent against casual inspecting) goes into the
+     <head> of every public page, except the private admin page. */
+  const protectedFiles = [
+    indexPath,
+    ...["about", "contact", "home-loans", "testimonials", "privacy-policy", "terms", "saved", "profile", "reels"]
+      .map(name => path.join(ROOT, name + ".html")),
+    ...htmlFiles(ROOT, ["projects", "commercial", "developers", "blog", "compare"])
+  ];
+  protectedFiles.forEach(file => {
+    if(!fs.existsSync(file)) return;
+    const html = fs.readFileSync(file, "utf8");
+    if(html.includes("js/protect.js")) return;
+    const prefix = "../".repeat(path.relative(ROOT, path.dirname(file)).split(path.sep).filter(Boolean).length);
+    const out = html.replace("</head>", `<script src="${prefix}js/protect.js" defer></script>\n</head>`);
+    if(out !== html) fs.writeFileSync(file, out);
+  });
+
   /* Last: version every CSS/JS link so browsers never pair new pages
      with old cached styles or scripts. */
   const stamped = stampAssetVersions(ROOT, [
