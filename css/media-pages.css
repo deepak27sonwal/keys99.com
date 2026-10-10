@@ -128,6 +128,14 @@
 .profile-stats{ display:grid; grid-template-columns:repeat(6,1fr); gap:10px; position:relative; z-index:1; }
 .profile-stats .profile-stat{ grid-column:span 2; }
 .profile-stats .profile-stat:nth-child(n+4){ grid-column:span 3; }
+@media(max-width:619px){
+  .profile-head{ gap:14px; padding:18px; }
+  .profile-stats{ gap:8px; }
+  .profile-stat{ padding:8px 4px 8px; border-radius:13px; gap:1px; }
+  .profile-stat i{ width:22px; height:22px; font-size:11px; margin-bottom:2px; }
+  .profile-stat strong{ font-size:18px; }
+  .profile-stat span{ font-size:10.5px; line-height:1.2; }
+}
 @media(min-width:620px){
   .profile-stats{ grid-template-columns:repeat(5,1fr); }
   .profile-stats .profile-stat, .profile-stats .profile-stat:nth-child(n+4){ grid-column:auto; }
