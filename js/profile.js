@@ -111,6 +111,18 @@
     render();
   }
 
+  /* Profile settings sit behind a shortcut row, like Saved and Compare. */
+  const settingsCard = $("profileSettingsCard");
+  const settingsLink = $("profileSettingsLink");
+  function setSettingsOpen(open, scroll){
+    settingsCard.hidden = !open;
+    settingsLink.setAttribute("aria-expanded", String(open));
+    settingsLink.classList.toggle("open", open);
+    if(open && scroll) settingsCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+  settingsLink.addEventListener("click", () => setSettingsOpen(settingsCard.hidden, true));
+  if(location.hash === "#settings") setSettingsOpen(true, false);
+
   $("profileEdit").addEventListener("click", openForm);
   $("pfCancel").addEventListener("click", closeForm);
 
