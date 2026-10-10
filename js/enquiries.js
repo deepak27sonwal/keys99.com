@@ -25,6 +25,12 @@
   bar.querySelector("button").addEventListener("click", () => account && account.logout());
   $("enqLoginBtn").addEventListener("click", () => account && account.openLogin());
 
+  const SLOTS = ["10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"];
+  const slotText = k => { const h = +k.slice(0, 2); return `${h % 12 || 12}:00 ${h < 12 ? "AM" : "PM"}`; };
+  const iso = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  const ahead = n => { const d = new Date(); d.setDate(d.getDate() + n); return iso(d); };
+  const EDITABLE = ["new", "follow_up", "site_visit_scheduled", ""];
+  let editing = null, editMsg = "";
   let rows = [], loadedFor = "", tab = location.hash === "#visits" ? "visit" : "all";
   const isVisit = e => e.type === "schedule_site_visit";
 
@@ -41,7 +47,42 @@
     $("enqCountAll").textContent = rows.length;
     $("enqCountEnq").textContent = new Set(rows.map(e => e.project_id)).size;
     $("enqCountVisit").textContent = visits.length;
-    document.querySelectorAll("[data-enq-tab]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.enqTab === tab)));
+    /* Change date / time of an upcoming site visit. */
+  list.addEventListener("click", ev => {
+    const btn = ev.target.closest("[data-edit]");
+    if(btn){ editing = rows[+btn.dataset.edit]; editMsg = ""; render(); return; }
+    if(ev.target.closest(".enq-cancel")){ editing = null; editMsg = ""; render(); }
+  });
+  list.addEventListener("change", ev => {
+    const msg = ev.target.closest(".enq-edit") && ev.target.closest(".enq-edit").querySelector(".enq-edit-msg");
+    if(msg) msg.hidden = true;
+  });
+  list.addEventListener("submit", async ev => {
+    const form = ev.target.closest(".enq-edit");
+    if(!form) return;
+    ev.preventDefault();
+    const msg = form.querySelector(".enq-edit-msg");
+    const fail = text => { msg.textContent = text; msg.hidden = false; };
+    const date = form.elements.date.value;
+    const slot = form.querySelector('input[name="slot"]:checked');
+    if(!date || date < ahead(1) || date > ahead(60)) return fail("Please pick a date from tomorrow up to 60 days ahead.");
+    if(!slot) return fail("Please pick a time slot.");
+    const row = editing, save = form.querySelector("button[type=submit]");
+    save.disabled = true; save.textContent = "Saving...";
+    try{
+      await account.rescheduleVisit(row, date, slot.value);
+      row.visit_date = date; row.visit_time = slot.value;
+      editing = null; editMsg = "";
+      render();
+      const li = list.querySelector(`[data-i="${rows.indexOf(row)}"] .enq-tag`);
+      if(li){ li.classList.add("saved"); li.textContent = `✔ Updated · ${dayText(date)}, ${slotText(slot.value)}`; setTimeout(render, 3500); }
+    }catch(err){
+      save.disabled = false; save.textContent = "Save changes";
+      fail((err && err.message) || "Could not update the visit. Please try again.");
+    }
+  });
+
+  document.querySelectorAll("[data-enq-tab]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.enqTab === tab)));
 
     const shown = tab === "visit" ? visits : tab === "enquiry" ? enq : rows;
     list.innerHTML = shown.map(e => {
@@ -57,7 +98,23 @@
       const title = esc(name || "Project");
       const thumb = img ? `<img src="${esc(img.getAttribute("src") || "")}" alt="" loading="lazy">` : `<span class="enq-thumb-ph">🏢</span>`;
       const head = url ? `<a href="${esc(url)}">${title}</a>` : `<strong>${title}</strong>`;
-      return `<li class="enq-item"><div class="enq-thumb">${thumb}</div><div class="enq-body">${head}${where ? `<small>${esc(where)}</small>` : ""}<span class="enq-tag ${visit ? "visit" : ""}">${visit ? "📅" : "✉"} ${esc(what)}</span></div></li>`;
+
+      let action = "", editor = "";
+      const upcoming = visit && e.visit_date && e.visit_date >= ahead(0);
+      if(upcoming && e.id){
+        if(!EDITABLE.includes(e.status)) action = `<small class="enq-locked">Confirmed by our team. Please contact us to change it.</small>`;
+        else if(editing === e) {
+          const slot = e.visit_time ? e.visit_time.slice(0, 5) : "";
+          editor = `<form class="enq-edit" novalidate>
+            <label class="enq-edit-date"><span>Date</span><input type="date" name="date" min="${ahead(1)}" max="${ahead(60)}" value="${esc(e.visit_date >= ahead(1) ? e.visit_date : ahead(1))}" required></label>
+            <fieldset class="enq-slots"><legend>Time slot</legend><div class="enq-slot-grid">${SLOTS.map(k => `<label class="enq-slot"><input type="radio" name="slot" value="${k}"${k === slot ? " checked" : ""}><span>${slotText(k)}</span></label>`).join("")}</div></fieldset>
+            <p class="enq-edit-msg" role="alert"${editMsg ? "" : " hidden"}>${esc(editMsg)}</p>
+            <div class="enq-edit-actions"><button type="submit" class="btn-primary">Save changes</button><button type="button" class="enq-cancel">Cancel</button></div>
+          </form>`;
+        }
+        else action = `<button type="button" class="enq-edit-btn" data-edit="${rows.indexOf(e)}">✎ Change date or time</button>`;
+      }
+      return `<li class="enq-item${editor ? " editing" : ""}" data-i="${rows.indexOf(e)}"><div class="enq-thumb">${thumb}</div><div class="enq-body">${head}${where ? `<small>${esc(where)}</small>` : ""}<span class="enq-tag ${visit ? "visit" : ""}">${visit ? "📅" : "✉"} ${esc(what)}</span>${action}</div>${editor}</li>`;
     }).join("");
 
     const empty = shown.length === 0;
