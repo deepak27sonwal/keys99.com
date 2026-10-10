@@ -62,7 +62,6 @@ JSON-LD already in the HTML.
 | `js/project-core.js` | Query + data mapping + section HTML, shared by browser and build |
 | `js/property-details.js` | Page behaviour: gallery, EMI, enquiry form, live refresh |
 | `build/generate.js` | Writes `projects/<slug>/index.html` and `sitemap.xml` |
-| `.github/workflows/build-pages.yml` | Runs the build daily, on demand, and when the template changes |
 
 Run locally: `npm install` then `npm run build`.
 

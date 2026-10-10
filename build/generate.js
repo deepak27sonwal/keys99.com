@@ -41,6 +41,11 @@ const { stampAssetVersions, htmlFiles } = require("./asset-versions.js");
    locality, until it has a checked guide (content/localities/). */
 const HUB_MIN_INDEXED = 2;
 
+/* The site is served by Cloudflare at keys99.com only. Anyone who lands
+   on a github.io address is sent to the same page on keys99.com. */
+const HOST_REDIRECT_MARK = "<!-- host-redirect -->";
+const HOST_REDIRECT = `${HOST_REDIRECT_MARK}<script>if(/\\.github\\.io$/.test(location.hostname))location.replace("https://keys99.com"+location.pathname.replace(/^\\/keys99\\.com(?=\\/|$)/,"")+location.search+location.hash)</script>`;
+
 const ROOT = path.resolve(__dirname, "..");
 const TEMPLATE = path.join(ROOT, "projects", "property-details.html");
 /* Each top-level folder of generated pages keeps a list of what the
@@ -776,12 +781,24 @@ async function main(){
   ];
   protectedFiles.forEach(file => {
     if(!fs.existsSync(file)) return;
-    const html = fs.readFileSync(file, "utf8");
-    if(html.includes("js/protect.js")) return;
+    let html = fs.readFileSync(file, "utf8");
     const prefix = "../".repeat(path.relative(ROOT, path.dirname(file)).split(path.sep).filter(Boolean).length);
-    const out = html.replace("</head>", `<script src="${prefix}js/protect.js" defer></script>\n</head>`);
-    if(out !== html) fs.writeFileSync(file, out);
+    if(!html.includes("js/protect.js")){
+      html = html.replace("</head>", `<script src="${prefix}js/protect.js" defer></script>\n</head>`);
+    }
+    if(!html.includes(HOST_REDIRECT_MARK)){
+      html = html.replace(/<head[^>]*>/i, m => `${m}\n${HOST_REDIRECT}`);
+    }
+    fs.writeFileSync(file, html);
   });
+
+  /* Nothing may point at GitHub: warn about any github.io / github.com
+     address left in a generated page or the sitemap. */
+  {
+    const leaks = [...protectedFiles, path.join(ROOT, "sitemap.xml")].filter(file =>
+      fs.existsSync(file) && /github\.(?:io|com)/i.test(fs.readFileSync(file, "utf8").replace(HOST_REDIRECT, "")));
+    if(leaks.length) console.warn(`  warning  GitHub address found in ${leaks.length} file(s), e.g. ${path.relative(ROOT, leaks[0])}`);
+  }
 
   /* Last: version every CSS/JS link so browsers never pair new pages
      with old cached styles or scripts. */
