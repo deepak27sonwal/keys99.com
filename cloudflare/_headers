@@ -2,14 +2,10 @@
 # Header and Expires rules in .htaccess, which Cloudflare ignores.
 # build/cloudflare-dist.js copies this file into dist/.
 
-# PRE-LAUNCH: the X-Robots-Tag line keeps every page and file out of
-# Google, including pages without their own robots meta tag.
-# Delete that one line at launch (keep the other three).
 /*
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   X-Frame-Options: SAMEORIGIN
-  X-Robots-Tag: noindex, nofollow
 
 # The <project>.pages.dev address serves the same site as keys99.com.
 # Keep it out of search results for good, so it never competes with

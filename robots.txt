@@ -1,6 +1,6 @@
-# Pages are kept out of search results until launch by their own
-# noindex tags, not by this file: blocking crawling here would stop
-# Google from ever seeing those tags.
+# Pages are open to search engines. Keep out of the index (private or
+# thin pages) is done with noindex tags, not by this file: blocking
+# crawling here would stop Google from ever seeing those tags.
 User-agent: *
 Allow: /
 

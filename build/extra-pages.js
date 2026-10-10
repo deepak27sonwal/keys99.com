@@ -64,7 +64,7 @@ function finish(html, activeTab){
   return $.html();
 }
 
-function buildSavedPage({ H, indexHtml, props, siteOrigin }){
+function buildSavedPage({ H, indexHtml, props, siteOrigin, robots }){
   const chrome = homepageChrome(indexHtml);
   const cards = props.map(p => H.createPropertyCard(p)).join("");
   const main = `
@@ -105,14 +105,14 @@ function buildSavedPage({ H, indexHtml, props, siteOrigin }){
     title: "Saved Projects | Keys99",
     description: "Your saved and recently viewed projects on Keys99.",
     canonical: `${siteOrigin}/saved`,
-    robots: "noindex,follow",
+    robots,
     css: ["css/media-pages.css"],
     main,
     scripts: ["js/cards.js", "js/hub.js", "js/nav-fx.js", "js/attribution.js", "js/compare-tray.js", "js/account.js", "js/saved.js"]
   }), "profile");
 }
 
-function buildProfilePage({ H, indexHtml, props, siteOrigin }){
+function buildProfilePage({ H, indexHtml, props, siteOrigin, robots }){
   const chrome = homepageChrome(indexHtml);
   /* Every project's card; js/profile.js moves the ones that match the
      visitor's requirements into "Recommended for you". */
@@ -257,7 +257,7 @@ function buildProfilePage({ H, indexHtml, props, siteOrigin }){
     title: "My Profile | Keys99",
     description: "Your Keys99 account: saved projects, recently viewed and shortcuts.",
     canonical: `${siteOrigin}/profile`,
-    robots: "noindex,follow",
+    robots,
     css: ["css/media-pages.css"],
     main,
     scripts: ["js/hub.js", "js/nav-fx.js", "js/attribution.js", "js/compare-tray.js", "js/cards.js", "js/account.js", "js/phone.js", "js/profile.js", "js/requirements.js"]

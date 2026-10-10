@@ -7,8 +7,9 @@
    call. Reads the same query string the homepage sends:
      q, type, bhk, city, locality, status, minPrice, maxPrice, sort
 
-   Search result pages are never indexed (noindex,follow): the
-   city and locality pages are the indexable listings.
+   The page itself is indexable (robots from the build); the filtered
+   results are the same page, and the city and locality pages are the
+   dedicated listings.
 ========================================================= */
 
 const cheerio = require("cheerio");
@@ -26,7 +27,7 @@ const TYPES = [
   ["luxury", "Luxury / Villa"], ["plots", "Plots & Land"]
 ];
 
-function buildSearchPage({ H, indexHtml, props, siteOrigin }){
+function buildSearchPage({ H, indexHtml, props, siteOrigin, robots }){
   const chrome = homepageChrome(indexHtml);
   const e = H.escapeHtml;
   const prefix = "../";                                  // projects/search.html
@@ -60,7 +61,7 @@ function buildSearchPage({ H, indexHtml, props, siteOrigin }){
 <title>Search New Projects, Flats &amp; Commercial Property | Keys99</title>
 <meta name="description" content="Search new residential and commercial projects by city, locality, BHK or unit type, budget and type on Keys99.">
 <link rel="canonical" href="${e(siteOrigin)}/projects/search">
-<meta name="robots" content="noindex,follow">
+<meta name="robots" content="${robots}">
 <link rel="icon" href="favicon.ico">
 ${chrome.fonts}
 <link rel="stylesheet" href="css/index.css">

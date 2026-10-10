@@ -51,13 +51,9 @@ jobs:
       # first), start again from the new main instead of merging:
       # the pages are generated from the database, so a fresh build
       # is always the right result and there is nothing to resolve.
-      # SITE_INDEXABLE stays unset until launch, so pages are noindex.
+      # Pages are indexable by default (SITE_INDEXABLE=false holds a
+      # build back) and link-preview images always use keys99.com.
       - name: Build and commit pages
-        env:
-          # TESTING ON GITHUB PAGES: link-preview images (WhatsApp etc.)
-          # load from the Pages address, since keys99.com does not serve
-          # this site yet. Delete this line at launch on keys99.com.
-          ASSET_ORIGIN: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
         run: |
           git config user.name "keys99-build"
           git config user.email "actions@users.noreply.github.com"

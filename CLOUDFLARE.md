@@ -135,13 +135,14 @@ its ranking is lost and visitors land on a 404.
 
 ## 7. Launch checklist (search engines)
 
-1. Cloudflare environment variables: delete `ASSET_ORIGIN`, and add
-   `SITE_INDEXABLE` = `true`.
-2. `cloudflare/_headers`: delete the `X-Robots-Tag: noindex, nofollow` line
-   under `/*`. Keep the `pages.dev` rule.
-3. `index.html`: set the robots meta tag to `index,follow,max-image-preview:large`.
-4. Push to `main`. Cloudflare rebuilds with the new settings.
-5. In Google Search Console, add `keys99.com` and submit
+Pages are indexable by default now: there is no `X-Robots-Tag` header (except
+the `pages.dev` rule, which stays) and every page carries
+`index,follow,max-image-preview:large`.
+
+1. Cloudflare environment variables: delete `ASSET_ORIGIN` if it is still set
+   (an indexable build ignores it and warns). `SITE_INDEXABLE` is not needed;
+   set it to `false` only to hold a staging build back.
+2. In Google Search Console, add `keys99.com` and submit
    `https://keys99.com/sitemap.xml`.
 
 ## Notes

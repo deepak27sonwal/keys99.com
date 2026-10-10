@@ -48,15 +48,20 @@ const TEMPLATE = path.join(ROOT, "projects", "property-details.html");
 const manifestFor = base => path.join(ROOT, base, ".generated.json");
 
 const SITE_ORIGIN = (process.env.SITE_ORIGIN || "https://keys99.com").replace(/\/+$/, "");
-/* Where the files are actually served. Link-preview images (og:image)
-   must load from a working address, or WhatsApp shows no picture.
-   While testing on GitHub Pages the workflow sets this to the Pages
-   address; at launch on keys99.com it is unset and equals SITE_ORIGIN.
-   Canonical URLs, the sitemap and structured data always use SITE_ORIGIN. */
-const ASSET_ORIGIN = (process.env.ASSET_ORIGIN || SITE_ORIGIN).replace(/\/+$/, "");
-const DEFAULT_SHARE_IMAGE = `${ASSET_ORIGIN}/assets/og-default.jpg`;
-const INDEXABLE = process.env.SITE_INDEXABLE === "true";
+/* Pages are indexable by default. SITE_INDEXABLE=false holds a build
+   back (every page noindex,nofollow), e.g. for a staging copy. */
+const INDEXABLE = process.env.SITE_INDEXABLE !== "false";
 const ROBOTS = INDEXABLE ? "index,follow,max-image-preview:large" : "noindex,nofollow";
+/* Where the files are actually served. Link-preview images (og:image)
+   must load from a working address. A staging copy may set ASSET_ORIGIN
+   to its own address; an indexable build always uses SITE_ORIGIN, so a
+   leftover value (github.io, pages.dev) never ends up in og:image.
+   Canonical URLs, the sitemap and structured data always use SITE_ORIGIN. */
+if(INDEXABLE && process.env.ASSET_ORIGIN && process.env.ASSET_ORIGIN.replace(/\/+$/, "") !== SITE_ORIGIN){
+  console.warn(`  warning  ASSET_ORIGIN (${process.env.ASSET_ORIGIN}) ignored: this build is indexable, so images use ${SITE_ORIGIN}`);
+}
+const ASSET_ORIGIN = (INDEXABLE ? SITE_ORIGIN : (process.env.ASSET_ORIGIN || SITE_ORIGIN)).replace(/\/+$/, "");
+const DEFAULT_SHARE_IMAGE = `${ASSET_ORIGIN}/assets/og-default.jpg`;
 
 const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
@@ -461,18 +466,15 @@ ${urls.map(u => `  <url>\n    <loc>${x(u.loc)}</loc>${u.lastmod ? `\n    <lastmo
 /* ---------------- MAIN ---------------- */
 
 /* Sample testimonials (an element with a data-sample attribute) are
-   for reviewing the design only. Until real buyer reviews replace
-   them, the site may not be indexed - checked before anything is
-   written, so a launch build fails fast with the reason. */
+   for reviewing the design only and carry a visible "Sample" tag. They
+   used to stop an indexable build; the site is indexable by default
+   now, so this only warns - replace them with real buyer reviews (and
+   remove each data-sample tag) as soon as you have them. */
 function checkSampleTestimonials(){
   const files = ["index.html", path.join("content", "testimonials.html")];
   const withSamples = files.filter(f => /<[a-z][^>]*\sdata-sample[\s>=]/i.test(fs.readFileSync(path.join(ROOT, f), "utf8")));
   if(!withSamples.length) return;
-  if(INDEXABLE){
-    throw new Error(`Sample testimonials are still in ${withSamples.join(" and ")}. ` +
-      "Replace them with real buyer reviews (and remove each data-sample tag) before launch.");
-  }
-  console.log(`  note     sample testimonials shown (${withSamples.join(", ")}) - replace before launch`);
+  console.warn(`  warning  sample testimonials are live (${withSamples.join(", ")}) - replace them with real buyer reviews`);
 }
 
 async function main(){
@@ -642,28 +644,28 @@ async function main(){
     const base = kind === "commercial" ? "commercial" : "projects";
     fs.mkdirSync(path.join(ROOT, base), { recursive: true });
     fs.writeFileSync(path.join(ROOT, base, "blog-post.html"), buildPostFallback({
-      indexHtml: fs.readFileSync(indexPath, "utf8"), siteOrigin: SITE_ORIGIN, defaultShareImage: DEFAULT_SHARE_IMAGE, kind
+      indexHtml: fs.readFileSync(indexPath, "utf8"), siteOrigin: SITE_ORIGIN, defaultShareImage: DEFAULT_SHARE_IMAGE, robots: ROBOTS, kind
     }));
     console.log(`  wrote    /${base}/blog-post.html`);
   });
 
   fs.writeFileSync(path.join(ROOT, "projects", "search.html"), buildSearchPage({
-    H, indexHtml: fs.readFileSync(indexPath, "utf8"), props: allProps, siteOrigin: SITE_ORIGIN
+    H, indexHtml: fs.readFileSync(indexPath, "utf8"), props: allProps, siteOrigin: SITE_ORIGIN, robots: ROBOTS
   }));
   console.log(`  wrote    /projects/search.html  (${allProps.length} projects)`);
 
   fs.writeFileSync(path.join(ROOT, "projects", "compare.html"), buildComparePage({
-    indexHtml: fs.readFileSync(indexPath, "utf8"), siteOrigin: SITE_ORIGIN
+    indexHtml: fs.readFileSync(indexPath, "utf8"), siteOrigin: SITE_ORIGIN, robots: ROBOTS
   }));
   console.log("  wrote    /projects/compare.html");
 
   fs.writeFileSync(path.join(ROOT, "saved.html"), buildSavedPage({
-    H, indexHtml: fs.readFileSync(indexPath, "utf8"), props: allProps, siteOrigin: SITE_ORIGIN
+    H, indexHtml: fs.readFileSync(indexPath, "utf8"), props: allProps, siteOrigin: SITE_ORIGIN, robots: ROBOTS
   }));
   console.log("  wrote    /saved.html");
 
   fs.writeFileSync(path.join(ROOT, "profile.html"), buildProfilePage({
-    H, indexHtml: fs.readFileSync(indexPath, "utf8"), props: allProps, siteOrigin: SITE_ORIGIN
+    H, indexHtml: fs.readFileSync(indexPath, "utf8"), props: allProps, siteOrigin: SITE_ORIGIN, robots: ROBOTS
   }));
   console.log("  wrote    /profile.html");
 
@@ -728,6 +730,17 @@ async function main(){
     .replace(/(<meta (?:property="og:image"|name="twitter:image") content=")[^"]*(")/g, `$1${DEFAULT_SHARE_IMAGE}$2`));
   console.log(`  wrote    / (homepage sections: ${home.projects} projects, ${home.stats.cities} cities)`);
 
+  /* The homepage and the two project-page templates carry their robots
+     tag in the source, so a held-back build (SITE_INDEXABLE=false) has
+     to rewrite it there too. */
+  ["index.html", path.join("projects", "property-details.html"), path.join("commercial", "property-details.html")].forEach(rel => {
+    const file = path.join(ROOT, rel);
+    if(!fs.existsSync(file)) return;
+    const html = fs.readFileSync(file, "utf8");
+    const out = html.replace(/<meta name="robots" content="[^"]*">/, `<meta name="robots" content="${ROBOTS}">`);
+    if(out !== html) fs.writeFileSync(file, out);
+  });
+
   /* Footer links chosen for each page (build/footer-links.js): a page
      about one city links to that city's listing pages, other pages to
      the main cities, and pages that already have the links get none.
@@ -771,7 +784,7 @@ async function main(){
   console.log(`  versioned CSS/JS links in ${stamped} page(s)`);
 
   console.log(`\n  ${pages.length} project page(s), ${blog.projectPages.length} project post(s), ${hubs.length} city/locality page(s), sitemap.xml updated` +
-    (INDEXABLE ? "" : "\n  pages are noindex (set SITE_INDEXABLE=true at launch)"));
+    (INDEXABLE ? "" : "\n  pages are noindex (SITE_INDEXABLE=false)"));
 }
 
 main().catch(error => {

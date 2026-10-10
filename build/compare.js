@@ -10,7 +10,7 @@
 const cheerio = require("cheerio");
 const { homepageChrome, rebase } = require("./hubs");
 
-function buildComparePage({ indexHtml, siteOrigin }){
+function buildComparePage({ indexHtml, siteOrigin, robots }){
   const chrome = homepageChrome(indexHtml);
   const prefix = "../";                                  // projects/compare.html
 
@@ -23,7 +23,7 @@ function buildComparePage({ indexHtml, siteOrigin }){
 <title>Compare Projects | Keys99</title>
 <meta name="description" content="Compare new residential projects side by side: price, price per sq ft, configurations, possession, RERA and amenities.">
 <link rel="canonical" href="${siteOrigin}/projects/compare">
-<meta name="robots" content="noindex,follow">
+<meta name="robots" content="${robots}">
 <link rel="icon" href="favicon.ico">
 ${chrome.fonts}
 <link rel="stylesheet" href="css/index.css">
