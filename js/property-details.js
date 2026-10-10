@@ -309,13 +309,12 @@ function renderProject(p){
   setupContactButtons(p);
   setupMap(p);
 
-  /* The heart saves to the visitor's account (js/account.js). */
-  ["favoriteBtn", "saveBtn"].forEach(id => {
-    const btn = $(id);
-    if(!btn) return;
-    btn.dataset.propertyId = p.id;
-    btn.dataset.kind = KIND.kind;
-  });
+  /* The Save button saves to the visitor's account (js/account.js). */
+  const saveBtn = $("saveBtn");
+  if(saveBtn){
+    saveBtn.dataset.propertyId = p.id;
+    saveBtn.dataset.kind = KIND.kind;
+  }
   if(window.Keys99Account) Keys99Account.paint();
 
   $("loading").classList.add("hidden");
@@ -959,12 +958,6 @@ function rememberViewed(id){
   }catch(_){}
 }
 
-function initLoginButton(){
-  const loginBtn = $("loginBtn");
-  if(loginBtn) loginBtn.addEventListener("click", () => { window.location.href = SITE_ROOT + "saved"; });
-}
-
-
 /* ---------------- ERROR / TOAST ---------------- */
 
 function showError(message){
@@ -990,5 +983,4 @@ function showToast(message){
 initBottomNav();
 initFloorPlanTabs();
 initMobileMenu();
-initLoginButton();
 loadProject();
