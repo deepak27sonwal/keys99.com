@@ -211,7 +211,7 @@
    MY REQUIREMENTS + RECOMMENDED FOR YOU (js/requirements.js)
 ========================================================= */
 .req-prompt{ display:flex; gap:14px; padding:18px 20px; border:1px dashed #e1a400; background:#fffaf0; box-shadow:none; }
-.req-prompt[hidden], .reco[hidden], .reco-block[hidden], .reco-empty[hidden]{ display:none; }
+.req-prompt[hidden], .reco[hidden], .reco-panel[hidden], .reco-scroller[hidden], .reco-tabs button[hidden], .reco-empty[hidden]{ display:none; }
 .req-prompt-icon{ flex:none; width:44px; height:44px; border-radius:14px; display:grid; place-items:center; background:#fff; font-size:22px; box-shadow:0 4px 12px rgba(225,164,0,.18); }
 .req-prompt h3{ margin:2px 0 4px; font-size:17px; color:var(--ink, #092c3d); }
 .req-prompt p{ margin:0 0 12px; color:var(--muted, #6c7d86); font-size:14px; line-height:1.5; }
@@ -259,11 +259,21 @@ fieldset.req-field .req-chips{ margin-top:7px; }
 
 .reco{ margin:4px 0 18px; }
 .reco-title{ margin:0 0 10px; font-size:20px; color:var(--ink, #092c3d); }
-.reco-block + .reco-block{ margin-top:18px; }
-.reco-head{ display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:10px; }
-.reco-head h3{ margin:0; font-size:16px; color:var(--ink, #092c3d); }
-.reco-all{ color:#006b5b; font-weight:700; font-size:14px; text-decoration:none; }
+.reco-tabs{ margin:0 0 12px; overflow-x:auto; scrollbar-width:none; }
+.reco-tabs::-webkit-scrollbar{ display:none; }
+.reco-tabs button{ white-space:nowrap; }
+.reco-count{ font-weight:600; opacity:.7; }
+.reco-head{ display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:10px; font-size:14px; color:var(--muted, #6c7d86); }
+.reco-all{ color:#006b5b; font-weight:700; font-size:14px; text-decoration:none; white-space:nowrap; }
 .reco-all:hover{ text-decoration:underline; }
-.reco-grid{ grid-template-columns:1fr; }
-@media(min-width:620px){ .reco-grid{ grid-template-columns:1fr 1fr; } }
+.reco-scroller{ position:relative; }
+.reco-scroll{ display:flex; gap:14px; overflow-x:auto; padding:2px 2px 14px; scroll-snap-type:x mandatory; scrollbar-width:none; -webkit-overflow-scrolling:touch; }
+.reco-scroll::-webkit-scrollbar{ display:none; }
+.reco-scroll > .property-card{ flex:0 0 78%; max-width:340px; scroll-snap-align:start; }
+@media(min-width:620px){ .reco-scroll > .property-card{ flex-basis:300px; } }
+.reco-arrow{ display:none; position:absolute; top:42%; z-index:2; width:36px; height:36px; border-radius:50%; border:1px solid var(--line, #e7eceb); background:#fff; color:#006b5b; font-size:22px; line-height:1; cursor:pointer; box-shadow:0 4px 14px rgba(8,45,56,.14); }
+.reco-arrow:hover{ background:#f6fbf9; }
+.reco-arrow[data-reco-prev]{ left:-12px; }
+.reco-arrow[data-reco-next]{ right:-12px; }
+@media(min-width:900px) and (hover:hover){ .reco-arrow{ display:grid; place-items:center; } }
 .reco-empty{ margin:0; padding:16px; border-radius:14px; background:#f6fbf9; color:var(--muted, #6c7d86); font-size:14px; text-align:center; }
