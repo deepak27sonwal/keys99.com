@@ -327,3 +327,8 @@ fieldset.req-field .req-chips{ margin-top:7px; }
 .enq-tag{ align-self:flex-start; margin-top:2px; padding:3px 10px; border-radius:999px; background:#eaf7f3; color:#0b7a5e; font-size:12.5px; font-weight:600; }
 .enq-tag.visit{ background:#fff3dc; color:#8a5a00; }
 @media (min-width:760px){ .enq-list{ grid-template-columns:1fr 1fr; } }
+
+/* Change a site visit (the popup itself is css/contact-gate.css) */
+.enq-edit-btn{ align-self:flex-start; margin-top:6px; padding:6px 12px; border:1px solid #cfe3dd; border-radius:999px; background:#fff; color:var(--green, #006b5b); font:inherit; font-size:13px; font-weight:700; cursor:pointer; }
+.enq-edit-btn:hover{ background:#eaf7f3; }
+.enq-locked{ margin-top:4px; }

@@ -229,6 +229,7 @@
       const { data, error } = await sb.rpc("my_enquiries");
       if(!error && Array.isArray(data)){
         remote = data.map(r => ({
+          id: r.id || "", status: r.status || "",
           project_id: r.project_id, kind: r.kind, type: r.enquiry_type,
           visit_date: r.preferred_visit_date || "", visit_time: String(r.preferred_visit_time || "").slice(0, 5),
           at: r.created_at
@@ -245,6 +246,28 @@
         return true;
       })
       .sort((a, b) => String(b.at).localeCompare(String(a.at)));
+  }
+
+  /* Moves one of the visitor's own site visits to another date and
+     hourly slot (reschedule_site_visit(), supabase/16-reschedule-site-visit.sql).
+     row is an item from myEnquiries() with an id; date "YYYY-MM-DD",
+     time "HH:MM". Throws the database's message if it is refused. */
+  async function rescheduleVisit(row, date, time){
+    const sb = await client();
+    const { error } = await sb.rpc("reschedule_site_visit", {
+      p_kind: row.kind, p_id: row.id, p_date: date, p_time: time + ":00"
+    });
+    if(error) throw error;
+    try{
+      const list = JSON.parse(localStorage.getItem("keys99_enquiries") || "[]");
+      const day = String(row.at || "").slice(0, 10);
+      list.forEach(r => {
+        if(r.project_id === row.project_id && r.type === row.type && String(r.at || "").slice(0, 10) === day){
+          r.visit_date = date; r.visit_time = time;
+        }
+      });
+      localStorage.setItem("keys99_enquiries", JSON.stringify(list));
+    }catch(_){}
   }
 
   /* Supabase emails a confirmation link to the new address (and to the
@@ -817,6 +840,7 @@
     updateProfile,
     updateRequirements,
     myEnquiries,
+    rescheduleVisit,
     changeEmail,
     toast,
     ids: () => [...saved.keys()],
