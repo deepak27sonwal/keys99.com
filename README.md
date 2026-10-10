@@ -37,18 +37,18 @@ Links to search, project, city/locality, login, profile, post-property, reels,
 terms and privacy pages will 404 until those steps are added. The chat widget
 needs the `chat-agent` Edge Function, which is also a later step.
 
-## Search engines (pre-launch)
+## Search engines
 
-The site is deliberately kept out of Google until the final version:
+The site is live for search engines: every page carries
+`index,follow,max-image-preview:large` and no `X-Robots-Tag` header is sent.
+Kept out on purpose: `admin/leads.html` (private), pages with too little
+content (hubs under `HUB_MIN_INDEXED` projects, thin posts and comparisons)
+and the `<project>.pages.dev` copy (`cloudflare/_headers`).
 
-- `index.html` has `<meta name="robots" content="noindex,nofollow">`
-- `.htaccess` sends `X-Robots-Tag: noindex, nofollow` on every response
-
-At launch, set the meta tag back to `index,follow,max-image-preview:large`,
-delete the `X-Robots-Tag` line, then add the site in Google Search Console and
-submit the sitemap. Do **not** block the site with a `robots.txt`
-`Disallow: /` instead — Google then can't read the noindex and may still list
-the URLs.
+`SITE_INDEXABLE=false` in the build environment holds a build back (every page
+`noindex,nofollow`), e.g. for a staging copy. Add the site in Google Search
+Console and submit `https://keys99.com/sitemap.xml`. Do **not** block the site
+with a `robots.txt` `Disallow: /`.
 
 ## Project pages
 
@@ -62,12 +62,10 @@ JSON-LD already in the HTML.
 | `js/project-core.js` | Query + data mapping + section HTML, shared by browser and build |
 | `js/property-details.js` | Page behaviour: gallery, EMI, enquiry form, live refresh |
 | `build/generate.js` | Writes `projects/<slug>/index.html` and `sitemap.xml` |
-| `.github/workflows/build-pages.yml` | Runs the build daily, on demand, and when the template changes |
 
 Run locally: `npm install` then `npm run build`.
 
-- Pages are `noindex` until launch. At launch set `SITE_INDEXABLE=true` in the
-  workflow's build step.
+- Pages are indexable by default; `SITE_INDEXABLE=false` holds a build back.
 - A generated page renders from the data built into it and only refreshes from
   Supabase, so a failed request never shows "not found" over real content.
 - Enquiries go to `residential_enquiries`. Call / WhatsApp use the project's

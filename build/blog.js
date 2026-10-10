@@ -402,7 +402,7 @@ function buildProjectPostPage(entry, ctx){
    as ?project=&post=); js/blog-post.js loads the post by slug. Never
    indexed. kind: "residential" (projects/blog-post.html) or
    "commercial" (commercial/blog-post.html). */
-function buildPostFallback({ indexHtml, siteOrigin, defaultShareImage, kind }){
+function buildPostFallback({ indexHtml, siteOrigin, defaultShareImage, robots, kind }){
   const K = P.kindOf(kind), commercial = K.kind === "commercial";
   const chrome = homepageChrome(indexHtml);
   const prefix = "../";
@@ -423,7 +423,7 @@ function buildPostFallback({ indexHtml, siteOrigin, defaultShareImage, kind }){
 </main>`;
   const html = shell({
     chrome, title, description: "Read this project article on Keys99.",
-    canonical: `${siteOrigin}/${K.base}/blog-post`, robots: "noindex,follow", ogType: "article",
+    canonical: `${siteOrigin}/${K.base}/blog-post`, robots, ogType: "article",
     shareImage: defaultShareImage, jsonLd: { "@context": "https://schema.org", "@type": "WebPage", name: title },
     main, prefix,
     extraHead: ""

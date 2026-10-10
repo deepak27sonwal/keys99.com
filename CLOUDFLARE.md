@@ -73,13 +73,16 @@ select vault.update_secret(
   'NEW-DEPLOY-HOOK-URL');
 ```
 
-## 3. Retire the GitHub build (after Cloudflare is confirmed)
+## 3. The GitHub build is retired
 
-Until step 2's test works, leave the GitHub Action running. It keeps the old
-GitHub Pages test site updating. Then:
+Cloudflare is confirmed working (Production deployments from `main`, the
+Supabase deploy hook and the daily build), so `.github/workflows/build-pages.yml`
+is deleted. GitHub only stores the code now. Still to do on GitHub:
 
-1. Delete `.github/workflows/build-pages.yml`.
-2. In GitHub, go to **Settings → Pages** and unpublish the site.
+1. **Settings → Pages**: unpublish the site, so the `github.io` copy stops
+   serving (anyone who still lands there is redirected to `keys99.com`).
+2. Remove `deepak27sonwal.github.io` from the Supabase Auth Redirect URLs and
+   the Google sign-in authorised origins, if present.
 3. Optionally, stop tracking the generated pages in git (`projects/*/`,
    `developers/`, `sitemap.xml` and so on). Cloudflare writes them on every
    build, so the repository only needs the sources.
@@ -135,13 +138,14 @@ its ranking is lost and visitors land on a 404.
 
 ## 7. Launch checklist (search engines)
 
-1. Cloudflare environment variables: delete `ASSET_ORIGIN`, and add
-   `SITE_INDEXABLE` = `true`.
-2. `cloudflare/_headers`: delete the `X-Robots-Tag: noindex, nofollow` line
-   under `/*`. Keep the `pages.dev` rule.
-3. `index.html`: set the robots meta tag to `index,follow,max-image-preview:large`.
-4. Push to `main`. Cloudflare rebuilds with the new settings.
-5. In Google Search Console, add `keys99.com` and submit
+Pages are indexable by default now: there is no `X-Robots-Tag` header (except
+the `pages.dev` rule, which stays) and every page carries
+`index,follow,max-image-preview:large`.
+
+1. Cloudflare environment variables: delete `ASSET_ORIGIN` if it is still set
+   (an indexable build ignores it and warns). `SITE_INDEXABLE` is not needed;
+   set it to `false` only to hold a staging build back.
+2. In Google Search Console, add `keys99.com` and submit
    `https://keys99.com/sitemap.xml`.
 
 ## Notes

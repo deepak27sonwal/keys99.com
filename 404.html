@@ -1,9 +1,9 @@
 <!doctype html>
 <html lang="en-IN">
 <head>
+<!-- host-redirect --><script>if(/\.github\.io$/.test(location.hostname))location.replace("https://keys99.com"+location.pathname.replace(/^\/keys99\.com(?=\/|$)/,"")+location.search+location.hash)</script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="robots" content="noindex">
 <title>Page not found | Keys99</title>
 <script>
 /* A project published after the last page build has no
@@ -12,7 +12,7 @@
    build (build/generate.js) writes the real page.
 
    Served from any URL, so everything here is computed from the
-   address: on GitHub Pages the site lives under /<repo>/. */
+   address. */
 (function(){
   var path = location.pathname;
   var m = path.match(/^(.*\/)projects\/([a-z0-9]+(?:-[a-z0-9]+)*)\/?$/);
@@ -53,10 +53,7 @@
     location.replace(d[1] + "developers/");
     return;
   }
-  var base = /\.github\.io$/.test(location.hostname)
-    ? "/" + (path.split("/")[1] || "") + "/"
-    : "/";
-  window.__KEYS99_HOME__ = base;
+  window.__KEYS99_HOME__ = "/";
 })();
 </script>
 <style>
@@ -68,6 +65,7 @@
   .icon{width:56px;height:56px;border-radius:50%;background:#eaf7f3;color:#006b5b;display:grid;place-items:center;margin:0 auto;font-size:26px;font-weight:800}
   a{display:inline-block;padding:11px 20px;border-radius:10px;background:#006b5b;color:#fff;text-decoration:none;font-weight:700}
 </style>
+<script src="/js/protect.js" defer></script>
 </head>
 <body>
   <div class="box">
