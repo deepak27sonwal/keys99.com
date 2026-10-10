@@ -180,15 +180,25 @@ function buildProfilePage({ H, indexHtml, props, siteOrigin, robots }){
 
       <section class="reco" id="recoSection" aria-labelledby="recoTitle" hidden>
         <h2 class="reco-title" id="recoTitle">Recommended for you</h2>
-        <div class="reco-block" id="recoResidential" hidden>
-          <div class="reco-head"><h3>🏠 Homes for you</h3><a class="reco-all" href="projects/search">See all</a></div>
-          <div class="hub-grid reco-grid"></div>
+        <div class="req-tabs reco-tabs" role="tablist" aria-label="Recommended and recently viewed projects">
+          <button type="button" role="tab" id="recoTabResidential" data-reco-tab="residential" aria-controls="recoResidential" aria-selected="false" hidden>🏠 Residential <span class="reco-count"></span></button>
+          <button type="button" role="tab" id="recoTabCommercial" data-reco-tab="commercial" aria-controls="recoCommercial" aria-selected="false" hidden>🏢 Commercial <span class="reco-count"></span></button>
+          <button type="button" role="tab" id="recoTabRecent" data-reco-tab="recent" aria-controls="recoRecent" aria-selected="false" hidden>🕘 Recently viewed <span class="reco-count"></span></button>
+        </div>
+        <div class="reco-panel" id="recoResidential" role="tabpanel" aria-labelledby="recoTabResidential" hidden>
+          <div class="reco-head"><span>Homes that match your requirement</span><a class="reco-all" href="projects/search">See all</a></div>
+          <div class="reco-scroller"><button type="button" class="reco-arrow" data-reco-prev aria-label="Scroll left">‹</button><div class="reco-scroll"></div><button type="button" class="reco-arrow" data-reco-next aria-label="Scroll right">›</button></div>
           <p class="reco-empty" hidden>No exact matches yet - our property experts will share options with you.</p>
         </div>
-        <div class="reco-block" id="recoCommercial" hidden>
-          <div class="reco-head"><h3>🏢 Commercial for you</h3><a class="reco-all" href="commercial/">See all</a></div>
-          <div class="hub-grid reco-grid"></div>
+        <div class="reco-panel" id="recoCommercial" role="tabpanel" aria-labelledby="recoTabCommercial" hidden>
+          <div class="reco-head"><span>Offices, shops and more that match your requirement</span><a class="reco-all" href="commercial/">See all</a></div>
+          <div class="reco-scroller"><button type="button" class="reco-arrow" data-reco-prev aria-label="Scroll left">‹</button><div class="reco-scroll"></div><button type="button" class="reco-arrow" data-reco-next aria-label="Scroll right">›</button></div>
           <p class="reco-empty" hidden>No exact matches yet - our property experts will share options with you.</p>
+        </div>
+        <div class="reco-panel" id="recoRecent" role="tabpanel" aria-labelledby="recoTabRecent" hidden>
+          <div class="reco-head"><span>Projects you looked at on this device</span><a class="reco-all" href="saved#recentSection">See all</a></div>
+          <div class="reco-scroller"><button type="button" class="reco-arrow" data-reco-prev aria-label="Scroll left">‹</button><div class="reco-scroll"></div><button type="button" class="reco-arrow" data-reco-next aria-label="Scroll right">›</button></div>
+          <p class="reco-empty" hidden>Nothing viewed yet.</p>
         </div>
       </section>
 

@@ -8,10 +8,12 @@
    visitor's name and number; the page uses them to pick matching
    projects from the cards in #recoPool:
 
-   Homes for you       residential cards in the chosen cities, scored
+   Residential tab     residential cards in the chosen cities, scored
                        on size (BHK), budget, possession and locality.
-   Commercial for you  commercial cards in the chosen cities, scored
+   Commercial tab      commercial cards in the chosen cities, scored
                        on sale/lease, budget, possession and locality.
+   Recently viewed tab the projects this browser opened last.
+   Each tab is a sideways scroller of cards.
 ========================================================= */
 
 (function(){
@@ -282,28 +284,105 @@
     return "projects/search" + (s ? "?" + s : "");
   }
 
-  function renderReco(){
-    cards.forEach(c => pool.appendChild(c));
-    let any = false;
-    [["residential", "recoResidential"], ["commercial", "recoCommercial"]].forEach(([section, id]) => {
-      const block = $(id);
-      const req = reqOf(section);
-      block.hidden = !req;
-      if(!req) return;
-      any = true;
-      const picks = cards
-        .map(card => ({ card, score: scoreCard(card, section, req) }))
-        .filter(x => x.score !== null)
-        .sort((a, b) => b.score - a.score || String(b.card.dataset.created).localeCompare(String(a.card.dataset.created)))
-        .slice(0, 6);
-      const grid = block.querySelector(".reco-grid");
-      picks.forEach(x => grid.appendChild(x.card));
-      block.querySelector(".reco-empty").hidden = picks.length > 0;
-      block.querySelector(".reco-all").href = seeAllHref(section, req);
+  /* The visitor's recently viewed projects (this browser), newest first. */
+  const cardById = new Map(cards.map(c => [c.dataset.id, c]));
+  function recentIds(){
+    try{
+      const v = JSON.parse(localStorage.getItem("keys99_recently_viewed") || "[]");
+      return (Array.isArray(v) ? v : []).filter(id => cardById.has(id)).slice(0, 12);
+    }catch(_){ return []; }
+  }
+
+  const RECO_TABS = [["residential", "recoResidential", "recoTabResidential"], ["commercial", "recoCommercial", "recoTabCommercial"], ["recent", "recoRecent", "recoTabRecent"]];
+  let recoTab = "";
+
+  function showRecoTab(name){
+    recoTab = name;
+    RECO_TABS.forEach(([key, panelId, tabId]) => {
+      const on = key === name;
+      $(panelId).hidden = !on || $(tabId).hidden;
+      $(tabId).setAttribute("aria-selected", String(on));
+      $(tabId).tabIndex = on ? 0 : -1;
     });
-    $("recoSection").hidden = !any;
     window.dispatchEvent(new Event("resize"));             /* size BHK rows of cards that were hidden */
   }
+
+  function renderReco(){
+    cards.forEach(c => pool.appendChild(c));
+    const found = {};
+    ["residential", "commercial"].forEach(section => {
+      const panel = $(section === "residential" ? "recoResidential" : "recoCommercial");
+      const req = reqOf(section);
+      const list = panel.querySelector(".reco-scroll");
+      let picks = [];
+      if(req){
+        picks = cards
+          .map(card => ({ card, score: scoreCard(card, section, req) }))
+          .filter(x => x.score !== null)
+          .sort((a, b) => b.score - a.score || String(b.card.dataset.created).localeCompare(String(a.card.dataset.created)))
+          .slice(0, 10);
+        picks.forEach(x => list.appendChild(x.card));
+        panel.querySelector(".reco-all").href = seeAllHref(section, req);
+      }
+      panel.querySelector(".reco-empty").hidden = !req || picks.length > 0;
+      panel.querySelector(".reco-scroller").hidden = !req || !picks.length;
+      found[section] = { shown: !!req, count: picks.length };
+    });
+    const recent = recentIds();
+    const recentPanel = $("recoRecent");
+    /* A card can only sit in one place, and recently viewed projects are
+       often recommended too, so this tab shows copies (opened by the
+       delegated click below; hearts and compare are delegated already). */
+    const recentList = recentPanel.querySelector(".reco-scroll");
+    recentList.innerHTML = "";
+    recent.forEach(id => {
+      const copy = cardById.get(id).cloneNode(true);
+      copy.dataset.copy = "1";
+      recentList.appendChild(copy);
+    });
+    if(recent.length && account.paint) account.paint(recentList);
+    recentPanel.querySelector(".reco-empty").hidden = true;
+    recentPanel.querySelector(".reco-scroller").hidden = !recent.length;
+    found.recent = { shown: recent.length > 0, count: recent.length };
+
+    RECO_TABS.forEach(([key, , tabId]) => {
+      const t = $(tabId);
+      t.hidden = !found[key].shown;
+      t.querySelector(".reco-count").textContent = found[key].shown ? `(${found[key].count})` : "";
+    });
+    const any = RECO_TABS.some(([key]) => found[key].shown);
+    $("recoSection").hidden = !any;
+    if(any){
+      /* Keep the chosen tab if it still has something; else the first tab with cards. */
+      const keep = RECO_TABS.find(([key]) => key === recoTab && found[key].shown);
+      const first = RECO_TABS.find(([key]) => found[key].shown && found[key].count) || RECO_TABS.find(([key]) => found[key].shown);
+      showRecoTab((keep || first)[0]);
+    }
+  }
+
+  /* Tabs (arrow keys move between them) and the scroller arrows. */
+  $("recoSection").addEventListener("click", e => {
+    const copy = e.target.closest(".property-card[data-copy]");
+    if(copy && !e.target.closest("a, button, .bhk-scroll") && copy.dataset.url){ window.location.href = copy.dataset.url; return; }
+    const t = e.target.closest("[data-reco-tab]");
+    if(t){ showRecoTab(t.dataset.recoTab); return; }
+    const arrow = e.target.closest("[data-reco-prev], [data-reco-next]");
+    if(arrow){
+      const scroller = arrow.closest(".reco-scroller").querySelector(".reco-scroll");
+      scroller.scrollBy({ left: (arrow.hasAttribute("data-reco-next") ? 1 : -1) * Math.max(240, scroller.clientWidth * 0.8), behavior: "smooth" });
+    }
+  });
+  $("recoSection").addEventListener("keydown", e => {
+    if(e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+    const tabs = RECO_TABS.map(([, , id]) => $(id)).filter(t => !t.hidden);
+    const at = tabs.indexOf(document.activeElement);
+    if(at < 0) return;
+    const next = tabs[(at + (e.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length];
+    next.focus();
+    showRecoTab(next.dataset.recoTab);
+    e.preventDefault();
+  });
+  window.addEventListener("storage", e => { if(e.key === "keys99_recently_viewed") renderReco(); });
 
   function render(){
     const user = account.isReady() && account.user();
