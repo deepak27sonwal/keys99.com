@@ -153,6 +153,36 @@ function buildEnquiriesPage({ H, indexHtml, props, siteOrigin, robots }){
     </section>
 
     <div id="enqPool" hidden>${cards}</div>
+
+    <!-- The same popup as "Schedule a Site Visit" on a project page; js/enquiries.js opens it from the Change button. -->
+    <div class="contact-gate hidden" id="contactGate" role="dialog" aria-modal="true" aria-labelledby="contactGateTitle" aria-hidden="true">
+      <div class="contact-gate-backdrop" data-close-gate></div>
+      <form class="contact-gate-card" id="contactGateForm" novalidate>
+        <button type="button" class="contact-gate-close" data-close-gate aria-label="Close">×</button>
+        <p class="contact-gate-title" id="contactGateTitle">Change Site Visit</p>
+        <p class="contact-gate-note" id="contactGateNote"></p>
+        <div class="contact-gate-visit" id="gateVisitFields">
+          <label class="contact-gate-field">
+            <span>Preferred Date</span>
+            <input id="gateDate" type="date">
+          </label>
+          <fieldset class="slot-picker">
+            <legend>Time Slot</legend>
+            <div class="slot-grid" id="gateSlots"><label class="slot"><input type="radio" name="gateSlot" value="10:00"><span>10:00 AM</span></label><label class="slot"><input type="radio" name="gateSlot" value="11:00"><span>11:00 AM</span></label><label class="slot"><input type="radio" name="gateSlot" value="12:00"><span>12:00 PM</span></label><label class="slot"><input type="radio" name="gateSlot" value="13:00"><span>1:00 PM</span></label><label class="slot"><input type="radio" name="gateSlot" value="14:00"><span>2:00 PM</span></label><label class="slot"><input type="radio" name="gateSlot" value="15:00"><span>3:00 PM</span></label><label class="slot"><input type="radio" name="gateSlot" value="16:00"><span>4:00 PM</span></label><label class="slot"><input type="radio" name="gateSlot" value="17:00"><span>5:00 PM</span></label><label class="slot"><input type="radio" name="gateSlot" value="18:00"><span>6:00 PM</span></label></div>
+          </fieldset>
+        </div>
+        <p class="contact-gate-error" id="gateError" role="alert" hidden></p>
+        <button type="submit" class="contact-gate-submit" id="gateSubmit">Update Site Visit</button>
+      </form>
+      <div class="contact-gate-card contact-gate-done" id="gateDone" hidden>
+        <button type="button" class="contact-gate-close" data-close-gate aria-label="Close">×</button>
+        <div class="contact-gate-tick" aria-hidden="true">✓</div>
+        <p class="contact-gate-title">Site visit updated</p>
+        <p class="contact-gate-note" id="gateDoneText"></p>
+        <button type="button" class="contact-gate-secondary" data-close-gate>Done</button>
+      </div>
+    </div>
+
   </div>
 </main>`;
   return finish(shell({
@@ -161,7 +191,7 @@ function buildEnquiriesPage({ H, indexHtml, props, siteOrigin, robots }){
     description: "Projects you enquired about or scheduled a site visit for on Keys99.",
     canonical: `${siteOrigin}/enquiries`,
     robots,
-    css: ["css/media-pages.css"],
+    css: ["css/media-pages.css", "css/contact-gate.css"],
     main,
     scripts: ["js/cards.js", "js/hub.js", "js/nav-fx.js", "js/attribution.js", "js/compare-tray.js", "js/account.js", "js/enquiries.js"]
   }), "profile");

@@ -328,25 +328,7 @@ fieldset.req-field .req-chips{ margin-top:7px; }
 .enq-tag.visit{ background:#fff3dc; color:#8a5a00; }
 @media (min-width:760px){ .enq-list{ grid-template-columns:1fr 1fr; } }
 
-/* Change a site visit */
-.enq-item{ flex-wrap:wrap; }
+/* Change a site visit (the popup itself is css/contact-gate.css) */
 .enq-edit-btn{ align-self:flex-start; margin-top:6px; padding:6px 12px; border:1px solid #cfe3dd; border-radius:999px; background:#fff; color:var(--green, #006b5b); font:inherit; font-size:13px; font-weight:700; cursor:pointer; }
 .enq-edit-btn:hover{ background:#eaf7f3; }
 .enq-locked{ margin-top:4px; }
-.enq-tag.saved{ background:#d9f3e8; color:#0b7a5e; }
-.enq-edit{ flex:1 0 100%; display:grid; gap:14px; margin-top:4px; padding-top:14px; border-top:1px dashed var(--line, #e7eceb); }
-.enq-edit-date > span, .enq-slots legend{ display:block; margin-bottom:6px; padding:0; font-size:12px; font-weight:700; letter-spacing:.4px; text-transform:uppercase; color:#6b7f86; }
-.enq-edit input[type=date]{ width:100%; max-width:240px; padding:11px 12px; border:1px solid #d3e0dc; border-radius:10px; font:inherit; background:#fff; color:var(--ink, #092c3d); }
-.enq-slots{ margin:0; padding:0; border:0; min-width:0; }
-.enq-slot-grid{ display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:8px; }
-.enq-slot{ position:relative; display:block; cursor:pointer; }
-.enq-slot input{ position:absolute; opacity:0; width:1px; height:1px; }
-.enq-edit .enq-slot span{ display:block; margin:0; padding:10px 4px; border:1px solid #d3e0dc; border-radius:10px; background:#fafcfb; text-align:center; font-size:13.5px; font-weight:700; letter-spacing:0; text-transform:none; color:var(--ink, #092c3d); transition:background .15s, border-color .15s; }
-.enq-slot:hover span{ border-color:var(--green, #006b5b); }
-.enq-slot input:checked + span{ background:var(--green, #006b5b); border-color:var(--green, #006b5b); color:#fff; }
-.enq-slot input:focus-visible + span{ box-shadow:0 0 0 3px rgba(0,107,91,.25); }
-.enq-edit-msg{ margin:0; padding:10px 12px; border-radius:10px; background:#fff1ef; color:#b42318; font-size:13.5px; }
-.enq-edit-msg[hidden]{ display:none; }
-.enq-edit-actions{ display:flex; gap:10px; align-items:center; }
-.enq-cancel{ padding:10px 16px; border:0; background:none; color:var(--muted, #6c7d86); font:inherit; font-weight:700; cursor:pointer; text-decoration:underline; }
-@media (min-width:760px){ .enq-item.editing{ grid-column:1 / -1; } .enq-slot-grid{ grid-template-columns:repeat(9, minmax(0,1fr)); } }

@@ -30,7 +30,7 @@
   const iso = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   const ahead = n => { const d = new Date(); d.setDate(d.getDate() + n); return iso(d); };
   const EDITABLE = ["new", "follow_up", "site_visit_scheduled", ""];
-  let editing = null, editMsg = "";
+  let editing = null;
   let rows = [], loadedFor = "", tab = location.hash === "#visits" ? "visit" : "all";
   const isVisit = e => e.type === "schedule_site_visit";
 
@@ -47,39 +47,77 @@
     $("enqCountAll").textContent = rows.length;
     $("enqCountEnq").textContent = new Set(rows.map(e => e.project_id)).size;
     $("enqCountVisit").textContent = visits.length;
-    /* Change date / time of an upcoming site visit. */
+    /* Change date / time of an upcoming site visit: the same popup as
+     "Schedule a Site Visit" on a project page. */
+  const gate = $("contactGate"), gateForm = $("contactGateForm"), gateDone = $("gateDone"), gateError = $("gateError");
+  let returnFocus = null;
+  const projectName = row => {
+    const card = cards.get(row.project_id);
+    return ((card && (card.querySelector(".card-link") || {}).textContent) || "").trim() || "the project";
+  };
+  const longDate = v => { const [y, m, d] = v.split("-").map(Number); return new Date(y, m - 1, d).toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" }); };
+
+  function openGate(row){
+    editing = row;
+    returnFocus = document.activeElement;
+    $("contactGateNote").textContent = `Pick a new day and time for your visit to ${projectName(row)}. The project expert will call to confirm.`;
+    $("gateDate").min = ahead(1);
+    $("gateDate").max = ahead(60);
+    $("gateDate").value = row.visit_date >= ahead(1) ? row.visit_date : ahead(1);
+    const current = String(row.visit_time || "").slice(0, 5);
+    document.querySelectorAll('input[name="gateSlot"]').forEach(r => { r.checked = r.value === current; });
+    gateError.hidden = true;
+    $("gateSubmit").disabled = false;
+    $("gateSubmit").textContent = "Update Site Visit";
+    gateForm.hidden = false;
+    gateDone.hidden = true;
+    gate.classList.remove("hidden");
+    gate.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+    setTimeout(() => $("gateDate").focus(), 50);
+  }
+
+  function closeGate(){
+    gate.classList.add("hidden");
+    gate.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
+    editing = null;
+    if(returnFocus && returnFocus.focus) returnFocus.focus();
+  }
+
   list.addEventListener("click", ev => {
     const btn = ev.target.closest("[data-edit]");
-    if(btn){ editing = rows[+btn.dataset.edit]; editMsg = ""; render(); return; }
-    if(ev.target.closest(".enq-cancel")){ editing = null; editMsg = ""; render(); }
+    if(btn) openGate(rows[+btn.dataset.edit]);
   });
-  list.addEventListener("change", ev => {
-    const msg = ev.target.closest(".enq-edit") && ev.target.closest(".enq-edit").querySelector(".enq-edit-msg");
-    if(msg) msg.hidden = true;
-  });
-  list.addEventListener("submit", async ev => {
-    const form = ev.target.closest(".enq-edit");
-    if(!form) return;
+  document.querySelectorAll("[data-close-gate]").forEach(el => el.addEventListener("click", closeGate));
+  document.addEventListener("keydown", ev => { if(ev.key === "Escape" && editing) closeGate(); });
+  $("gateSlots").addEventListener("change", () => { gateError.hidden = true; });
+  $("gateDate").addEventListener("change", () => { gateError.hidden = true; });
+
+  gateForm.addEventListener("submit", async ev => {
     ev.preventDefault();
-    const msg = form.querySelector(".enq-edit-msg");
-    const fail = text => { msg.textContent = text; msg.hidden = false; };
-    const date = form.elements.date.value;
-    const slot = form.querySelector('input[name="slot"]:checked');
-    if(!date || date < ahead(1) || date > ahead(60)) return fail("Please pick a date from tomorrow up to 60 days ahead.");
+    const fail = text => { gateError.textContent = text; gateError.hidden = false; };
+    const date = $("gateDate").value;
+    const slot = document.querySelector('input[name="gateSlot"]:checked');
+    if(!date || date < ahead(1) || date > ahead(60)) return fail("Please pick a date between tomorrow and the next 60 days.");
     if(!slot) return fail("Please pick a time slot.");
-    const row = editing, save = form.querySelector("button[type=submit]");
-    save.disabled = true; save.textContent = "Saving...";
+    const row = editing, button = $("gateSubmit");
+    button.disabled = true;
+    button.textContent = "Saving...";
     try{
       await account.rescheduleVisit(row, date, slot.value);
-      row.visit_date = date; row.visit_time = slot.value;
-      editing = null; editMsg = "";
-      render();
-      const li = list.querySelector(`[data-i="${rows.indexOf(row)}"] .enq-tag`);
-      if(li){ li.classList.add("saved"); li.textContent = `✔ Updated · ${dayText(date)}, ${slotText(slot.value)}`; setTimeout(render, 3500); }
     }catch(err){
-      save.disabled = false; save.textContent = "Save changes";
-      fail((err && err.message) || "Could not update the visit. Please try again.");
+      button.disabled = false;
+      button.textContent = "Update Site Visit";
+      return fail((err && err.message) || "Could not update the visit. Please try again.");
     }
+    row.visit_date = date;
+    row.visit_time = slot.value;
+    $("gateDoneText").textContent = `Your visit to ${projectName(row)} is now ${longDate(date)} at ${slotText(slot.value)}. The project expert will call to confirm.`;
+    gateForm.hidden = true;
+    gateDone.hidden = false;
+    render();
+    setTimeout(() => gateDone.querySelector(".contact-gate-secondary").focus(), 50);
   });
 
   document.querySelectorAll("[data-enq-tab]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.enqTab === tab)));
@@ -99,22 +137,13 @@
       const thumb = img ? `<img src="${esc(img.getAttribute("src") || "")}" alt="" loading="lazy">` : `<span class="enq-thumb-ph">🏢</span>`;
       const head = url ? `<a href="${esc(url)}">${title}</a>` : `<strong>${title}</strong>`;
 
-      let action = "", editor = "";
+      let action = "";
       const upcoming = visit && e.visit_date && e.visit_date >= ahead(0);
       if(upcoming && e.id){
         if(!EDITABLE.includes(e.status)) action = `<small class="enq-locked">Confirmed by our team. Please contact us to change it.</small>`;
-        else if(editing === e) {
-          const slot = e.visit_time ? e.visit_time.slice(0, 5) : "";
-          editor = `<form class="enq-edit" novalidate>
-            <label class="enq-edit-date"><span>Date</span><input type="date" name="date" min="${ahead(1)}" max="${ahead(60)}" value="${esc(e.visit_date >= ahead(1) ? e.visit_date : ahead(1))}" required></label>
-            <fieldset class="enq-slots"><legend>Time slot</legend><div class="enq-slot-grid">${SLOTS.map(k => `<label class="enq-slot"><input type="radio" name="slot" value="${k}"${k === slot ? " checked" : ""}><span>${slotText(k)}</span></label>`).join("")}</div></fieldset>
-            <p class="enq-edit-msg" role="alert"${editMsg ? "" : " hidden"}>${esc(editMsg)}</p>
-            <div class="enq-edit-actions"><button type="submit" class="btn-primary">Save changes</button><button type="button" class="enq-cancel">Cancel</button></div>
-          </form>`;
-        }
         else action = `<button type="button" class="enq-edit-btn" data-edit="${rows.indexOf(e)}">✎ Change date or time</button>`;
       }
-      return `<li class="enq-item${editor ? " editing" : ""}" data-i="${rows.indexOf(e)}"><div class="enq-thumb">${thumb}</div><div class="enq-body">${head}${where ? `<small>${esc(where)}</small>` : ""}<span class="enq-tag ${visit ? "visit" : ""}">${visit ? "📅" : "✉"} ${esc(what)}</span>${action}</div>${editor}</li>`;
+      return `<li class="enq-item" data-i="${rows.indexOf(e)}"><div class="enq-thumb">${thumb}</div><div class="enq-body">${head}${where ? `<small>${esc(where)}</small>` : ""}<span class="enq-tag ${visit ? "visit" : ""}">${visit ? "📅" : "✉"} ${esc(what)}</span>${action}</div></li>`;
     }).join("");
 
     const empty = shown.length === 0;
