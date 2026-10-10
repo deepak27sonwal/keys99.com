@@ -210,6 +210,43 @@
     changed();
   }
 
+  /* The projects this visitor enquired about and the site visits they
+     asked for: the account's own enquiries (my_enquiries(), see
+     supabase/15-my-enquiries.sql) plus the ones sent from this browser
+     (keys99_enquiries). Each: { project_id, kind, type, visit_date,
+     visit_time, at }, newest first. If the database function is not
+     there, the browser's own list is returned. */
+  async function myEnquiries(){
+    const day = v => String(v || "").slice(0, 10);
+    let local = [];
+    try{
+      const v = JSON.parse(localStorage.getItem("keys99_enquiries") || "[]");
+      local = Array.isArray(v) ? v : [];
+    }catch(_){}
+    let remote = [];
+    try{
+      const sb = await client();
+      const { data, error } = await sb.rpc("my_enquiries");
+      if(!error && Array.isArray(data)){
+        remote = data.map(r => ({
+          project_id: r.project_id, kind: r.kind, type: r.enquiry_type,
+          visit_date: r.preferred_visit_date || "", visit_time: String(r.preferred_visit_time || "").slice(0, 5),
+          at: r.created_at
+        }));
+      }
+    }catch(_){}
+    const seen = new Set();
+    return [...remote, ...local]
+      .filter(r => r && r.project_id && r.type)
+      .filter(r => {
+        const key = [r.project_id, r.type, day(r.at)].join("|");
+        if(seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      })
+      .sort((a, b) => String(b.at).localeCompare(String(a.at)));
+  }
+
   /* Supabase emails a confirmation link to the new address (and to the
      current one too, when "Secure email change" is on); the address
      changes once it is confirmed. */
@@ -779,6 +816,7 @@
     displayName,
     updateProfile,
     updateRequirements,
+    myEnquiries,
     changeEmail,
     toast,
     ids: () => [...saved.keys()],

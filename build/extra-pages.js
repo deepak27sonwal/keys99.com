@@ -157,6 +157,8 @@ function buildProfilePage({ H, indexHtml, props, siteOrigin, robots }){
         </div>
         <div class="profile-stats" aria-label="Your activity">
           <a class="profile-stat" href="saved"><i aria-hidden="true">♥</i><strong id="statSaved">0</strong><span>Saved</span></a>
+          <a class="profile-stat" href="#enquiries" data-open-enquiries><i aria-hidden="true">✉</i><strong id="statEnquired">0</strong><span>Enquired</span></a>
+          <a class="profile-stat" href="#enquiries" data-open-enquiries><i aria-hidden="true">📅</i><strong id="statVisits">0</strong><span>Site visits</span></a>
           <a class="profile-stat" href="saved#recentSection"><i aria-hidden="true">🕘</i><strong id="statRecent">0</strong><span>Recently viewed</span></a>
           <a class="profile-stat" href="projects/compare"><i aria-hidden="true">⇄</i><strong id="statCompare">0</strong><span>To compare</span></a>
         </div>
@@ -251,6 +253,11 @@ function buildProfilePage({ H, indexHtml, props, siteOrigin, robots }){
           <p class="profile-form-note">Your number is used to pre-fill enquiry forms, so experts can reach you on WhatsApp. It is never shown publicly.</p>
         </form>
       </section>
+        <button type="button" id="profileEnquiriesLink" aria-expanded="false" aria-controls="profileEnquiriesPanel"><span>✉</span>My enquiries &amp; site visits<i>›</i></button>
+        <div class="profile-enq" id="profileEnquiriesPanel" hidden>
+          <ul class="profile-enq-list" id="enqList"></ul>
+          <p class="profile-enq-empty" id="enqEmpty" hidden>No enquiries yet. Use <strong>Enquire Now</strong> or <strong>Schedule Site Visit</strong> on any project and it will appear here.</p>
+        </div>
         <a href="saved"><span>♥</span>Saved projects<i>›</i></a>
         <a href="projects/compare"><span>⇄</span>Compare projects<i>›</i></a>
         <a href="projects/search"><span>⌕</span>Browse projects<i>›</i></a>

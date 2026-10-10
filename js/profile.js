@@ -83,6 +83,7 @@
     $("profileEdit").hidden = editing;
 
     $("statSaved").textContent = account.ids().length;
+    loadEnquiries();
     $("statRecent").textContent = readList("keys99_recently_viewed").length;
     $("statCompare").textContent = window.Keys99Compare ? Keys99Compare.list().length : 0;
   }
@@ -111,17 +112,64 @@
     render();
   }
 
-  /* Profile settings sit behind a shortcut row, like Saved and Compare. */
-  const settingsCard = $("profileSettingsCard");
-  const settingsLink = $("profileSettingsLink");
-  function setSettingsOpen(open, scroll){
-    settingsCard.hidden = !open;
-    settingsLink.setAttribute("aria-expanded", String(open));
-    settingsLink.classList.toggle("open", open);
-    if(open && scroll) settingsCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  /* Profile settings and My enquiries sit behind shortcut rows, like
+     Saved and Compare. */
+  function foldRow(linkId, panelId){
+    const link = $(linkId), panel = $(panelId);
+    const set = (open, scroll) => {
+      panel.hidden = !open;
+      link.setAttribute("aria-expanded", String(open));
+      link.classList.toggle("open", open);
+      if(open && scroll) panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    };
+    link.addEventListener("click", () => set(panel.hidden, true));
+    return set;
   }
-  settingsLink.addEventListener("click", () => setSettingsOpen(settingsCard.hidden, true));
+  const setSettingsOpen = foldRow("profileSettingsLink", "profileSettingsCard");
+  const setEnquiriesOpen = foldRow("profileEnquiriesLink", "profileEnquiriesPanel");
   if(location.hash === "#settings") setSettingsOpen(true, false);
+  if(location.hash === "#enquiries") setEnquiriesOpen(true, false);
+  document.addEventListener("click", e => {
+    if(!e.target.closest("[data-open-enquiries]")) return;
+    e.preventDefault();
+    setEnquiriesOpen(true, true);
+  });
+
+  /* ---------- enquiries and site visits ---------- */
+  const projectCards = new Map();
+  document.querySelectorAll("#recoPool .property-card").forEach(c => projectCards.set(c.dataset.id, c));
+  const esc = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const dayText = v => { const m = String(v || "").match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? `${+m[3]} ${MONTHS[+m[2] - 1]}` : ""; };
+  const timeText = v => { const m = String(v || "").match(/^(\d{1,2}):(\d{2})/); if(!m) return ""; const h = +m[1]; return `${h % 12 || 12}:${m[2]} ${h < 12 ? "AM" : "PM"}`; };
+  let enquiries = [], enquiriesFor = "";
+
+  function paintEnquiries(){
+    const visits = enquiries.filter(e => e.type === "schedule_site_visit");
+    $("statEnquired").textContent = new Set(enquiries.map(e => e.project_id)).size;
+    $("statVisits").textContent = visits.length;
+    $("enqList").innerHTML = enquiries.map(e => {
+      const card = projectCards.get(e.project_id);
+      const name = card ? (card.querySelector(".card-link") || {}).textContent : "";
+      const url = card ? card.dataset.url : "";
+      const isVisit = e.type === "schedule_site_visit";
+      const what = isVisit
+        ? `Site visit · ${[dayText(e.visit_date), timeText(e.visit_time)].filter(Boolean).join(", ") || "requested"}`
+        : `Enquiry sent · ${dayText(e.at)}`;
+      const title = esc((name || "").trim() || "Project");
+      return `<li><span class="profile-enq-icon" aria-hidden="true">${isVisit ? "📅" : "✉"}</span><span class="profile-enq-text">${url ? `<a href="${esc(url)}">${title}</a>` : `<strong>${title}</strong>`}<small>${esc(what)}</small></span></li>`;
+    }).join("");
+    $("enqEmpty").hidden = enquiries.length > 0;
+  }
+
+  async function loadEnquiries(){
+    const user = account.user();
+    if(!user){ enquiries = []; enquiriesFor = ""; return; }
+    if(enquiriesFor === user.id) return;
+    enquiriesFor = user.id;
+    try{ enquiries = await account.myEnquiries(); }catch(_){ enquiries = []; }
+    paintEnquiries();
+  }
 
   $("profileEdit").addEventListener("click", openForm);
   $("pfCancel").addEventListener("click", closeForm);
@@ -175,7 +223,7 @@
   $("profileLogin").addEventListener("click", () => account.openLogin());
   $("profileLogout").addEventListener("click", () => account.logout());
   document.addEventListener("keys99:saved", render);
-  window.addEventListener("pageshow", render);
+  window.addEventListener("pageshow", () => { enquiriesFor = ""; render(); });
 
   render();
 })();

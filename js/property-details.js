@@ -838,11 +838,38 @@ async function sendEnquiry(enquiry, optional){
      out on the retry, with the tracking, if the database lacks them. */
   const tracking = window.Keys99Attribution ? window.Keys99Attribution.get() : {};
   const extra = { ...(optional || {}), ...tracking };
-  let { error } = await supabasePublic.from(KIND.enquiries).insert({ ...enquiry, ...extra });
+  /* A logged-in visitor's enquiry goes through their session, so the
+     database can record whose it is (supabase/15-my-enquiries.sql);
+     if that fails for a login reason it is sent the usual way. */
+  const signedIn = !!(window.Keys99Account && Keys99Account.user() && typeof supabaseClient !== "undefined");
+  const send = async (db, row) => db.from(KIND.enquiries).insert(row);
+  let { error } = await send(signedIn ? supabaseClient : supabasePublic, { ...enquiry, ...extra });
+  if(error && signedIn && (error.status === 401 || error.status === 403 || /jwt|token|auth/i.test(error.message || ""))){
+    ({ error } = await send(supabasePublic, { ...enquiry, ...extra }));
+  }
   if(error && Object.keys(extra).length && (error.code === "PGRST204" || /column/i.test(error.message || ""))){
-    ({ error } = await supabasePublic.from(KIND.enquiries).insert(enquiry));
+    ({ error } = await send(supabasePublic, enquiry));
   }
   if(error) throw error;
+  rememberEnquiry(enquiry, optional);
+}
+
+/* The enquiry is also kept in this browser, so the profile can count
+   it even when it was sent while logged out. */
+function rememberEnquiry(enquiry, optional){
+  try{
+    const key = "keys99_enquiries";
+    const list = JSON.parse(localStorage.getItem(key) || "[]");
+    list.unshift({
+      project_id: enquiry.project_id,
+      kind: KIND.kind,
+      type: enquiry.enquiry_type,
+      visit_date: enquiry.preferred_visit_date || "",
+      visit_time: (optional && optional.preferred_visit_time) || "",
+      at: new Date().toISOString()
+    });
+    localStorage.setItem(key, JSON.stringify(list.slice(0, 60)));
+  }catch(_){}
 }
 
 function populateEnquiry(p){
