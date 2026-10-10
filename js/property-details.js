@@ -959,12 +959,6 @@ function rememberViewed(id){
   }catch(_){}
 }
 
-function initLoginButton(){
-  const loginBtn = $("loginBtn");
-  if(loginBtn) loginBtn.addEventListener("click", () => { window.location.href = SITE_ROOT + "saved"; });
-}
-
-
 /* ---------------- ERROR / TOAST ---------------- */
 
 function showError(message){
@@ -990,5 +984,4 @@ function showToast(message){
 initBottomNav();
 initFloorPlanTabs();
 initMobileMenu();
-initLoginButton();
 loadProject();
